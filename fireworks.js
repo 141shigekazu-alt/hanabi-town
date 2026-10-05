@@ -61,6 +61,16 @@ export function deformShellVector(vector,shape,strength=1){
  vector.z=(z*cross+a.z*along*(axial-cross))*gain;
  return vector;
 }
+// Electrical launch cues stay together; small artistic fuse differences move the breaks.
+export const MAX_IGNITION_DELAY=.25;
+export function sampleIgnitionDelays(count,random=Math.random){
+ if(count<=0)return [];
+ if(count===1)return [.01+random()*.09];
+ const spread=.16+random()*.07,spacing=spread/(count-1);
+ const delays=Array.from({length:count},(_,i)=>.01+i*spacing+(random()-.5)*Math.min(.012,spacing*.25));
+ for(let i=count-1;i>0;i--){const j=Math.floor(random()*(i+1));[delays[i],delays[j]]=[delays[j],delays[i]];}
+ return delays;
+}
 export function chapter(t){if(t<35)return '幕開け';if(t<100)return '川沿いの彩り';if(t<170)return '一玉を味わう';if(t<235)return '街のにぎわい';if(t<285)return 'フィナーレ';return '余韻';}
 export function cue(t,index,lively=false){const part=chapter(t);if(part==='余韻')return null;const types=['core','double','willow','sunflower'];let kind=types[index%types.length];const size=part==='幕開け'?3:part==='一玉を味わう'?10:part==='フィナーレ'?(index%3===0?10:5):[3,5,10,5][index%4];if(kind==='double'&&size!==10)kind='core';let interval=part==='一玉を味わう'?8.5:part==='フィナーレ'?1.45:part==='街のにぎわい'?2.8:4.8;if(lively&&part!=='一玉を味わう')interval*=.72;return{kind,size,interval,part};}
 

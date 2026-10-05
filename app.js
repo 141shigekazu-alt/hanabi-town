@@ -1,13 +1,13 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.13';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.14';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector} from './fireworks.js?v=beta.1.0.13';
-import {reflectionMaterial} from './water.js?v=beta.1.0.13';
-import {FireworkAudio} from './audio.js?v=beta.1.0.13';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.13';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.13';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.13';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.13';
-const BUILD_VERSION='beta.1.0.13';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.14';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.14';
+import {FireworkAudio} from './audio.js?v=beta.1.0.14';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.14';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.14';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.14';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.14';
+const BUILD_VERSION='beta.1.0.14';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -103,7 +103,7 @@ function updateRoofLights(seconds){
 }
 let showPlan=null,showNumber=0;
 function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);$('programInfo').textContent=showPlan.name; }
-function sound(explosion,x,z,size){soundEngine?.play(explosion,x,z,size,$('audioMode').value);}
+function sound(explosion,x,z,size,when){soundEngine?.play(explosion,x,z,size,$('audioMode').value,when);}
 function launch(kind='core',size=5,position=null){
  if(fireworks.length>=(position?.wide?9:8))return false;
  if(kind==='kiku'&&size!==3)return false;
@@ -163,25 +163,28 @@ function launch(kind='core',size=5,position=null){
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
  const m=new T.PointsMaterial({size:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color));town.add(refl);
- const ascent=size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
- fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,start:time,burst:false});sound(false,x,z,size);
+ const baseAscent=size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
+ const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
+ const reflectionRadiusScale=kind==='senrin'?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
+ fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:time,burst:false});sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  return true;
 }
-function clearFireworks(){for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
+function clearFireworks(){soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
 // Free expired launch slots and fire sounds before queued shots, without computing points.
-function updateFireworkEvents(){for(let k=fireworks.length-1;k>=0;k--){
+function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime;for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  if(t>=0&&!f.burst)f.burst=true;
  const soundDelay=({3:.2,5:.5,10:1,20:1.5})[f.size]??0;
- if(t>=soundDelay&&!f.soundPlayed){f.soundPlayed=true;sound(true,f.x,f.z,f.size);}
- if(f.kind==='senrin'&&t>=f.clusterDelays[0]+soundDelay&&!f.childSoundPlayed){f.childSoundPlayed=true;soundEngine?.playSenrinChildren(f.x);}
+ if(t>=0&&!f.soundPlayed){f.soundPlayed=true;sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t));}
+ if(f.kind==='senrin'&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.clusterDelays[0]+soundDelay-t));}
  if(t>f.spec.life){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
 } }
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
  const fade=t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
+ let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0;
  for(let i=0;i<f.n;i++)for(let j=0;j<f.trailCount;j++){
  const index=(i*f.trailCount+j)*3;let x,y,z,brightness;
  if(t<0){
@@ -216,9 +219,21 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  // Fade tails along with their heads so the whole break has a clean ending.
  }
  f.positions[index]=x;f.positions[index+1]=Math.max(.018,y);f.positions[index+2]=z;
+ // Head samples already computed above: no second particle pass or temporary vectors.
+ if(t>=0&&j===0&&brightness>0&&(f.kind!=='senrin'||t>=f.clusterDelays[Math.floor(i/24)])){
+  const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
+ }
  const col=f.starColors[i];if(f.kind==='senrin'&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
- f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;f.reflectionGain=t<0?0:fade*.9;
+ f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
+ f.reflectionGain=0;f.reflectionRadius=0;
+ if(light>0){
+  const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
+  f.reflectionCenter.set(cx,cy,cz);
+  f.reflectionRadius=Math.sqrt(Math.max(0,lightR2/light-cx*cx-cy*cy-cz*cz))/f.reflectionRadiusScale;
+  const headBrightness=f.kind==='silver'?2.2:f.kind==='senrin'?3.8:2;
+  f.reflectionGain=.9*fade*Math.min(1,light/(f.n*headBrightness))*reflectionAppearance(f.reflectionRadius/f.r);
+ }
 } }
 let fanQueue=[],fans=[];
 function clearFans(){for(const f of fans){town.remove(f.p);f.g.dispose();f.m.dispose();}fans=[];}
@@ -240,7 +255,7 @@ function updateFans(){
 }
 function startRandomStarmine(plan,index=0){
  const sequence=randomStarmine(plan,time,index,$('mood').value==='lively');
- burstQueue=sequence.shots;fanQueue.push(...sequence.fans);fanQueue.sort((a,b)=>a.at-b.at);nextLaunch=sequence.nextLaunch;
+ burstQueue=sequence.shots;fanQueue.push(...sequence.fans);fanQueue.sort((a,b)=>a.at-b.at);nextLaunch=sequence.nextLaunch+MAX_IGNITION_DELAY;
  $('last').textContent=sequence.label;$('status').textContent='おまかせの連続打ち：'+sequence.label+'。小玉と大玉の高さ、色、間を組み合わせます。';
 }
 function startStarmine(finale=false,wide=showPlan?.wideFinale){
@@ -269,7 +284,14 @@ function startStarmine(finale=false,wide=showPlan?.wideFinale){
  $('last').textContent='スターマイン · 連続打ち';
 }
 function advanceStarmine(){
- while(burstQueue.length&&burstQueue[0].at<=time){const shot=burstQueue[0];if(!launch(shot.kind,shot.size,shot.position))break;burstQueue.shift();}
+ while(burstQueue.length&&burstQueue[0].at<=time){
+  const shot=burstQueue[0];
+  if(shot.position?.ignitionDelay===undefined){
+   const group=burstQueue.filter(s=>Math.abs(s.at-shot.at)<1e-6),delays=sampleIgnitionDelays(group.length);
+   group.forEach((s,i)=>s.position={...s.position,ignitionDelay:delays[i]});
+  }
+  if(!launch(shot.kind,shot.size,shot.position))break;burstQueue.shift();
+ }
 }
 function stopShow(){
  running=false;previewing=false;showPlan=null;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();time=0;cueIndex=0;nextLaunch=.8;
@@ -316,14 +338,17 @@ function advance(dt){
 }
 function updateReflections(){
  town.updateWorldMatrix(true,false);
- for(const f of fireworks){const u=f.refl.material.uniforms;u.uCenter.value.set(f.x,f.y,f.z);town.localToWorld(u.uCenter.value);u.uRadius.value=f.r*town.scale.x;u.uWaterY.value=town.position.y+.006*town.scale.y;u.uGain.value=f.reflectionGain||0;u.uTime.value=time;}
+ for(const f of fireworks){const u=f.refl.material.uniforms;u.uCenter.value.copy(f.reflectionCenter);town.localToWorld(u.uCenter.value);u.uRadius.value=f.reflectionRadius/.8*town.scale.x;u.uWaterY.value=town.position.y+.006*town.scale.y;u.uGain.value=f.reflectionGain||0;u.uTime.value=time;f.refl.visible=u.uGain.value>0;}
 }
 function placeTown(){if(renderer.xr.isPresenting)pendingPlace=true;}
 function ensureAudio(){
  if(!audio){audio=new(window.AudioContext||window.webkitAudioContext)();soundEngine=new FireworkAudio(audio,Number($('volume').value));}
  audio.resume().catch(e=>{$('status').textContent='音声を開始できませんでした：'+e.message;});
 }
-function toggle(){if(previewing){previewing=false;time=0;cueIndex=0;nextLaunch=.8;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();}if(!running&&!showPlan)prepareProgram();running=!running;$('play').textContent=running?'ひと休み':'花火大会を始める';$('status').textContent=running?'オート大会を鑑賞中。操作せず、そのまま眺めてください。':'夜の街で、ひと休み。';if(running)ensureAudio();}
+function toggle(){if(previewing){previewing=false;time=0;cueIndex=0;nextLaunch=.8;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();}if(!running&&!showPlan)prepareProgram();running=!running;$('play').textContent=running?'ひと休み':'花火大会を始める';$('status').textContent=running?'オート大会を鑑賞中。操作せず、そのまま眺めてください。':'夜の街で、ひと休み。';if(running)ensureAudio();else{
+ soundEngine?.cancelScheduled?.();
+ for(const f of fireworks){const t=time-f.start-f.ascent,delay=({3:.2,5:.5,10:1,20:1.5})[f.size]??0;if(t<delay)f.soundPlayed=false;if(f.kind==='senrin'&&t<f.clusterDelays[0]+delay)f.childSoundPlayed=false;}
+}}
 $('play').disabled=false;$('play').textContent='花火大会を始める';$('play').onclick=()=>{if(time>=300)restart();else toggle();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
 let fanPreviewCross=false;$('fans').onclick=()=>{beginPreview();launchFans(fanPreviewCross?'fan':'cross');fanPreviewCross=!fanPreviewCross;};
 $('big').onclick=()=>{beginPreview();launch('triple',20,{x:0,z:-.1});};

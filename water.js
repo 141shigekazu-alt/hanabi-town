@@ -1,4 +1,6 @@
 import * as T from './vendor/three.module.js';
+// Colored reflection grows with the visible stars, not the initial break flash.
+export function reflectionAppearance(radiusFraction){const x=Math.max(0,Math.min(1,(radiusFraction-.015)/.145));return x*x*(3-2*x);}
 // Lightweight, view-dependent approximation of a luminous sphere reflected in rippling water.
 // Not a second rendered camera: stays stereo-aware through cameraPosition in each eye pass.
 export function reflectionMaterial(color,inner){return new T.ShaderMaterial({

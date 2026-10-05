@@ -126,7 +126,7 @@ export function reverbBuffer(context,opening=false){
  return buffer;
 }
 export class FireworkAudio{
- constructor(context,volume){this.context=context;this.cache=new Map();this.reference=new Map();this.ready=Promise.all(['small','large'].map(async name=>{const response=await fetch(new URL(`reference-${name}.wav`,import.meta.url));if(!response.ok)throw new Error('参考音の読込に失敗');const buffer=await context.decodeAudioData(await response.arrayBuffer());for(let channel=0;channel<buffer.numberOfChannels;channel++)fadeTail(buffer.getChannelData(channel),buffer.sampleRate,.02);this.reference.set(name,buffer);}));this.ready.catch(()=>{});this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;this.master.connect(this.limiter).connect(context.destination);
+ constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.all(['small','large'].map(async name=>{const response=await fetch(new URL(`reference-${name}.wav`,import.meta.url));if(!response.ok)throw new Error('参考音の読込に失敗');const buffer=await context.decodeAudioData(await response.arrayBuffer());for(let channel=0;channel<buffer.numberOfChannels;channel++)fadeTail(buffer.getChannelData(channel),buffer.sampleRate,.02);this.reference.set(name,buffer);}));this.ready.catch(()=>{});this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;this.master.connect(this.limiter).connect(context.destination);
  // Retain the short space for launch/foot effects. Openings have a longer tail.
  this.reverb=context.createConvolver();this.reverb.buffer=reverbBuffer(context);
  this.openingReverb=context.createConvolver();this.openingReverb.buffer=reverbBuffer(context,true);
@@ -138,13 +138,22 @@ export class FireworkAudio{
  this.openingWet=context.createGain();this.openingWet.gain.value=.22*rms(this.openingReverb.buffer)/rms(this.reverb.buffer);
  this.openingReverb.connect(this.openingWet).connect(this.master);
  }
- playSenrinChildren(x=0){
+ startSource(source,when){
+ const at=Math.max(this.context.currentTime,when??this.context.currentTime),entry={source,at},onended=source.onended;
+ source.onended=()=>{this.pending.delete(entry);onended?.();};
+ if(at>this.context.currentTime)this.pending.add(entry);
+ source.start(at);
+ }
+ cancelScheduled(){
+ for(const entry of this.pending)if(entry.at>this.context.currentTime){entry.source.stop();this.pending.delete(entry);}
+ }
+ playSenrinChildren(x=0,when){
  if(this.context.state!=='running')return;
  const key='senrin-children';
  if(!this.cache.has(key)){const data=senrinChildSamples(this.context.sampleRate),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
  const source=this.context.createBufferSource(),pan=this.context.createStereoPanner(),dry=this.context.createGain(),send=this.context.createGain();source.buffer=this.cache.get(key);pan.pan.value=Math.max(-.85,Math.min(.85,x/1.5));dry.gain.value=.50;send.gain.value=.18;
  source.connect(pan);pan.connect(dry).connect(this.master);pan.connect(send).connect(this.reverb);
- source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send.disconnect();};source.start();
+ source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send.disconnect();};this.startSource(source,when);
  }
  playCrackle(cross=false){
  if(this.context.state!=='running')return;
@@ -155,7 +164,7 @@ export class FireworkAudio{
  source.onended=()=>{source.disconnect();dry.disconnect();send.disconnect();};source.start();
  }
  setVolume(value){this.master.gain.setTargetAtTime(value,this.context.currentTime,.025);}
- play(explosion,x,z,size,mode='original'){if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
- const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.context.createStereoPanner();pan.pan.value=Math.max(-.85,Math.min(.85,x/1.5));const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();launchSend?.disconnect();};source.start();
+ play(explosion,x,z,size,mode='original',when){if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.context.createStereoPanner();pan.pan.value=Math.max(-.85,Math.min(.85,x/1.5));const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
  }
 }
