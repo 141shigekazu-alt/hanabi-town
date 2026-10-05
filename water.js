@@ -3,7 +3,7 @@ import * as T from './vendor/three.module.js';
 export function reflectionAppearance(radiusFraction){const x=Math.max(0,Math.min(1,(radiusFraction-.015)/.145));return x*x*(3-2*x);}
 // Lightweight, view-dependent approximation of a luminous sphere reflected in rippling water.
 // Not a second rendered camera: stays stereo-aware through cameraPosition in each eye pass.
-export function reflectionMaterial(color,inner){return new T.ShaderMaterial({
+export function reflectionMaterial(color,inner,layers=null){const material=new T.ShaderMaterial({
  transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,
  uniforms:{uCenter:{value:new T.Vector3()},uRadius:{value:.3},uWaterY:{value:.005},uGain:{value:0},uTime:{value:0},uColor:{value:color.clone()},uInner:{value:inner.clone()}},
  vertexShader:`varying vec3 vWorld; void main(){vec4 world=modelMatrix*vec4(position,1.0);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,
@@ -34,4 +34,14 @@ export function reflectionMaterial(color,inner){return new T.ShaderMaterial({
  vec3 scatter=mix(uColor,uInner,0.25)*streak*(0.12+0.88*ripple)*grain*0.65;
  gl_FragColor=vec4((glow*envelope+scatter)*uGain,1.0);
  }`
-});}
+});
+ if(layers){
+  material.uniforms.uLayerRadii={value:layers.radii.concat(Array(6-layers.radii.length).fill(0))};
+  material.uniforms.uLayerGains={value:Array(6).fill(0)};
+  material.uniforms.uLayerColors={value:layers.colors.concat(Array.from({length:6-layers.colors.length},()=>new T.Color(0)))};
+  material.fragmentShader=material.fragmentShader.replace('uniform float uRadius,uWaterY,uGain,uTime;','uniform float uRadius,uWaterY,uGain,uTime; uniform float uLayerRadii[6],uLayerGains[6]; uniform vec3 uLayerColors[6];').replace('vec3 glow=(uColor*(outer+haze)+uInner*inner)*(0.18+0.82*ripple)*grain;',`vec3 layerGlow=vec3(0.0),litColor=vec3(0.0);float litWeight=0.0;
+ for(int i=0;i<6;i++){float weight=uLayerGains[i];layerGlow+=uLayerColors[i]*weight*exp(-pow((distanceToCenter-uLayerRadii[i]*0.8)/0.038,2.0));litColor+=uLayerColors[i]*weight;litWeight+=weight;}
+ litColor/=max(litWeight,0.001);vec3 glow=(layerGlow+litColor*haze)*(0.18+0.82*ripple)*grain;`).replace('mix(uColor,uInner,0.25)*streak','litColor*streak');
+ }
+ return material;
+}

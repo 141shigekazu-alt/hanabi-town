@@ -3,6 +3,9 @@ export const SIZES={20:{label:'二尺玉',radius:.74,height:1.55,stars:420},3:{l
 export const TYPES={senrin:{label:'彩色千輪（軽量テスト）',radii:[1],colors:[0xff419b,0xffd52e,0x42cfff,0x48f5a5,0xbb65ff],life:6.2,tail:.045,gravity:.022},triple:{label:'三重芯',radii:[1,.74,.48,.23],colors:[0xffd38c,0xff749d,0x9bd9ff,0xc8f5ab],life:8,tail:.08,gravity:.014},spiral:{label:'渦巻き',radii:[1],colors:[0xffc34c],life:4.1,tail:.11,gravity:.025},sunflower:{label:'ひまわり',radii:[1,.51],colors:[0xffbf55,0xff3925],life:2.85,fadeStart:2.65,tail:.035,gravity:.026},silver:{label:'銀かむろ',radii:[1,.55],colors:[0xffd18a,0xffd18a],life:6.2,fadeStart:4.6,tail:.06,gravity:.035},core:{label:'芯入り',radii:[1,.48],colors:[0xff718c,0xffe4a0],life:3.5,tail:.04,gravity:.045},double:{label:'八重芯',radii:[1,.66,.32],colors:[0x9ecfff,0xff788d,0xffe399],life:3.9,tail:.045,gravity:.035},willow:{label:'しだれ柳',radii:[1],colors:[0xffd08a],life:5.5,tail:.14,gravity:.065}};
 // A single shell: all stars use one color and leave a longer chrysanthemum tail.
 TYPES.kiku={label:'単色の菊',radii:[1],colors:[0xffd18a],life:3.2,tail:.055,gravity:.032};
+// Parent stars are not counted as a core: four/five cores have five/six layers.
+TYPES.quad={label:'四重芯',radii:[1,.76,.52,.31,.13],colors:[0x548bff,0xff393f,0x67f591,0xffcf70,0xb67bff],layerWeights:[1,.60,.47,.38,.30],ignition:[.110,.086,.062,.038,.014],life:6.2,fadeStart:3.8,tail:.028,gravity:.016};
+TYPES.penta={label:'五重芯',radii:[1,.81,.635,.465,.295,.135],colors:[0x548bff,0xff393f,0x67f591,0xffcf70,0xb67bff,0x66ddff],layerWeights:[1,.60,.47,.38,.30,.22],ignition:[.135,.111,.087,.063,.039,.015],life:6.2,fadeStart:3.8,tail:.022,gravity:.016};
 export const CORE_PALETTES=[
  {id:'original',label:'桃紅 × 淡金',colors:[0xff718c,0xffe4a0]},
  {id:'red-green',label:'紅 × 緑',colors:[0xff393f,0x67f591]},

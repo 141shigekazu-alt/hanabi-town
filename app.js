@@ -1,13 +1,13 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.14';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.15';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.14';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.14';
-import {FireworkAudio} from './audio.js?v=beta.1.0.14';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.14';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.14';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.14';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.14';
-const BUILD_VERSION='beta.1.0.14';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.15';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.15';
+import {FireworkAudio} from './audio.js?v=beta.1.0.15';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.15';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.15';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.15';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.15';
+const BUILD_VERSION='beta.1.0.15';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -102,20 +102,21 @@ function updateRoofLights(seconds){
  }colors.needsUpdate=true;
 }
 let showPlan=null,showNumber=0;
-function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);$('programInfo').textContent=showPlan.name; }
+function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];$('programInfo').textContent=showPlan.name; }
 function sound(explosion,x,z,size,when){soundEngine?.play(explosion,x,z,size,$('audioMode').value,when);}
 function launch(kind='core',size=5,position=null){
  if(fireworks.length>=(position?.wide?9:8))return false;
  if(kind==='kiku'&&size!==3)return false;
- if(kind==='double'&&size!==10)return false;if(kind==='senrin'&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&kind!=='senrin'&&!(kind==='silver'&&position?.wide))return false;
+ if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
+ if(kind==='double'&&size!==10)return false;if(kind==='senrin'&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&kind!=='senrin'&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
  const spec=TYPES[kind],scale=SIZES[size];if(!spec||!scale)return false;
  const z=position?.z??(rand()*1.6-.85),x=position?.x??(riverCenter(z)+(rand()>.5?1:-1)*(.12+rand()*.7));
- const y=scale.height+(position?.heightOffset??0),r=scale.radius,trailCount=kind==='kiku'?16:kind==='senrin'?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[];
+ const y=scale.height+(position?.heightOffset??0),r=scale.radius,trailCount=kind==='kiku'?16:kind==='senrin'?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?rand()*1000:0;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
  for(let layer=0;layer<spec.radii.length;layer++){
- const count=Math.round(scale.stars*(position?.wide?.72:1)*(layer===0?1:layer===1?.6:.35));
- for(const xyz of sphere(count)){directions.push(new T.Vector3(...xyz));shells.push(spec.radii[layer]);starColors.push(scheme[layer]);}
+ const count=Math.round(scale.stars*(position?.wide?.72:1)*(spec.layerWeights?.[layer]??(layer===0?1:layer===1?.6:.35)));
+ for(const xyz of sphere(count)){directions.push(new T.Vector3(...xyz));shells.push(spec.radii[layer]);starColors.push(scheme[layer]);starLayers.push(layer);}
  }
  if(kind==='silver'){
  // Sample once per shell; every frame and tail point keeps the same trajectory.
@@ -162,11 +163,11 @@ function launch(kind='core',size=5,position=null){
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
  const m=new T.PointsMaterial({size:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
- const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color));town.add(refl);
+ const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
  const reflectionRadiusScale=kind==='senrin'?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:time,burst:false});sound(false,x,z,size);
+ fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:time,burst:false});sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  return true;
 }
@@ -184,7 +185,8 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
  const fade=t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
- let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0;
+ let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
+ f.layerLight?.fill(0);
  for(let i=0;i<f.n;i++)for(let j=0;j<f.trailCount;j++){
  const index=(i*f.trailCount+j)*3;let x,y,z,brightness;
  if(t<0){
@@ -215,13 +217,14 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  else{
  const lag=j*(f.kind==='sunflower'&&f.shells[i]<.75?.006:f.spec.tail),at=Math.max(0,t-lag),dir=f.directions[i],travel=f.r*f.shells[i]*(1-Math.exp(-(f.size===20?.7:1.9)*at));
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+.085*at-f.spec.gravity*at*at;z=f.z+dir.z*travel;
- brightness=(t>=lag?1:0)*Math.pow(1-j/f.trailCount,1.7)*(j===0?2:.9);
+ brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(j===0?2:.9);
  // Fade tails along with their heads so the whole break has a clean ending.
  }
  f.positions[index]=x;f.positions[index+1]=Math.max(.018,y);f.positions[index+2]=z;
  // Head samples already computed above: no second particle pass or temporary vectors.
  if(t>=0&&j===0&&brightness>0&&(f.kind!=='senrin'||t>=f.clusterDelays[Math.floor(i/24)])){
   const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
+  if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
  const col=f.starColors[i];if(f.kind==='senrin'&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
@@ -230,7 +233,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  if(light>0){
   const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
   f.reflectionCenter.set(cx,cy,cz);
-  f.reflectionRadius=Math.sqrt(Math.max(0,lightR2/light-cx*cx-cy*cy-cz*cz))/f.reflectionRadiusScale;
+  f.reflectionRadius=Math.sqrt(Math.max(0,lightR2/light-cx*cx-cy*cy-cz*cz))/(f.layerLight?Math.sqrt(lightShellR2/light):f.reflectionRadiusScale);
   const headBrightness=f.kind==='silver'?2.2:f.kind==='senrin'?3.8:2;
   f.reflectionGain=.9*fade*Math.min(1,light/(f.n*headBrightness))*reflectionAppearance(f.reflectionRadius/f.r);
  }
@@ -326,7 +329,7 @@ function advance(dt){
  }
  }
 
- if(time>=(showPlan?.bigAt??130)&&!burstSlots.has('big')&&fireworks.length===0){burstSlots.add('big');clearFireworks();clearFans();burstQueue=[];fanQueue=[];launch('triple',20,{x:0,z:-.1});nextLaunch=time+17;$('status').textContent='特別玉：二尺玉・三重芯。ゆっくり開く一発をお楽しみください。';}
+ if(time>=(showPlan?.bigAt??130)&&!burstSlots.has('big')&&fireworks.length===0){burstSlots.add('big');clearFireworks();clearFans();burstQueue=[];fanQueue=[];const special=showPlan?.special??{kind:'triple',size:20};launch(special.kind,special.size,{x:0,z:-.1});nextLaunch=time+17;$('status').textContent='特別玉：'+SIZES[special.size].label+'・'+TYPES[special.kind].label+'。一玉の層をゆっくりお楽しみください。';}
  for(const slot of (showPlan?.slots??[45,200,250,270]))if(time>=slot&&!burstSlots.has(slot)&&(showPlan?.mode!=='random'||(fireworks.length===0&&burstQueue.length===0))){burstSlots.add(slot);startStarmine(slot===270);break;}
  updateFireworkEvents();advanceStarmine();updateFans();
  const awaitingSpecial=(time>=(showPlan.bigAt-10)&&!burstSlots.has('big'))||showPlan.senrinAt.some((at,index)=>time>=at-10&&!burstSlots.has('senrin-'+index));
@@ -338,7 +341,7 @@ function advance(dt){
 }
 function updateReflections(){
  town.updateWorldMatrix(true,false);
- for(const f of fireworks){const u=f.refl.material.uniforms;u.uCenter.value.copy(f.reflectionCenter);town.localToWorld(u.uCenter.value);u.uRadius.value=f.reflectionRadius/.8*town.scale.x;u.uWaterY.value=town.position.y+.006*town.scale.y;u.uGain.value=f.reflectionGain||0;u.uTime.value=time;f.refl.visible=u.uGain.value>0;}
+ for(const f of fireworks){const u=f.refl.material.uniforms;u.uCenter.value.copy(f.reflectionCenter);town.localToWorld(u.uCenter.value);u.uRadius.value=f.reflectionRadius/.8*town.scale.x;u.uWaterY.value=town.position.y+.006*town.scale.y;u.uGain.value=f.reflectionGain||0;u.uTime.value=time;if(f.layerLight){for(let i=0;i<f.spec.radii.length;i++)u.uLayerGains.value[i]=Math.min(1,f.layerLight[i]/(2*Math.round(SIZES[f.size].stars*f.spec.layerWeights[i])));}f.refl.visible=u.uGain.value>0;}
 }
 function placeTown(){if(renderer.xr.isPresenting)pendingPlace=true;}
 function ensureAudio(){
@@ -370,7 +373,7 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);let handedness='';c.addEventListener('connected',e=>handedness=e.data.handedness);c.addEventListener('selectstart',()=>{if(!renderer.xr.isPresenting)return;if(mrPanel.select(c))return;if(handedness==='left')placeTown();else if(previewing)return;else if(time>=300)restart();else toggle();});scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=kind==='kiku'?o.value!=='3':kind==='triple'?o.value!=='20':kind==='senrin'?!['10','20'].includes(o.value):kind==='double'?o.value!=='10':o.value==='20';if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(kind==='senrin'){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
+function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=kind==='kiku'?o.value!=='3':kind==='triple'?o.value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(o.value):kind==='double'?o.value!=='10':o.value==='20';if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label;return option;}));
