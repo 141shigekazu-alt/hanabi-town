@@ -5,3 +5,5 @@ aside{max-height:82vh;overflow-y:auto}details{font-size:12px;border-top:1px soli
 .program{padding:12px 10px;margin:12px 0;background:#ffffff06;border:1px solid #ddc69530;border-radius:8px;font-size:16px;line-height:1.55;font-variant-numeric:tabular-nums;color:#e2eaf2}.program strong{font-size:18px;font-weight:600;line-height:1.5;color:#ffe0a3;margin-top:5px}
 
 #chapter{display:block;font-size:22px;font-weight:600;line-height:1.45;color:#edf3f9}
+
+#viewHint{font-size:11px;line-height:1.7;color:#b7cad6;margin:2px 0 15px}.bridge-view header{opacity:.65}.bridge-view #bridge{background:#3b4e60;color:#f2e5c7;border-color:#ddc69570}

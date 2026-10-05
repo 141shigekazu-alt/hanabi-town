@@ -181,7 +181,7 @@ export class MRPanel{
   c.strokeStyle='#587084';c.lineWidth=3;c.strokeRect(1.5,1.5,W-3,H-3);
   this.text('花火街  ·  操作パネル',32,44,34,'#f3dfb5');
   this.button('recenter','位置を戻す',608,24,164,46,()=>this.openAt(this.lastTransform));
-  this.text('左X / 左グリップで開閉 · ビーム＋トリガー',32,88,23,'#acbdc9');
+  this.text('左Xで開閉 · 左手のひらを上にして視点を選択',32,88,23,'#acbdc9');
   this.text(s.chapter,32,130,42,'#dde8ef',736);
   this.text(s.last,32,182,42,'#ffe0a3',736);
   c.save();c.translate(0,HEADER_GROWTH);
@@ -207,20 +207,21 @@ export class MRPanel{
    this.button('wideFinale','空いっぱいのかむろを見る',28,777,744,64,()=>this.click('wideFinale'));
    this.wrap(s.status,32,862,736,2);
   }else{
+   if(s.bridge){this.text('手前の橋に座って鑑賞中',32,280,34,'#ffe0a3');this.wrap('花火は頭上に、川面は眼下に。座ったまま、顔を向けて街を見回せます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
-   this.range('height','街の底面の高さ（床から）',458,s.height,' m');
+   this.range('height','街の底面の高さ（床から）',458,s.height,' m');}
    this.range('volume','音量',566,s.volume);
    this.selector('audioMode','音の種類',674,s.audioMode);
    this.selector('towerColor','塔のライトアップ',785,s.towerColor);
-   this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
-   this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));
+   if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
+   this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));}
   }
   if(this.page!==2)this.text(s.metric,32,921,21,'#8caabb',736);
-  this.slider('roomBrightness','部屋の明るさ',990,s.roomBrightness??{value:1});
-  this.text('つまみを押したまま左右へ · 0％では部屋が見えません',32,1135,21,'#aabecb',736);
+  if(s.bridge)this.wrap('橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});
+  this.button('bridge',s.bridge?'ミニチュアに戻る':'街に入る · 手前の橋',28,1116,744,44,()=>this.click('bridge'),{selected:s.bridge});
   this.button('close','パネルを閉じて鑑賞',28,1170,360,62,()=>this.close());
-  this.button('exit','MRを終了してページへ',412,1170,360,62,()=>this.exit(),{danger:true});
+  this.button('exit','鑑賞を終了してページへ',412,1170,360,62,()=>this.exit(),{danger:true});
   this.text(this.grab?'移動中 · トリガーを離すと、ここに置けます':'下の白いバーをビームで掴み、トリガーを押したまま移動',32,1255,20,'#b8c9d4',736);
   c.restore();
   for(const control of this.controls)if(control.id!=='recenter')control.y+=HEADER_GROWTH;
