@@ -1,16 +1,16 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.17';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.18';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.17';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.17';
-import {FireworkAudio} from './audio.js?v=beta.1.0.17';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.17';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.17';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.17';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.17';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.17';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.17';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.17';
-const BUILD_VERSION='beta.1.0.17';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.18';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.18';
+import {FireworkAudio} from './audio.js?v=beta.1.0.18';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.18';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.18';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.18';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.18';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.18';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.18';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.18';
+const BUILD_VERSION='beta.1.0.18';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -238,7 +238,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const col=f.starColors[i];if(f.kind==='senrin'&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
- f.visibleStarLight=light;f.reflectionGain=0;f.reflectionRadius=0;
+ f.reflectionGain=0;f.reflectionRadius=0;
  if(light>0){
   const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
   f.reflectionCenter.set(cx,cy,cz);

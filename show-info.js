@@ -1,14 +1,14 @@
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES} from './fireworks.js?v=beta.1.0.17';
+import {SIZES,TYPES} from './fireworks.js?v=beta.1.0.18';
 
-// Use the same show clock and visible star light as the fireworks. No DOM
+// Announce shells as soon as they launch, through ascent and opening. No DOM
 // label, new timer, random draw or extra particle traversal is needed.
 export function showInfoText({time,running,previewing,fireworks}){
  const seconds=Math.max(0,Math.floor(time)),clock=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
  const phase=previewing?'試し打ち':running?'経過':time>=300?'大会終了':time>0?'ひと休み':'開始前';
  const groups=new Map();
  for(const f of fireworks){
-  if(!(f.visibleStarLight>0)||f.m.opacity<=.04)continue;
+  if(f.m.opacity<=.04)continue;
   const name=(SIZES[f.size]?.label??'')+' · '+(TYPES[f.kind]?.label??f.kind).replace('（軽量テスト）','');
   groups.set(name,(groups.get(name)??0)+1);
  }
