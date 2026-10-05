@@ -1,12 +1,13 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=20261006-beta1-r2';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.12';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette} from './fireworks.js?v=20261006-beta1-r2';
-import {reflectionMaterial} from './water.js?v=20261006-beta1-r2';
-import {FireworkAudio} from './audio.js?v=20261006-beta1-r2';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=20261006-beta1-r2';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=20261006-beta1-r2';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=20261006-beta1-r2';
-import {TowerLighting} from './tower-lighting.js?v=20261006-beta1-r2';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette} from './fireworks.js?v=beta.1.0.12';
+import {reflectionMaterial} from './water.js?v=beta.1.0.12';
+import {FireworkAudio} from './audio.js?v=beta.1.0.12';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.12';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.12';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.12';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.12';
+const BUILD_VERSION='beta.1.0.12';
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
 const $=id=>document.getElementById(id), canvas=$('view');
 const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});
@@ -423,7 +424,7 @@ $('mr').onclick=async()=>{
  session.addEventListener('end',finishMR,{once:true});
  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible')mrPanel.release();});
  await renderer.xr.setSession(session);mrSession=session;mrStarting=false;mrMetrics=new XRMetrics();
- mrMeta={build:'1.0.0-beta.3',startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[]};
+ mrMeta={build:BUILD_VERSION,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[]};
  scene.background=null;scene.fog=null;renderer.setClearColor(0x000000,0);town.visible=false;pendingPlace=true;pendingPanelOpen=true;previous=0;applyRoomBrightness();
  $('mrExport').disabled=false;
  if(!running&&!previewing){if(time>=300)restart();else toggle();}
@@ -452,4 +453,4 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 window.__hanabi={get state(){return{running,previewing,time,active:fireworks.length,buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:fans.length,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
 
-$('build').textContent='ベータ版1号・改良2 · 1.0.0-beta.3';
+$('build').textContent=BUILD_VERSION;
