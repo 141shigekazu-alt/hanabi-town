@@ -197,14 +197,15 @@ export class MRPanel{
    this.button('reset','設定と視点を初期状態に戻す',28,860,744,42,()=>this.click('reset'));
   }else if(this.page===1){
    this.selector('type','花火の種類',247,s.type);
-   this.selector('size','玉の大きさ',364,s.size);
-   this.button('sample','選んだ一玉を上げる',28,473,744,64,()=>this.click('sample'));
-   this.button('fans','足元の扇・クロス',28,559,360,60,()=>this.click('fans'));
-   this.button('starmine','スターマイン',412,559,360,60,()=>this.click('starmine'));
-   this.button('big','二尺玉の三重芯',28,637,360,60,()=>this.click('big'));
-   this.button('finale','銀かむろの締め',412,637,360,60,()=>this.click('finale'));
-   this.button('wideFinale','空いっぱいのかむろを見る',28,715,744,64,()=>this.click('wideFinale'));
-   this.wrap(s.status,32,821,736,2);
+   this.selector('size','玉の大きさ',344,s.size);
+   if(s.palette)this.selector('palette','配色：外星 × 芯星／菊の色',441,s.palette);
+   this.button('sample','選んだ一玉を上げる',28,539,744,64,()=>this.click('sample'));
+   this.button('fans','足元の扇・クロス',28,621,360,60,()=>this.click('fans'));
+   this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',412,621,360,60,()=>this.click('starmine'));
+   this.button('big','二尺玉の三重芯',28,699,360,60,()=>this.click('big'));
+   this.button('finale','銀かむろの締め',412,699,360,60,()=>this.click('finale'));
+   this.button('wideFinale','空いっぱいのかむろを見る',28,777,744,64,()=>this.click('wideFinale'));
+   this.wrap(s.status,32,862,736,2);
   }else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');

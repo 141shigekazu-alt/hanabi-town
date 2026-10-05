@@ -1,6 +1,36 @@
 // Artistic miniature sizes, not full-scale measurements of real fireworks.
 export const SIZES={20:{label:'二尺玉',radius:.74,height:1.55,stars:420},3:{label:'3号玉',radius:.23,height:.80,stars:132},5:{label:'5号玉',radius:.35,height:1.04,stars:204},10:{label:'尺玉',radius:.52,height:1.30,stars:300}};
 export const TYPES={senrin:{label:'彩色千輪（軽量テスト）',radii:[1],colors:[0xff419b,0xffd52e,0x42cfff,0x48f5a5,0xbb65ff],life:6.2,tail:.045,gravity:.022},triple:{label:'三重芯',radii:[1,.74,.48,.23],colors:[0xffd38c,0xff749d,0x9bd9ff,0xc8f5ab],life:8,tail:.08,gravity:.014},spiral:{label:'渦巻き',radii:[1],colors:[0xffc34c],life:4.1,tail:.11,gravity:.025},sunflower:{label:'ひまわり',radii:[1,.51],colors:[0xffbf55,0xff3925],life:2.85,fadeStart:2.65,tail:.035,gravity:.026},silver:{label:'銀かむろ',radii:[1,.55],colors:[0xffd18a,0xffd18a],life:6.2,fadeStart:4.6,tail:.06,gravity:.035},core:{label:'芯入り',radii:[1,.48],colors:[0xff718c,0xffe4a0],life:3.5,tail:.04,gravity:.045},double:{label:'八重芯',radii:[1,.66,.32],colors:[0x9ecfff,0xff788d,0xffe399],life:3.9,tail:.045,gravity:.035},willow:{label:'しだれ柳',radii:[1],colors:[0xffd08a],life:5.5,tail:.14,gravity:.065}};
+// A single shell: all stars use one color and leave a longer chrysanthemum tail.
+TYPES.kiku={label:'単色の菊',radii:[1],colors:[0xffd18a],life:3.2,tail:.055,gravity:.032};
+export const CORE_PALETTES=[
+ {id:'original',label:'桃紅 × 淡金',colors:[0xff718c,0xffe4a0]},
+ {id:'red-green',label:'紅 × 緑',colors:[0xff393f,0x67f591]},
+ {id:'green-red',label:'緑 × 紅',colors:[0x67f591,0xff393f]},
+ {id:'blue-gold',label:'青 × 金',colors:[0x548bff,0xffcf70]},
+ {id:'gold-blue',label:'金 × 青',colors:[0xffcf70,0x548bff]},
+ {id:'pink-blue',label:'桃 × 水色',colors:[0xff73c8,0x66ddff]},
+ {id:'blue-pink',label:'水色 × 桃',colors:[0x66ddff,0xff73c8]},
+ {id:'purple-green',label:'紫 × 緑',colors:[0xb67bff,0x67f591]},
+ {id:'green-purple',label:'緑 × 紫',colors:[0x67f591,0xb67bff]},
+ {id:'red-white',label:'紅 × 白',colors:[0xff393f,0xf0f6ff]},
+ {id:'white-red',label:'白 × 紅',colors:[0xf0f6ff,0xff393f]},
+ {id:'gold-pink',label:'金 × 桃',colors:[0xffcf70,0xff73c8]}
+];
+export const KIKU_PALETTES=[
+ {id:'original',label:'金',colors:[0xffd18a]},
+ {id:'red',label:'紅',colors:[0xff393f]},
+ {id:'blue',label:'青',colors:[0x548bff]},
+ {id:'green',label:'緑',colors:[0x67f591]},
+ {id:'pink',label:'桃',colors:[0xff73c8]},
+ {id:'purple',label:'紫',colors:[0xb67bff]},
+ {id:'white',label:'白',colors:[0xf0f6ff]},
+ {id:'aqua',label:'水色',colors:[0x66ddff]}
+];
+export function paletteOptions(kind){return kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
+export function shellPalette(kind,id='original'){
+ return paletteOptions(kind).find(p=>p.id===id)??{id:'original',label:'',colors:TYPES[kind]?.colors??[]};
+}
 export function sphere(count){return Array.from({length:count},(_,i)=>{const y=1-2*(i+.5)/count,a=i*2.399963229728653,r=Math.sqrt(1-y*y);return [r*Math.cos(a),y,r*Math.sin(a)];});}
 export function chapter(t){if(t<35)return '幕開け';if(t<100)return '川沿いの彩り';if(t<170)return '一玉を味わう';if(t<235)return '街のにぎわい';if(t<285)return 'フィナーレ';return '余韻';}
 export function cue(t,index,lively=false){const part=chapter(t);if(part==='余韻')return null;const types=['core','double','willow','sunflower'];let kind=types[index%types.length];const size=part==='幕開け'?3:part==='一玉を味わう'?10:part==='フィナーレ'?(index%3===0?10:5):[3,5,10,5][index%4];if(kind==='double'&&size!==10)kind='core';let interval=part==='一玉を味わう'?8.5:part==='フィナーレ'?1.45:part==='街のにぎわい'?2.8:4.8;if(lively&&part!=='一玉を味わう')interval*=.72;return{kind,size,interval,part};}
