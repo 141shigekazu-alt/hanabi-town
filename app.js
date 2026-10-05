@@ -1,15 +1,16 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.16';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.17';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.16';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.16';
-import {FireworkAudio} from './audio.js?v=beta.1.0.16';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.16';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.16';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.16';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.16';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.16';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.16';
-const BUILD_VERSION='beta.1.0.16';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.17';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.17';
+import {FireworkAudio} from './audio.js?v=beta.1.0.17';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.17';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.17';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.17';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.17';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.17';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.17';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.17';
+const BUILD_VERSION='beta.1.0.17';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -21,6 +22,7 @@ const camera=new T.PerspectiveCamera(55,innerWidth/innerHeight,.03,40);camera.po
 const mrDimming=new MRDimming(scene);
 const town=new T.Group();scene.add(town);const light=new T.AmbientLight(0x8da9d9,1.1);scene.add(light);const moon=new T.DirectionalLight(0x9ec4ff,1.3);moon.position.set(-2,5,3);scene.add(moon);
 const bridgeView=new BridgeView(town,camera);
+const showInfo=new ShowInfoPanel({scene,timer:$('infoTime'),names:$('infoNames'),overlay:$('showInfoPanel')});
 let seed=141;function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
 const box=new T.BoxGeometry(1,1,1), mats=[0x172431,0x24303d,0x1b2934,0x303540].map(c=>new T.MeshStandardMaterial({color:c,roughness:.9}));
 function cube(x,y,z,w,h,d,mat){const m=new T.Mesh(box,mat);m.position.set(x,y,z);m.scale.set(w,h,d);town.add(m);return m;}
@@ -236,7 +238,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const col=f.starColors[i];if(f.kind==='senrin'&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
- f.reflectionGain=0;f.reflectionRadius=0;
+ f.visibleStarLight=light;f.reflectionGain=0;f.reflectionRadius=0;
  if(light>0){
   const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
   f.reflectionCenter.set(cx,cy,cz);
@@ -309,7 +311,7 @@ function stopShow(){
  $('play').textContent='花火大会を始める';$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';
 }
 function resetAll(){
- if(bridgeView.active)leaveBridge();stopShow();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
+ if(bridgeView.active)leaveBridge();stopShow();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
  for(const [id,value] of Object.entries(defaults))$(id).value=value;
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
@@ -377,7 +379,7 @@ function adjustTownDistance(){
 $('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();};$('distance').oninput=adjustTownDistance;
 function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();return mrPanel.previewPointer((e.clientX-r.left)/r.width*2-1,1-(e.clientY-r.top)/r.height*2,camera,activate);}
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
-const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);let handedness='',handInput=false;c.addEventListener('connected',e=>{handedness=e.data.handedness;handInput=!!e.data.hand;});c.addEventListener('selectstart',()=>{if(!renderer.xr.isPresenting)return;if(wristMenu.select(c)||mrPanel.select(c)||handInput)return;if(handedness==='left')placeTown();else if(previewing)return;else if(time>=300)restart();else toggle();});scene.add(c);xrControllers.push(c);}
+const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);let handedness='',handInput=false;c.addEventListener('connected',e=>{handedness=e.data.handedness;handInput=!!e.data.hand;});c.addEventListener('selectstart',()=>{if(!renderer.xr.isPresenting)return;if(wristMenu.select(c)||showInfo.select(c)||mrPanel.select(c)||handInput)return;if(handedness==='left')placeTown();else if(previewing)return;else if(time>=300)restart();else toggle();});c.addEventListener('selectend',()=>showInfo.release(c));c.addEventListener('disconnected',()=>showInfo.release(c));scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
 function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=kind==='kiku'?o.value!=='3':kind==='triple'?o.value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(o.value):kind==='double'?o.value!=='10':o.value==='20';if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
 function syncPalette(){
@@ -437,8 +439,10 @@ async function exitMRToPage(){
  try{await mrSession.end();}catch(e){$('status').textContent='MRを終了できませんでした：'+e.message;}
 }
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>{if(page===1)beginPreview();}});
-for(const c of xrControllers)mrPanel.attach(c);
-const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,choose:mode=>{if((mode==='bridge')!==bridgeView.active)$('bridge').click();},beforeOpen:()=>mrPanel.close()});
+for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
+const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,choose:mode=>{if(mode==='show-info')toggleShowInfo();else if((mode==='bridge')!==bridgeView.active)$('bridge').click();},beforeOpen:()=>mrPanel.close()});
+function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
+$('showInfo').onclick=toggleShowInfo;
 for(let i=0;i<2;i++){const hand=renderer.xr.getHand(i);scene.add(hand);wristMenu.attachHand(hand);}
 if(panelPreview){
  const previewStyle=document.createElement('style');previewStyle.textContent='body.mr-panel-preview header,body.mr-panel-preview aside,body.mr-panel-preview footer{display:none}';document.head.append(previewStyle);document.body.classList.add('mr-panel-preview');
@@ -461,12 +465,12 @@ function applyViewBackground(){
 function enterBridge(transform=null){
  if(bridgeView.active)return;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
  bridgeView.enter(transform);yaw=0;pitch=.95;applyViewBackground();syncViewControls();
- mrMeta?.viewChanges.push({showTime:time,mode:'bridge'});
+ showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'bridge'});
  $('status').textContent='手前の橋に座りました。パネルを閉じて、花火を見上げてください。';
 }
 function leaveBridge(){
  if(!bridgeView.active)return;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
- applyViewBackground();syncViewControls();mrMeta?.viewChanges.push({showTime:time,mode:'miniature'});
+ applyViewBackground();syncViewControls();showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'miniature'});
  $('status').textContent='ミニチュアの街へ戻りました。花火大会は続いています。';
 }
 async function checkMR(){
@@ -475,7 +479,7 @@ async function checkMR(){
  try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'自分の部屋で見る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
- cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();mrDimming.end();town.visible=true;
+ cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
  if(running){running=false;$('play').textContent='花火大会を始める';}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
@@ -489,8 +493,8 @@ async function startXR(mode,bridge=false){
   ensureAudio();if(bridgeView.active)leaveBridge();desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
-  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){mrPanel.release();wristMenu.gesture.reset();}});
-  await renderer.xr.setSession(session);mrSession=session;mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
+  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
+  await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
   if(!running&&!previewing){if(time>=300)restart();else toggle();}
@@ -511,6 +515,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if(pose)latestViewerTransform=pose.transform;
  const dt=previous&&xrVisible?Math.min((stamp-previous)/1000,.05):0;previous=xrVisible?stamp:0;
  if(pendingPlace&&pose){
+  showInfo.reanchor();
   const placement=placementFromPose(pose.transform,Number($('distance').value),Number($('height').value),town.rotation.y,-groundBottomY*town.scale.y);
   town.position.set(placement.x,placement.y,placement.z);town.rotation.y=placement.yaw;town.visible=true;pendingPlace=false;
   mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
@@ -521,7 +526,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if((running||previewing)&&xrVisible)advance(dt);
  if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*1.2,.55+pitch,0);camera.lookAt(target);}
  bridgeView.listener(audio,pose?.transform);
- if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr'});if(mrPanel.visible&&wristMenu.visible)wristMenu.close();const renderStart=performance.now();renderer.render(scene,camera);
+ if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr'});if(mrPanel.visible&&wristMenu.visible)wristMenu.close();showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(!wristMenu.visible&&!mrPanel.visible&&xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();const renderStart=performance.now();renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
