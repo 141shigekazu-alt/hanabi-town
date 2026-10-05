@@ -34,7 +34,8 @@ const CHAINS=[['wrist','thumb-metacarpal','thumb-phalanx-proximal','thumb-phalan
 const LINKS=CHAINS.flatMap(chain=>chain.slice(1).map((name,i)=>[chain[i],name]));
 export class WristMenu{
  constructor({scene,entries,read,choose,beforeOpen=()=>{}}){
-  Object.assign(this,{scene,entries,read,choose,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';
+  Object.assign(this,{scene,entries,read,choose,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';this.ignoreController=null;this.ignoreUntil=0;
+  for(const e of entries){e.touchTip=new T.Mesh(new T.SphereGeometry(.007,10,8),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));e.touchTip.position.z=-.05;e.touchTip.renderOrder=1006;e.touchTip.visible=false;e.controller.add(e.touchTip);}
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
   this.mesh=new T.Mesh(new T.PlaneGeometry(.40,.40*H/W),new T.MeshBasicMaterial({map:this.texture,depthTest:false,depthWrite:false,side:T.FrontSide}));this.mesh.visible=false;this.mesh.renderOrder=1005;scene.add(this.mesh);
@@ -55,11 +56,12 @@ export class WristMenu{
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10],length=Math.hypot(x,z);if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
   this.beforeOpen();this.mesh.position.set(p.x+x*.48+z*.23,p.y-.24,p.z+z*.48-x*.23);this.mesh.lookAt(p.x,p.y,p.z);this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.touch.reset();this.hover='';this.draw();
  }
- close(){this.mesh.visible=false;this.cursor.visible=false;for(const e of this.entries)e.beam.visible=false;}
- end(){this.close();this.gesture.reset();this.touch.reset();for(const d of this.handDisplays)d.lines.visible=false;}
+ close(){this.mesh.visible=false;this.cursor.visible=false;for(const e of this.entries){e.beam.visible=false;e.touchTip.visible=false;}}
+ end(){this.close();this.gesture.reset();this.touch.reset();this.ignoreController=null;this.ignoreUntil=0;for(const d of this.handDisplays)d.lines.visible=false;}
  hit(controller){controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.origin,this.direction);return this.ray.intersectObject(this.mesh,false)[0]??null;}
  control(hit){if(!hit)return null;const x=hit.uv.x*W,y=(1-hit.uv.y)*H;return this.controls.find(c=>x>=c.x&&x<c.x+c.w&&y>=c.y&&y<c.y+c.h);}
- select(controller){
+ select(controller,stamp=performance.now()){
+  if(controller===this.ignoreController&&stamp<this.ignoreUntil)return true;
   if(!this.visible)return false;
   if(this.entries.find(e=>e.controller===controller)?.source?.hand)return true;
   const control=this.control(this.hit(controller));
@@ -78,12 +80,13 @@ export class WristMenu{
   if(!this.visible)return;
   let touching=null;this.mesh.updateMatrixWorld(true);
   for(const e of this.entries){
-   const source=e.source;if(source?.handedness!=='right'||!source.hand)continue;
-   const joint=source.hand.get('index-finger-tip'),pose=joint?frame.getJointPose(joint,referenceSpace):null;
-   let local=null;if(pose){const p=pose.transform.position;local=this.mesh.worldToLocal(this.touchPoint.set(p.x,p.y,p.z));}
+   const source=e.source;if(source?.handedness!=='right')continue;
+   let local=null;
+   if(source.hand){const joint=source.hand.get('index-finger-tip'),pose=joint?frame.getJointPose(joint,referenceSpace):null;if(pose){const p=pose.transform.position;local=this.mesh.worldToLocal(this.touchPoint.set(p.x,p.y,p.z));}}
+   else if(source.gripSpace&&frame.getPose(source.targetRaySpace,referenceSpace)){e.touchTip.visible=true;e.touchTip.getWorldPosition(this.touchPoint);local=this.mesh.worldToLocal(this.touchPoint);}
    const crossed=this.touch.sample(source,stamp,local);
    const at=point=>this.controls.find(c=>{const x=(point.x/.4+.5)*W,y=(.5-point.y/this.mesh.geometry.parameters.height)*H;return x>=c.x&&x<c.x+c.w&&y>=c.y&&y<c.y+c.h;});
-   if(crossed){const c=at(crossed);if(c){if(c.id!=='close')this.choose(c.id);this.close();return;}}
+   if(crossed){const c=at(crossed);if(c){this.ignoreController=e.controller;this.ignoreUntil=stamp+450;if(c.id!=='close')this.choose(c.id);this.close();return;}}
    if(local&&Math.abs(local.z)<.08){const c=at(local);if(c)touching={control:c,point:local.clone().setZ(.002)};}
   }
   let nearest=null;
@@ -96,6 +99,6 @@ export class WristMenu{
   c.textBaseline='middle';c.font='25px system-ui,sans-serif';c.fillStyle='#f2dfb5';c.fillText('見る場所を選ぶ',24,38);
   const buttons=[{id:'close',label:'×',x:444,y:12,w:52,h:52},{id:'bridge',label:'橋の上から見上げる',x:20,y:85,w:472,h:88},{id:'miniature',label:'街全体を眺める',x:20,y:193,w:472,h:88}];
   for(const b of buttons){const selected=b.id===(active?'bridge':'miniature');c.fillStyle=this.hover===b.id?'#405568':selected?'#554931':'#1a2e40';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.textAlign='center';c.font='25px system-ui,sans-serif';c.fillStyle='#e8eef1';c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
-  c.font='17px system-ui,sans-serif';c.fillStyle='#a9c2cf';c.fillText('右手の人差し指でタッチして選択',24,310);this.texture.needsUpdate=true;
+  c.font='17px system-ui,sans-serif';c.fillStyle='#a9c2cf';c.fillText('右の指 / コントローラー先端でタッチ',24,310);this.texture.needsUpdate=true;
  }
 }
