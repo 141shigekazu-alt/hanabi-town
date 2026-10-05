@@ -1,13 +1,15 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.12';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.13';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette} from './fireworks.js?v=beta.1.0.12';
-import {reflectionMaterial} from './water.js?v=beta.1.0.12';
-import {FireworkAudio} from './audio.js?v=beta.1.0.12';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.12';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.12';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.12';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.12';
-const BUILD_VERSION='beta.1.0.12';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector} from './fireworks.js?v=beta.1.0.13';
+import {reflectionMaterial} from './water.js?v=beta.1.0.13';
+import {FireworkAudio} from './audio.js?v=beta.1.0.13';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.13';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.13';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.13';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.13';
+const BUILD_VERSION='beta.1.0.13';
+// Separate from town/program/silver randomness, and never sampled during animation.
+const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
 const $=id=>document.getElementById(id), canvas=$('view');
 const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:true});
@@ -118,8 +120,9 @@ function launch(kind='core',size=5,position=null){
  if(kind==='silver'){
  // Sample once per shell; every frame and tail point keeps the same trajectory.
  const rotation=new T.Quaternion().setFromEuler(new T.Euler(rand()*Math.PI*2,rand()*Math.PI*2,rand()*Math.PI*2));
- const stretch=new T.Vector3(.96+rand()*.08,.96+rand()*.08,.96+rand()*.08);
- for(const dir of directions)dir.applyQuaternion(rotation).multiply(stretch);
+ // Consume the previous stretch draws so existing placement/timing randomness stays intact.
+ rand();rand();rand();
+ for(const dir of directions)dir.applyQuaternion(rotation);
  }
  if(kind==='spiral'){
  for(let i=0;i<directions.length;i++){const center=i<Math.floor(directions.length*.24),count=center?Math.floor(directions.length*.24):directions.length-Math.floor(directions.length*.24),index=center?i:i-Math.floor(directions.length*.24);const angle=center?index/count*Math.PI*2:Math.floor(index/Math.ceil(count/18))*Math.PI*2/18+(index%Math.ceil(count/18)-Math.ceil(count/18)/2)*.009;directions[i].set(Math.cos(angle),Math.sin(angle),(i%5-2)*.025).normalize();shells[i]=center?.23*Math.sqrt((index+.5)/count):1;starColors[i]=new T.Color(center?0xff604b:0xffc34c);}
@@ -150,15 +153,18 @@ function launch(kind='core',size=5,position=null){
  for(const dir of childStars){directions.push(new T.Vector3(...dir));shells.push(1);starColors.push(scheme[cluster%scheme.length]);}
  });
  }
+ const shape=sampleShellShape(kind,size);
+ for(let i=0;i<directions.length;i++)deformShellVector(directions[i],shape,kind==='senrin'?.35:shells[i]<.75?.65:1);
+ for(const center of clusterCenters)deformShellVector(center,shape);
  const n=directions.length,positions=new Float32Array(n*trailCount*3),colors=new Float32Array(n*trailCount*3);
  // These per-star values are constant for the entire shell. Keep double precision.
- const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>.96+.07*Math.sin((i+silverSeed)*2.37)):null;
+ const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
  const m=new T.PointsMaterial({size:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color));town.add(refl);
  const ascent=size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
- fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,silverSeed,silverVariation,silverLife,g,m,p,refl,start:time,burst:false});sound(false,x,z,size);
+ fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,start:time,burst:false});sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  return true;
 }

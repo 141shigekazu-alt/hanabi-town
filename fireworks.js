@@ -32,6 +32,35 @@ export function shellPalette(kind,id='original'){
  return paletteOptions(kind).find(p=>p.id===id)??{id:'original',label:'',colors:TYPES[kind]?.colors??[]};
 }
 export function sphere(count){return Array.from({length:count},(_,i)=>{const y=1-2*(i+.5)/count,a=i*2.399963229728653,r=Math.sqrt(1-y*y);return [r*Math.cos(a),y,r*Math.sin(a)];});}
+// Artistic tuning from the creator's observations, not physical shell measurements.
+const SHAPE_PROFILES={3:{ellipse:.12,bulge:.025,star:.012},5:{ellipse:.045,bulge:.018,star:.008},10:{ellipse:.022,bulge:.009,star:.004},20:{ellipse:.060,bulge:.040,star:.014}};
+function shapeAxis(random){const y=random()*2-1,a=random()*Math.PI*2,r=Math.sqrt(1-y*y);return {x:r*Math.cos(a),y,z:r*Math.sin(a)};}
+export function createShellShapeSampler(random=Math.random){
+ const decks=new Map();
+ return (kind,size)=>{
+  // Each kind/size gets one round, one subtle and one natural shell in shuffled order.
+  const key=kind+':'+size;let deck=decks.get(key);
+  if(!deck?.length){deck=[0,1,2];for(let i=2;i>0;i--){const j=Math.floor(random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}decks.set(key,deck);}
+  const level=deck.pop(),profile=SHAPE_PROFILES[size]??SHAPE_PROFILES[10];
+  const restraint=kind==='sunflower'||kind==='spiral'?.55:kind==='willow'?.8:kind==='kiku'&&size===3?1.35:1;
+  const amount=[0,.28,1][level]*restraint*(.85+random()*.30);
+  return {level,ellipse:profile.ellipse*amount,bulge:profile.bulge*amount,star:profile.star*amount,axis:shapeAxis(random),lobe:shapeAxis(random),phase:random()*Math.PI*2};
+ };
+}
+export function deformShellVector(vector,shape,strength=1){
+ if(shape.level===0)return vector;
+ const {x,y,z}=vector,length=Math.hypot(x,y,z);if(!length)return vector;
+ const nx=x/length,ny=y/length,nz=z/length,a=shape.axis,b=shape.lobe;
+ const along=x*a.x+y*a.y+z*a.z,lobe=nx*b.x+ny*b.y+nz*b.z;
+ const axial=1+shape.ellipse*strength,cross=1/Math.sqrt(axial);
+ // Broad smooth swelling preserves readable outlines; only a small star-scale ripple.
+ const ripple=(Math.sin(nx*17+ny*23+nz*11+shape.phase)+.5*Math.sin(nx*31-ny*13+nz*19-shape.phase))/1.5;
+ const gain=1+strength*(shape.bulge*lobe*lobe*lobe+shape.star*ripple);
+ vector.x=(x*cross+a.x*along*(axial-cross))*gain;
+ vector.y=(y*cross+a.y*along*(axial-cross))*gain;
+ vector.z=(z*cross+a.z*along*(axial-cross))*gain;
+ return vector;
+}
 export function chapter(t){if(t<35)return '幕開け';if(t<100)return '川沿いの彩り';if(t<170)return '一玉を味わう';if(t<235)return '街のにぎわい';if(t<285)return 'フィナーレ';return '余韻';}
 export function cue(t,index,lively=false){const part=chapter(t);if(part==='余韻')return null;const types=['core','double','willow','sunflower'];let kind=types[index%types.length];const size=part==='幕開け'?3:part==='一玉を味わう'?10:part==='フィナーレ'?(index%3===0?10:5):[3,5,10,5][index%4];if(kind==='double'&&size!==10)kind='core';let interval=part==='一玉を味わう'?8.5:part==='フィナーレ'?1.45:part==='街のにぎわい'?2.8:4.8;if(lively&&part!=='一玉を味わう')interval*=.72;return{kind,size,interval,part};}
 
