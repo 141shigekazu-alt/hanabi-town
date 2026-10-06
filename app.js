@@ -1,16 +1,16 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.18';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.19';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.18';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.18';
-import {FireworkAudio} from './audio.js?v=beta.1.0.18';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.18';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.18';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.18';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.18';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.18';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.18';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.18';
-const BUILD_VERSION='beta.1.0.18';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.19';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.19';
+import {FireworkAudio} from './audio.js?v=beta.1.0.19';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.19';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.19';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.19';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.19';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.19';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.19';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.19';
+const BUILD_VERSION='beta.1.0.19';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -88,6 +88,13 @@ const palette=[0xffc878,0xff647d,0x9fd9ff,0xbba0ff,0x94edb1];
 
 let running=false,previewing=false,time=0,nextLaunch=.8,cueIndex=0,burstQueue=[],burstSlots=new Set(),fireworks=[],audio=null,soundEngine=null,yaw=0,pitch=0,drag=null;
 const spriteCanvas=document.createElement('canvas');spriteCanvas.width=spriteCanvas.height=32;const ctx=spriteCanvas.getContext('2d'),grad=ctx.createRadialGradient(16,16,0,16,16,16);grad.addColorStop(0,'rgba(255,255,255,1)');grad.addColorStop(.2,'rgba(255,255,255,.9)');grad.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=grad;ctx.fillRect(0,0,32,32);const sprite=new T.CanvasTexture(spriteCanvas);
+// A clear star core with a restrained halo at the life-size bridge viewpoint.
+// Keep the miniature's glow and the town's warning lights on their original map.
+const bridgeStarCanvas=document.createElement('canvas');bridgeStarCanvas.width=bridgeStarCanvas.height=32;
+const bridgeStarContext=bridgeStarCanvas.getContext('2d'),bridgeStarGradient=bridgeStarContext.createRadialGradient(16,16,0,16,16,16);
+for(const [radius,alpha] of [[0,1],[.18,.98],[.32,.48],[.50,.10],[.75,.015],[1,0]])bridgeStarGradient.addColorStop(radius,`rgba(255,255,255,${alpha})`);
+bridgeStarContext.fillStyle=bridgeStarGradient;bridgeStarContext.fillRect(0,0,32,32);
+const bridgeStarSprite=new T.CanvasTexture(bridgeStarCanvas),fireworkMaps={miniature:sprite,bridge:bridgeStarSprite};
 // A few rooftop warning lights add a quiet rhythm even between shows.
 const roofSites=[];
 for(const roof of rooftops.toSorted((a,b)=>b.y-a.y)){
@@ -171,7 +178,7 @@ function launch(kind='core',size=5,position=null){
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- const m=new T.PointsMaterial({size:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ const m=new T.PointsMaterial({size:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
@@ -195,6 +202,8 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
  const fade=t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
  let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
+ const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
+ const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
  f.layerLight?.fill(0);
  for(let i=0;i<f.n;i++)for(let j=0;j<f.trailCount;j++){
  const index=(i*f.trailCount+j)*3;let x,y,z,brightness;
@@ -212,6 +221,12 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const starFade=Math.max(0,Math.min(1,(starLife-t)/.65));
  brightness=2.2*Math.pow(1-j/f.trailCount,1.25)*starFade*(y>.04?1:0);
  if(t<.08){brightness*=1+1.6*(1-t/.08);}
+ }
+ else if(f.kind==='willow'){
+ // One break: sample the same star's recent path as its long tail grows.
+ const at=Math.max(0,t-willowHistory*j/(f.trailCount-1)),dir=f.directions[i],travel=f.r*f.shells[i]*(1-Math.exp(-(f.size===20?.7:1.9)*at));
+ x=f.x+dir.x*travel;y=f.y+dir.y*travel+.085*at-f.spec.gravity*at*at;z=f.z+dir.z*travel;
+ brightness=Math.pow(1-j/f.trailCount,1.7)*(j===0?2:.9*willowTailGlow);
  }
  else if(f.kind==='senrin'){
  const cluster=Math.floor(i/24),center=f.clusterCenters[cluster],childAge=t-f.clusterDelays[cluster],lag=j*f.spec.tail,at=Math.max(0,childAge-lag),spread=(f.size===20?.118:.083)*(1-Math.exp(-(f.size===20?2.1:2.9)*at)),drift=1-Math.exp(-(f.size===20?1.8:2.4)*t),dir=f.directions[i];

@@ -7,8 +7,13 @@ export const BRIDGE_SCALE=100,SEATED_EYE_HEIGHT=1.2;
 const bridgeAngle=Math.atan(.594*Math.cos(.67*2.7+.35));
 export const FRONT_BRIDGE=new T.Vector3(0,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
 export class BridgeView{
- constructor(town,camera){this.town=town;this.camera=camera;this.active=false;this.saved=null;this.pointSizes=new WeakMap();this.eye=new T.Vector3();this.forward=new T.Vector3();this.up=new T.Vector3();}
- point(material){if(!this.pointSizes.has(material))this.pointSizes.set(material,material.size);material.size=this.pointSizes.get(material)*(this.active?BRIDGE_SCALE:1);}
+ constructor(town,camera){this.town=town;this.camera=camera;this.active=false;this.saved=null;this.pointSizes=new WeakMap();this.pointMaps=new WeakMap();this.eye=new T.Vector3();this.forward=new T.Vector3();this.up=new T.Vector3();}
+ point(material,maps=null){
+  if(!this.pointSizes.has(material))this.pointSizes.set(material,material.size);
+  if(maps)this.pointMaps.set(material,maps);
+  material.size=this.pointSizes.get(material)*(this.active?BRIDGE_SCALE:1);
+  const profile=this.pointMaps.get(material);if(profile)material.map=this.active?profile.bridge:profile.miniature;
+ }
  syncPoints(){this.town.traverse(o=>{if(o.isPoints)this.point(o.material);});}
  enter(transform=null){
   if(this.active)return;
