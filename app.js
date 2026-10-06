@@ -1,18 +1,18 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.27';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.28';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.27';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.27';
-import {FireworkAudio} from './audio.js?v=beta.1.0.27';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.27';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.27';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.27';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.27';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.27';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.27';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.27';
-import {XRControls} from './xr-controls.js?v=beta.1.0.27';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.27';
-const BUILD_VERSION='beta.1.0.27';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.28';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.28';
+import {FireworkAudio} from './audio.js?v=beta.1.0.28';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.28';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.28';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.28';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.28';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.28';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.28';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.28';
+import {XRControls} from './xr-controls.js?v=beta.1.0.28';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.28';
+const BUILD_VERSION='beta.1.0.28';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -358,7 +358,7 @@ function advanceStarmine(){
 function stopShow(){
  running=false;previewing=false;showPlan=null;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();time=0;cueIndex=0;nextLaunch=.8;
  if(audio){audio.close();audio=null;soundEngine=null;}
- $('play').textContent='花火大会を始める';$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';
+ $('play').textContent='花火大会を観る';$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';
 }
 function resetAll(){
  cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();stopShow();loadedShells.left=loadedShells.right=null;$('loadedLeft').textContent=$('loadedRight').textContent='選択中の一玉';if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
@@ -372,7 +372,7 @@ function restart(){previewing=false;showPlan=null;fanQueue=[];clearFans();clearF
 function beginPreview(){
  running=false;previewing=true;previewPaused=false;showPlan=null;time=0;cueIndex=0;nextLaunch=.8;
  clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();
- $('play').textContent='花火大会を始める';$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
+ $('play').textContent='花火大会を観る';$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
  $('status').textContent='試し打ち中。選んだ花火だけを上げます。';ensureAudio();
 }
 function advanceEmbers(dt){
@@ -399,7 +399,7 @@ function advance(dt){
  if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern){const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}
  updateFireworks();
  const elapsed=Math.min(300,Math.floor(time));$('chapter').textContent=chapter(Math.min(time,299))+' · '+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
- if(time>=300){if($('ending').value==='loop'){clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();time=0;nextLaunch=2;cueIndex=0;prepareProgram();}else{running=false;$('play').textContent='花火大会を始める';$('status').textContent='大会が終わりました。街の灯りをお楽しみください。';}}
+ if(time>=300){if($('ending').value==='loop'){clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();time=0;nextLaunch=2;cueIndex=0;prepareProgram();}else{running=false;$('play').textContent='花火大会を観る';$('status').textContent='大会が終わりました。街の灯りをお楽しみください。';}}
 }
 function updateReflections(){
  town.updateWorldMatrix(true,false);
@@ -410,10 +410,10 @@ function ensureAudio(){
  if(!audio){audio=new(window.AudioContext||window.webkitAudioContext)();soundEngine=new FireworkAudio(audio,Number($('volume').value));}
  audio.resume().catch(e=>{$('status').textContent='音声を開始できませんでした：'+e.message;});
 }
-function toggle(){if(previewing){previewing=false;time=0;cueIndex=0;nextLaunch=.8;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();}if(!running&&!showPlan)prepareProgram();running=!running;$('play').textContent=running?'ひと休み':'花火大会を始める';$('status').textContent=running?'オート大会を鑑賞中。操作せず、そのまま眺めてください。':'夜の街で、ひと休み。';if(running)ensureAudio();else{
+function toggle(){if(previewing){previewing=false;time=0;cueIndex=0;nextLaunch=.8;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();}if(!running&&!showPlan)prepareProgram();running=!running;$('play').textContent=running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';$('status').textContent=running?'オート大会を鑑賞中。操作せず、そのまま眺めてください。':'夜の街で、ひと休み。';if(running)ensureAudio();else{
  cancelFutureSounds();
 }}
-$('play').disabled=false;$('play').textContent='花火大会を始める';$('play').onclick=()=>{if(time>=300)restart();else toggle();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
+$('play').disabled=false;$('play').textContent='花火大会を観る';$('play').onclick=()=>{if(time>=300)restart();else toggle();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
 let fanPreviewCross=false;$('fans').onclick=()=>{beginPreview();launchFans(fanPreviewCross?'fan':'cross');fanPreviewCross=!fanPreviewCross;};
 $('big').onclick=()=>{beginPreview();launch('triple',20,{x:0,z:-.1});};
 $('finale').onclick=()=>{beginPreview();startStarmine(true,false);};
@@ -466,7 +466,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
@@ -609,7 +609,7 @@ async function checkMR(){
 function finishMR(){
  cancelPreparation();
  triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
- if(running){running=false;$('play').textContent='花火大会を始める';}
+ if(running){running=false;$('play').textContent='花火大会を観る';}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
  lastMRReport=mrReport();$('mr').disabled=false;$('mr').textContent='部屋で観る';$('bridge').disabled=false;
@@ -626,7 +626,8 @@ async function startXR(mode,bridge=false){
   await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
-  if(!running&&!previewing){if(time>=300)restart();else toggle();}
+  // Enter the room with an unlit sky; only the explicit show button starts it.
+  if(!bridge){stopShow();$('chapter').textContent='開演前 · 街を眺める';$('last').textContent='好きな位置に街を置いてください';$('status').textContent='まずは街をじっくりどうぞ。台座へビームを合わせ、グリップで掴めます。サイドパネルの「花火大会を観る」で開演します。';}
  }catch(e){if(session)await session.end().catch(()=>{});mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
 }
 $('mr').onclick=()=>startXR('immersive-ar');

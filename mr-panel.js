@@ -196,9 +196,13 @@ export class MRPanel{
   ['花火大会','試し打ち','街・音'].forEach((label,i)=>{this.button('page'+i,label,28+i*254,160,236,54,()=>{if(this.page!==i){this.page=i;this.pageChanged(i);}},{selected:this.page===i});if(this.page===i){c.fillStyle='#ffe0a3';c.fillRect(48+i*254,211,196,4);}});
   if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
-   this.button('play',s.running?'ひと休み':'花火大会を始める',28,238,744,64,()=>this.click('play'));
+   this.button('play',s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る',28,238,744,64,()=>this.click('play'),{selected:!s.running});
+   if(s.awaitingShow){
+    this.text('街の台座へビーム＋グリップで掴んで移動',32,335,24,'#c5d5df',736);
+    this.text('掴んだままスティック：左右で回転・上下で大きさ',32,374,23,'#aebfce',736);
+   }else{
    this.button('stop','大会を止める',28,318,360,60,()=>this.click('stop'));
-   this.button('restart','大会を最初から',412,318,360,60,()=>this.click('restart'));
+   this.button('restart','大会を最初から',412,318,360,60,()=>this.click('restart'));}
    this.selector('program','大会プログラム',409,s.program);
    this.selector('mood','大会の雰囲気',525,s.mood);
    this.selector('ending','大会の終わり',641,s.ending);
