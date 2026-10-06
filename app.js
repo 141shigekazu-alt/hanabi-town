@@ -1,16 +1,16 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.20';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.21';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.20';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.20';
-import {FireworkAudio} from './audio.js?v=beta.1.0.20';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.20';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.20';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.20';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.20';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.20';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.20';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.20';
-const BUILD_VERSION='beta.1.0.20';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.21';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.21';
+import {FireworkAudio} from './audio.js?v=beta.1.0.21';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.21';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.21';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.21';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.21';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.21';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.21';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.21';
+const BUILD_VERSION='beta.1.0.21';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -88,13 +88,19 @@ const palette=[0xffc878,0xff647d,0x9fd9ff,0xbba0ff,0x94edb1];
 
 let running=false,previewing=false,time=0,nextLaunch=.8,cueIndex=0,burstQueue=[],burstSlots=new Set(),fireworks=[],audio=null,soundEngine=null,yaw=0,pitch=0,drag=null;
 const spriteCanvas=document.createElement('canvas');spriteCanvas.width=spriteCanvas.height=32;const ctx=spriteCanvas.getContext('2d'),grad=ctx.createRadialGradient(16,16,0,16,16,16);grad.addColorStop(0,'rgba(255,255,255,1)');grad.addColorStop(.2,'rgba(255,255,255,.9)');grad.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=grad;ctx.fillRect(0,0,32,32);const sprite=new T.CanvasTexture(spriteCanvas);
-// A clear star core with a restrained halo at the life-size bridge viewpoint.
-// Keep the miniature's glow and the town's warning lights on their original map.
+// Keep tiny miniature stars bright while giving their cores a clearer edge.
+// Town warning lights and ground effects retain the original soft image.
+const miniatureStarCanvas=document.createElement('canvas');miniatureStarCanvas.width=miniatureStarCanvas.height=32;
+const miniatureStarContext=miniatureStarCanvas.getContext('2d'),miniatureStarGradient=miniatureStarContext.createRadialGradient(16,16,0,16,16,16);
+for(const [radius,alpha] of [[0,1],[.32,1],[.48,.90],[.62,.20],[.80,.05],[1,0]])miniatureStarGradient.addColorStop(radius,`rgba(255,255,255,${alpha})`);
+miniatureStarContext.fillStyle=miniatureStarGradient;miniatureStarContext.fillRect(0,0,32,32);
+const miniatureStarSprite=new T.CanvasTexture(miniatureStarCanvas);
+// The bridge retains its independently tuned life-size star core and halo.
 const bridgeStarCanvas=document.createElement('canvas');bridgeStarCanvas.width=bridgeStarCanvas.height=32;
 const bridgeStarContext=bridgeStarCanvas.getContext('2d'),bridgeStarGradient=bridgeStarContext.createRadialGradient(16,16,0,16,16,16);
 for(const [radius,alpha] of [[0,1],[.22,1],[.27,.96],[.33,.20],[.50,.035],[.75,.006],[1,0]])bridgeStarGradient.addColorStop(radius,`rgba(255,255,255,${alpha})`);
 bridgeStarContext.fillStyle=bridgeStarGradient;bridgeStarContext.fillRect(0,0,32,32);
-const bridgeStarSprite=new T.CanvasTexture(bridgeStarCanvas),fireworkMaps={miniature:sprite,bridge:bridgeStarSprite};
+const bridgeStarSprite=new T.CanvasTexture(bridgeStarCanvas),fireworkMaps={miniature:miniatureStarSprite,bridge:bridgeStarSprite};
 // A few rooftop warning lights add a quiet rhythm even between shows.
 const roofSites=[];
 for(const roof of rooftops.toSorted((a,b)=>b.y-a.y)){
