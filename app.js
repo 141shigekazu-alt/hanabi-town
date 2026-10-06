@@ -1,18 +1,18 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.26';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.27';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.26';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.26';
-import {FireworkAudio} from './audio.js?v=beta.1.0.26';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.26';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.26';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.26';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.26';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.26';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.26';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.26';
-import {XRControls} from './xr-controls.js?v=beta.1.0.26';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.26';
-const BUILD_VERSION='beta.1.0.26';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.27';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.27';
+import {FireworkAudio} from './audio.js?v=beta.1.0.27';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.27';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.27';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.27';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.27';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.27';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.27';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.27';
+import {XRControls} from './xr-controls.js?v=beta.1.0.27';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.27';
+const BUILD_VERSION='beta.1.0.27';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -361,7 +361,7 @@ function stopShow(){
  $('play').textContent='花火大会を始める';$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';
 }
 function resetAll(){
- controls?.release();if(bridgeView.active)leaveBridge();stopShow();loadedShells.left=loadedShells.right=null;$('loadedLeft').textContent=$('loadedRight').textContent='選択中の一玉';if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
+ cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();stopShow();loadedShells.left=loadedShells.right=null;$('loadedLeft').textContent=$('loadedRight').textContent='選択中の一玉';if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
  for(const [id,value] of Object.entries(defaults))$(id).value=value;
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
@@ -434,7 +434,8 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=kind==='kiku'?o.value!=='3':kind==='triple'?o.value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(o.value):kind==='double'?o.value!=='10':o.value==='20';if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
+function allowedSize(kind,value){return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label;return option;}));
@@ -465,7 +466,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={running,loadedLeft:shellName(loadedShells.left),loadedRight:shellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
@@ -491,7 +492,7 @@ async function exitMRToPage(){
  if(!mrSession)return;
  try{await mrSession.end();}catch(e){$('status').textContent='MRを終了できませんでした：'+e.message;}
 }
-const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page)});
+const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
 const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,choose:mode=>{if(mode==='show-info')toggleShowInfo();else if((mode==='bridge')!==bridgeView.active)$('bridge').click();}});
 function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
@@ -501,8 +502,48 @@ $('showInfo').onclick=toggleShowInfo;
 const loadedShells={left:null,right:null};
 function chosenShell(){syncSize();return {kind:$('type').value,size:Number($('size').value),palette:$('palette').value};}
 function shellName(shell){return shell?SIZES[shell.size].label+' · '+TYPES[shell.kind].label.replace('（軽量テスト）',''):'選択中の一玉';}
+function preparedShellName(shell){const label=shell&&paletteOptions(shell.kind).find(p=>p.id===shell.palette)?.label;return shellName(shell)+(label?' · '+label:'');}
 function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=shellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
-$('loadLeft').onclick=()=>loadShell('left');$('loadRight').onclick=()=>loadShell('right');
+let preparation=null;
+const prepareFields=['kind','size','palette'];
+const preparedKinds=['willow','silver','core','double','triple','quad','penta','senrin'];
+function prepareOptions(){
+ const {draft,tab}=preparation;
+ if(tab===0)return preparedKinds.map(value=>({value,label:TYPES[value].label.replace('（軽量テスト）',''),disabled:false}));
+ if(tab===1)return ['10','20'].map(v=>({value:v,label:SIZES[v].label,disabled:!allowedSize(draft.kind,v)}));
+ const colors=paletteOptions(draft.kind);return colors.length?colors.map(o=>({value:o.id,label:o.label,disabled:false})):[{value:'original',label:'この花火の配色',disabled:false}];
+}
+function prepareSummary(){const d=preparation.draft,p=paletteOptions(d.kind).find(p=>p.id===d.palette);return shellName(d)+(p?' · '+p.label:'');}
+function drawPreparation(){
+ $('preparePanel').hidden=!preparation;
+ for(let i=0;i<3;i++)$('browserPage'+i).hidden=!!preparation||i!==mrPanel.page;
+ if(preparation){
+  const hand=preparation.hand==='left'?'左':'右';$('prepareTitle').textContent=hand+'トリガーに仕込む';$('prepareConfirm').textContent='この玉を'+hand+'に仕込む';$('prepareSummary').textContent=prepareSummary();
+  for(let i=0;i<3;i++){const el=$('prepareTab'+i);el.setAttribute('aria-selected',String(i===preparation.tab));el.tabIndex=i===preparation.tab?0:-1;}
+  $('prepareChoices').setAttribute('aria-labelledby','prepareTab'+preparation.tab);
+  $('prepareChoices').replaceChildren(...prepareOptions().map(o=>{const button=document.createElement('button');button.textContent=o.label;button.disabled=o.disabled;button.setAttribute('aria-pressed',String(String(preparation.draft[prepareFields[preparation.tab]])===o.value));button.onclick=()=>choosePreparation(o.value);return button;}));
+ }
+ mrPanel.draw();
+}
+function openPreparation(hand){
+ const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!['10','20'].includes(String(draft.size))||!allowedSize(draft.kind,String(draft.size)))draft.size=Number(['10','20'].find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette='original';
+ preparation={hand,tab:0,draft};drawPreparation();
+}
+function choosePreparation(value){
+ if(!preparation||!prepareOptions().some(o=>o.value===value&&!o.disabled))return;
+ const d=preparation.draft,field=prepareFields[preparation.tab];d[field]=field==='size'?Number(value):value;
+ if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number(['10','20'].find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette='original';}
+ drawPreparation();
+}
+function prepareTab(tab){if(preparation){preparation.tab=tab;drawPreparation();}}
+function cancelPreparation(){preparation=null;drawPreparation();}
+function confirmPreparation(){
+ if(!preparation)return;const {hand,draft}=preparation;loadedShells[hand]={...draft};$('loaded'+(hand==='left'?'Left':'Right')).textContent=preparedShellName(draft);
+ $('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+prepareSummary()+' を仕込みました。';cancelPreparation();
+}
+$('loadLeft').onclick=()=>openPreparation('left');$('loadRight').onclick=()=>openPreparation('right');
+$('prepareConfirm').onclick=confirmPreparation;$('prepareCancel').onclick=cancelPreparation;
+for(let i=0;i<3;i++){$('prepareTab'+i).onclick=()=>prepareTab(i);$('prepareTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;prepareTab(next);$('prepareTab'+next).focus();};}
 function firePrepared(hand,origin,direction){
  if(hand!=='left'&&hand!=='right')return;
  if(previewing&&previewPaused){$('status').textContent='試し打ちを一時停止中です。右Bで再開できます。';return;}
@@ -518,7 +559,7 @@ function firePrepared(hand,origin,direction){
 }
 function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
 function setPanelTab(page){
- mrPanel.page=page;
+ preparation=null;$('preparePanel').hidden=true;mrPanel.page=page;
  for(let i=0;i<3;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
  mrPanel.draw();
 }
@@ -566,6 +607,7 @@ async function checkMR(){
  try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'部屋で観る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
+ cancelPreparation();
  triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
  if(running){running=false;$('play').textContent='花火大会を始める';}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
