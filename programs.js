@@ -1,4 +1,5 @@
-import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.0';
+import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.4';
+import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.4';
 export const PROGRAM_NAMES={one:'プログラム1 · 一玉を味わう',two:'プログラム2 · 街の競演',random:'おまかせ'};
 function randomStream(seed){let state=seed>>>0;return()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};}
 export function createProgram(mode='one',seed=1){
@@ -63,7 +64,31 @@ export function randomStarmine(plan,time,index=0,lively=false){
   for(const x of [-.48,.48])add(7,'willow',5,x,.14,null,-.18);
   fans.push({at:time,mode:'fan'});
  }
+ fans.splice(0,fans.length,...normalGroundCues('random',plan.seed,index,time,false));
  shots.sort((a,b)=>a.at-b.at);
  const lastFade=Math.max(...shots.map(s=>s.at+ascent(s.size)+(s.kind==='willow'?5.5:s.kind==='kiku'?3.2:3.5)));
  return {key,label:RANDOM_PATTERNS[key],shots,fans,nextLaunch:lastFade+2.4};
+}
+
+export function normalGroundCues(mode,seed,index,start,finale=false){
+ const sets=[
+  [['small-up-tight','green'],['sweep','gold'],['small-cross-tight','red']],
+  [['small-fan','blue-gold'],['fan','silver'],['small-up-tight','white-gold']],
+  [['small-cross','green-silver'],['curtain','gold'],['small-up','red-silver']],
+  [['small-up-tight','gold'],['inward','silver'],['small-fan','green-silver']]
+ ];
+ const pick=finale?3:mode==='random'?((seed>>>0)+index)%sets.length:(index+(mode==='two'?1:0))%sets.length;
+ const cues=sets[pick].map(([pattern,style],i)=>({at:start+i*2.4,mode:pattern,style}));
+ if(finale)cues.push({at:start+10.2,mode:'small-up-tight',style:'gold'});
+ return cues;
+}
+
+// Quiet low aerial rows, with a separate seed for each volley and each show.
+export function normalEarSequence(seed,start=.8,rounds=3){
+ const offsets=[0,4.27,8.61],shots=[];
+ for(let round=0;round<rounds;round++){
+  const rowSeed=(seed+round*1777)>>>0,row=createEarRow(rowSeed),timing=createEarTiming(rowSeed),at=start+offsets[round];
+  row.forEach((p,i)=>{const shotAt=at+timing[i].launchOffset;shots.push({at:shotAt,kind:'ear',size:2,position:{...p,z:-.7+p.z,ignitionDelay:timing[i].ignitionDelay,startAt:shotAt}});});
+ }
+ return {shots,finishAt:Math.max(...shots.map(s=>s.at+1.65+s.position.ignitionDelay))+EAR_PROFILE.life+.45};
 }

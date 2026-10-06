@@ -19,7 +19,7 @@ export function controlAtUV(controls,uv){
 export class MRPanel{
  constructor({scene,read,click,cycle,adjust,place,exit,set=()=>{},pageChanged=()=>{},prepareChoose=()=>{},prepareTab=()=>{}}){
   Object.assign(this,{scene,read,click,cycle,adjust,place,exit,set,pageChanged,prepareChoose,prepareTab});
-  this.page=0;this.controls=[];this.controllers=[];this.edges=new WeakMap();this.hover='';this.lastDraw=0;this.active=false;
+  this.groundStudy=false;this.page=0;this.controls=[];this.controllers=[];this.edges=new WeakMap();this.hover='';this.lastDraw=0;this.active=false;
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
   this.mesh=new T.Mesh(new T.PlaneGeometry(.68,.68*H/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.FrontSide}));
@@ -193,10 +193,10 @@ export class MRPanel{
   this.text(s.last,32,182,42,'#ffe0a3',736);
   c.save();c.translate(0,HEADER_GROWTH);
   c.fillStyle='#132536';c.beginPath();c.roundRect(20,152,760,76,14);c.fill();
-  ['花火大会','試し打ち','街・音','使い方'].forEach((label,i)=>{this.button('page'+i,label,28+i*190,160,174,54,()=>{if(this.page!==i){this.page=i;this.pageChanged(i);}},{selected:this.page===i});if(this.page===i){c.fillStyle='#ffe0a3';c.fillRect(48+i*190,211,134,4);}});
+  [[0,'花火大会'],[4,'音楽付き'],[1,'試し打ち'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>{this.button('page'+page,label,28+i*152,160,136,54,()=>{if(this.page!==page){this.page=page;this.pageChanged(page);}},{selected:this.page===page});if(this.page===page){c.fillStyle='#ffe0a3';c.fillRect(40+i*152,211,112,4);}});
   if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
-   this.button('play',s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る',28,238,744,64,()=>this.click('play'),{selected:!s.running});
+   this.button('play',s.playLabel??(s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る'),28,238,744,64,()=>this.click('play'),{selected:!s.running});
    if(s.awaitingShow){
     this.text('街の台座へビーム＋グリップで掴んで移動',32,335,24,'#c5d5df',736);
     this.text('掴んだままスティック：左右で回転・上下で大きさ',32,374,23,'#aebfce',736);
@@ -209,21 +209,40 @@ export class MRPanel{
    this.button('loadLeft','左トリガーに仕込む',28,770,360,48,()=>this.click('loadLeft'));this.button('loadRight','右トリガーに仕込む',412,770,360,48,()=>this.click('loadRight'));
    this.text('左：'+s.loadedLeft+' ／ 右：'+s.loadedRight,32,836,20,'#ffe0a3',736);
    this.button('reset','設定と視点を初期状態に戻す',28,860,744,42,()=>this.click('reset'));
+  }else if(this.page===4){
+   this.selector('musicTrack','曲を選ぶ',247,s.musicTrack);
+   this.button('musicShow',s.musicLabel??'花火の夜を観る',28,360,744,64,()=>this.click('musicShow'),{selected:s.musicShow&&!s.running});
+   this.button('musicStop','大会を止める',28,438,360,54,()=>this.click('musicStop'));
+   this.button('musicRestart','最初から観る',412,438,360,54,()=>this.click('musicRestart'));
+   this.wrap(s.musicState??'花火の夜 · 約２分',32,534,736,2);
+   this.range('musicVolume','音楽の音量',622,s.musicVolume);
+   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,757,736,3);
+   this.text('右B：いま観ている大会を一時停止・再開',32,912,21,'#aebfc9');
   }else if(this.page===1){
-   this.selector('type','花火の種類',247,s.type);
-   this.selector('size','玉の大きさ',344,s.size);
-   if(s.palette)this.selector('palette','配色：外星 × 芯星／菊の色',441,s.palette);
-   this.button('sample','この一発を試す',28,539,444,64,()=>this.click('sample'));
-   this.text('トリガーは仕込み玉',490,571,23,'#ffe0a3');
-   this.button('loadLeft','左トリガーに仕込む',28,617,360,48,()=>this.click('loadLeft'));
-   this.button('loadRight','右トリガーに仕込む',412,617,360,48,()=>this.click('loadRight'));
-   this.text('左：'+s.loadedLeft,32,686,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,716,20,'#b8c9d4',736);
-   this.button('fans','足元の扇・クロス',28,755,360,48,()=>this.click('fans'));
-   this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',412,755,360,48,()=>this.click('starmine'));
-   this.button('big','二尺玉の三重芯',28,816,360,48,()=>this.click('big'));
-   this.button('finale','銀かむろの締め',412,816,360,48,()=>this.click('finale'));
-   this.button('wideFinale','空いっぱいのかむろを見る',28,877,744,48,()=>this.click('wideFinale'));
-   this.text('空へ向けてトリガーで一発 · グリップで掴む',32,950,21,'#aebfc9');
+   this.button('upperStudy','上空の花火',28,238,360,54,()=>{this.groundStudy=false;},{selected:!this.groundStudy});
+   this.button('groundStudy','大トラ・子トラ',412,238,360,54,()=>{this.groundStudy=true;},{selected:this.groundStudy});
+   if(this.groundStudy){
+    this.selector('cometPattern','トラの打ち方',318,s.cometPattern);
+    this.selector('cometStyle','星と尾の色',434,s.cometStyle);
+    this.button('cometShow','このトラを観る',28,550,360,60,()=>this.click('cometShow'));
+    this.button('cometNext','次の打ち方を観る',412,550,360,60,()=>this.click('cometNext'));
+    this.button('cometSequence','短いトラの演出を観る',28,627,744,60,()=>this.click('cometSequence'));
+    this.button('cometPause',s.cometPaused?'試し打ちを再開':'試し打ちを一時停止',28,704,744,54,()=>this.click('cometPause'));
+    this.wrap(s.cometDescription??'',32,808,736,3);
+   }else{
+    this.selector('type','花火の種類',317,s.type);
+    this.selector('size','玉の大きさ',414,s.size);
+    if(s.palette)this.selector('palette','配色：外星 × 芯星／菊の色',511,s.palette);
+    this.button('sample','この一発を試す',28,609,444,60,()=>this.click('sample'));
+    this.text('トリガーは仕込み玉',490,641,23,'#ffe0a3');
+    this.button('loadLeft','左トリガーに仕込む',28,687,360,48,()=>this.click('loadLeft'));
+    this.button('loadRight','右トリガーに仕込む',412,687,360,48,()=>this.click('loadRight'));
+    this.text('左：'+s.loadedLeft,32,756,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,786,20,'#b8c9d4',736);
+    this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',28,816,744,48,()=>this.click('starmine'));
+    this.button('big','二尺玉の三重芯',28,877,360,48,()=>this.click('big'));
+    this.button('finale','銀かむろの締め',412,877,360,48,()=>this.click('finale'));
+    this.button('wideFinale','空いっぱいのかむろを見る',28,938,744,36,()=>this.click('wideFinale'));
+   }
   }else if(this.page===2){
    if(s.bridge){this.text('手前の橋に座って鑑賞中',32,280,34,'#ffe0a3');this.wrap('花火は頭上に、川面は眼下に。座ったまま、顔を向けて街を見回せます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);

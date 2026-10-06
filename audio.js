@@ -13,6 +13,8 @@ function lateDecay(t,tau,join,lateTau){
 }
 // Original synthesized effects. Launch: broadband pressure and short gas rush. Break: deep pressure and roomy decay.
 export function effectSamples(rate,explosion,size=5){
+ // The 2-go ear uses half the 3-go waveform, including the reverberation feed.
+ if(size===2)return effectSamples(rate,explosion,3).map(v=>v*.5);
  const duration=explosion?2.2+(size===20?2.2:size>=10?1.8:1.2):.8,output=new Float32Array(Math.ceil(rate*duration));
  const sizeWeight=size===10?1:size===5?.85:.70;
  let seed=explosion?817:141,low=0,mid=0,bass=0;
@@ -42,6 +44,8 @@ export function effectSamples(rate,explosion,size=5){
 }
 // Recording-inspired synthesis: no recorded sound or pitched oscillator in this profile.
 export function realisticSamples(rate,explosion,size=5){
+ // The 2-go ear uses half the 3-go waveform, including the reverberation feed.
+ if(size===2)return realisticSamples(rate,explosion,3).map(v=>v*.5);
  const big=size>=10,weight=size===20?1:size===10?.95:size===5?.8:.68;
  const baseDuration=big?(size===20?4.8:4.1):1.7,extension=size===20?2.2:big?1.8:1.2;
  const duration=explosion?baseDuration+extension:.65,data=new Float32Array(Math.ceil(rate*duration));
@@ -70,6 +74,17 @@ export function realisticSamples(rate,explosion,size=5){
  const peak=data.reduce((m,v)=>Math.max(m,Math.abs(v)),0),gain=peak?Math.min(1,.82/peak)*weight:0;
  for(let i=0;i<data.length;i++)data[i]*=gain;
  return explosion?fadeTail(data,rate,1):data;
+}
+// Small, dry aerial report. A short broadband pop without a deep body or long coda.
+export function earPopSamples(rate){
+ const data=new Float32Array(Math.ceil(rate*.24));let seed=2707141,low=0,mid=0;
+ const lowFilter=1-Math.exp(-2*Math.PI*180/rate),midFilter=1-Math.exp(-2*Math.PI*1800/rate);
+ for(let i=0;i<data.length;i++){
+  const t=i/rate;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/4294967296*2-1;
+  low+=lowFilter*(noise-low);mid+=midFilter*(noise-mid);
+  data[i]=((mid-low)*.75*Math.exp(-t/.024)+(noise-mid)*.10*Math.exp(-t/.008)+low*.22*Math.exp(-t/.044))*(1-Math.exp(-t*2200));
+ }
+ return fadeTail(data,rate,.08);
 }
 export function crackleSamples(rate,cross=false){
  const data=new Float32Array(Math.ceil(rate*1.6));let seed=cross?2701:1709;
@@ -126,7 +141,7 @@ export function reverbBuffer(context,opening=false){
  return buffer;
 }
 export class FireworkAudio{
- constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.all(['small','large'].map(async name=>{const response=await fetch(new URL(`reference-${name}.wav`,import.meta.url));if(!response.ok)throw new Error('参考音の読込に失敗');const buffer=await context.decodeAudioData(await response.arrayBuffer());for(let channel=0;channel<buffer.numberOfChannels;channel++)fadeTail(buffer.getChannelData(channel),buffer.sampleRate,.02);this.reference.set(name,buffer);}));this.ready.catch(()=>{});this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;this.master.connect(this.limiter).connect(context.destination);
+ constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;this.master.connect(this.limiter).connect(context.destination);
  // Retain the short space for launch/foot effects. Openings have a longer tail.
  this.reverb=context.createConvolver();this.reverb.buffer=reverbBuffer(context);
  this.openingReverb=context.createConvolver();this.openingReverb.buffer=reverbBuffer(context,true);
@@ -170,7 +185,26 @@ export class FireworkAudio{
  source.onended=()=>{source.disconnect();dry.disconnect();send.disconnect();};source.start();
  }
  setVolume(value){this.master.gain.setTargetAtTime(value,this.context.currentTime,.025);}
- play(explosion,x,z,size,mode='original',when,position=null){if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ playComet(x,when,position=null){
+ if(this.context.state!=='running')return;
+ const key='realistic-false-3';
+ if(!this.cache.has(key)){const data=realisticSamples(this.context.sampleRate,false,3),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain(),send=this.context.createGain();
+ source.buffer=this.cache.get(key);dry.gain.value=.095;send.gain.value=.025;
+ source.connect(pan);pan.connect(dry).connect(this.master);pan.connect(send).connect(this.reverb);
+ source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send.disconnect();};this.startSource(source,when);
+ }
+ playEar(explosion,x,when,position=null){
+ if(this.context.state!=='running'&&!('startRendering' in this.context))return;
+ const key=explosion?'ear-pop':'realistic-false-3';
+ if(!this.cache.has(key)){const data=explosion?earPopSamples(this.context.sampleRate):realisticSamples(this.context.sampleRate,false,3),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();source.buffer=this.cache.get(key);dry.gain.value=explosion?.18:.14;
+ source.connect(pan);pan.connect(dry).connect(this.master);
+ // Ear openings are dry. Launches retain only the small space used by the comets.
+ let send=null;if(!explosion){send=this.context.createGain();send.gain.value=.025;pan.connect(send).connect(this.reverb);}
+ source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);
+ }
+ play(explosion,x,z,size,mode='original',when,position=null){if(size===2)return this.playEar(explosion,x,when,position);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
  const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.spatialPan(x,position);const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
  }
 }

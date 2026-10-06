@@ -17,3 +17,9 @@ aside{max-height:82vh;overflow-y:auto}details{font-size:12px;border-top:1px soli
 .city-first-hint{font-size:11px;line-height:1.7;color:#aebfce;margin:2px 0 15px}
 
 .help-page h2{font-size:17px;color:#ffe0a3}.help-page h3{font-size:14px;color:#e7d3a6;margin:20px 0 7px}.help-page p,.help-page dl{font-size:12px;line-height:1.8;color:#bfced9}.help-page dl{display:grid;grid-template-columns:48px 1fr;gap:5px}.help-page dt{color:#ffe0a3}.help-page dd{margin:0}.panel-tabs button{padding-left:3px;padding-right:3px;font-size:11px}
+
+.music-card,.comet-card{padding:12px;margin:12px 0;background:#1b2c3e;border:1px solid #e8c98755;border-radius:10px}.music-card p,.comet-card p{font-size:12px;line-height:1.7}.music-card canvas{width:100%;height:55px}.music-card label{margin:10px 0}#musicTime{font-variant-numeric:tabular-nums;color:#ffe0a3}
+
+.panel-tabs{flex-wrap:wrap}.panel-tabs button{min-width:72px}.music-card h2{font-size:17px;color:#ffe0a3}.music-card #musicShow{font-size:17px;font-weight:600}
+
+.music-card canvas{height:12px;border-radius:6px;margin-top:12px}

@@ -1,19 +1,23 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=1.1.0';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.4';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.4';
+import {MusicTransport} from './music-transport.js';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.4';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.0';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.0';
-import {FireworkAudio} from './audio.js?v=1.1.0';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.0';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.0';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.0';
-import {TowerLighting} from './tower-lighting.js?v=1.1.0';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.0';
-import {ShowInfoPanel} from './show-info.js?v=1.1.0';
-import {WristMenu} from './wrist-menu.js?v=1.1.0';
-import {XRControls} from './xr-controls.js?v=1.1.0';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.0';
-import {EntryTip} from './entry-tip.js?v=1.1.0';
-const BUILD_VERSION='1.1.0';
+import {EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.4';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.4';
+import {FireworkAudio} from './audio.js?v=1.1.4';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.4';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.4';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.4';
+import {TowerLighting} from './tower-lighting.js?v=1.1.4';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.4';
+import {ShowInfoPanel} from './show-info.js?v=1.1.4';
+import {WristMenu} from './wrist-menu.js?v=1.1.4';
+import {XRControls} from './xr-controls.js?v=1.1.4';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.4';
+import {EntryTip} from './entry-tip.js?v=1.1.4';
+const BUILD_VERSION='1.1.4';
+const SMALL_STYLE_LABELS={gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -150,20 +154,55 @@ function updateRoofLights(seconds){
  }colors.needsUpdate=true;
 }
 let showPlan=null,showNumber=0;
-function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];$('programInfo').textContent=showPlan.name; }
+let selectedMusic=MUSIC_SHOWS[0],MUSIC_PLAN=selectedMusic.plan;
+let music=new MusicTransport(selectedMusic.src,{autoload:false});
+$('musicTrack').replaceChildren(...MUSIC_SHOWS.map(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.title;return option;}));$('musicTrack').value=selectedMusic.id;
+let musicRequest=0,musicBusy=false;
+let musicLog=[],musicLastUI=-1;
+
+function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalEarSequence(seed,.8,3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,intro.finishAt);$('programInfo').textContent=showPlan.name; }
+function prepareMusicProgram(){
+ showPlan={name:'音楽付き · '+selectedMusic.title,music:true};
+ const shift=Number($('musicOffset').value)/1000;
+ burstQueue=MUSIC_PLAN.shots.map(s=>({...s,at:s.at+shift,opening:s.opening+shift,position:{...s.position,startAt:s.at+shift}}));
+ fanQueue=MUSIC_PLAN.fans.map(f=>({...f,at:f.at+shift}));
+ musicLog=[];$('musicState').textContent=selectedMusic.title+' · '+MUSIC_PLAN.duration.toFixed(1)+'秒';
+}
+function cancelMusicRequest(){musicRequest++;musicBusy=false;syncShowButtons();}
+function syncShowButtons(){
+ $('play').textContent=showPlan?.music?'曲なしの大会へ':running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';
+ $('musicShow').disabled=musicBusy;
+ $('musicShow').textContent=musicBusy?'曲を準備中…':showPlan?.music?(running?'音楽付き · ひと休み':'音楽付き · 再開'):selectedMusic.title+'を観る';
+}
+async function beginMusicShow(){
+ if(musicBusy)return;
+ if(showPlan?.music&&time<MUSIC_PLAN.showDuration-.01){toggle();return;}
+ const request=++musicRequest;musicBusy=true;syncShowButtons();ensureAudio();
+ $('musicState').textContent='曲を準備中…';
+ try{await music.load();}catch(e){if(request!==musicRequest)return;musicBusy=false;music.ready=null;syncShowButtons();$('musicState').textContent='曲を読み込めませんでした。もう一度お試しください。';return;}
+ if(request!==musicRequest)return;
+ musicBusy=false;music.stop();clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();previewing=false;previewPaused=false;time=0;cueIndex=0;prepareMusicProgram();ensureAudio();music.play(audio,0);running=true;
+ $('musicState').textContent=selectedMusic.title+' · '+MUSIC_PLAN.duration.toFixed(1)+'秒';$('status').textContent=selectedMusic.description;syncShowButtons();mrPanel.draw();
+}
+function beginNormalShow(){stopShow();prepareProgram();running=true;ensureAudio();syncShowButtons();$('status').textContent='稲穂の横一列から、曲なしの花火大会を始めます。';}
+
 function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0){const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,...(position?[position]:[]));}
-function soundDelayFor(f){return bridgeView.active?bridgeView.delay(f.x,f.y,f.z,latestViewerTransform):({3:.2,5:.5,10:1,20:1.5})[f.size]??0;}
+function soundDelayFor(f){return bridgeView.active?bridgeView.delay(f.x,f.y,f.z,latestViewerTransform):({2:.18,3:.2,5:.5,10:1,20:1.5})[f.size]??0;}
 function cancelFutureSounds(){
  soundEngine?.cancelScheduled?.();for(const f of fireworks){const t=time-f.start-f.ascent;if(t<(f.soundDue??soundDelayFor(f)))f.soundPlayed=false;if(f.kind==='senrin'&&t<(f.childSoundDue??f.clusterDelays[0]+soundDelayFor(f)))f.childSoundPlayed=false;}
 }
+let earSerial=0;
 function launch(kind='core',size=5,position=null){
- if(!position?.manual&&(fireworks.length>=(position?.wide?9:8)||(triggerEmbers.count&&fireworks.length+triggerEmbers.count>=8)))return false;
+ if(kind==='ear'&&size!==2||size===2&&kind!=='ear')return false;
+ const activeUpper=fireworks.filter(f=>f.kind!=='ear').length;
+ if(kind==='ear'){if(fireworks.filter(f=>f.kind==='ear').length>=14)return false;}
+ else if(!position?.manual&&(activeUpper>=(position?.wide||position?.musicNine?9:8)||(triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
  if(kind==='kiku'&&size!==3)return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
  if(kind==='double'&&size!==10)return false;if(kind==='senrin'&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&kind!=='senrin'&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
  const spec=TYPES[kind],scale=SIZES[size];if(!spec||!scale)return false;
  const z=position?.z??(rand()*1.6-.85),x=position?.x??(riverCenter(z)+(rand()>.5?1:-1)*(.12+rand()*.7));
- const y=scale.height+(position?.heightOffset??0),r=scale.radius,trailCount=kind==='kiku'?16:kind==='senrin'?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
+ const y=scale.height+(position?.heightOffset??0),r=scale.radius,trailCount=kind==='ear'?EAR_PROFILE.trails:kind==='kiku'?16:kind==='senrin'?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?rand()*1000:0;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
  for(let layer=0;layer<spec.radii.length;layer++){
@@ -206,7 +245,8 @@ function launch(kind='core',size=5,position=null){
  for(const dir of childStars){directions.push(new T.Vector3(...dir));shells.push(1);starColors.push(scheme[cluster%scheme.length]);}
  });
  }
- const shape=sampleShellShape(kind,size);
+ const earStars=kind==='ear'?createEarStars(position?.earSeed??((++earSerial*0x9e3779b9)>>>0)):null;
+ const shape=kind==='ear'?{level:0}:sampleShellShape(kind,size);
  for(let i=0;i<directions.length;i++)deformShellVector(directions[i],shape,kind==='senrin'?.35:shells[i]<.75?.65:1);
  for(const center of clusterCenters)deformShellVector(center,shape);
  const n=directions.length,positions=new Float32Array(n*trailCount*3),colors=new Float32Array(n*trailCount*3);
@@ -214,20 +254,21 @@ function launch(kind='core',size=5,position=null){
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- const m=new T.PointsMaterial({size:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ const m=new T.PointsMaterial({size:kind==='ear'?.004:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
- const baseAscent=size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
+ const baseAscent=kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
  const reflectionRadiusScale=kind==='senrin'?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:time,burst:false});sound(false,x,z,size);
+ fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false});sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
+ if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
 }
 function clearFireworks(){triggerEmbers.clear();soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
 // Free expired launch slots and fire sounds before queued shots, without computing points.
 function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime;for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
- if(t>=0&&!f.burst)f.burst=true;
+ if(t>=0&&!f.burst){f.burst=true;if(f.kind==='ear')bridgeView.point(f.m,null,EAR_PROFILE.pointSize);}
  const soundDelay=soundDelayFor(f);
  if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y);}
  if(f.kind==='senrin'&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),...(bridgeView.active?[bridgeView.position(f.x,f.y,f.z)]:[]));}
@@ -236,7 +277,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
- const fade=t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
+ const fade=f.kind==='ear'||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
  let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
  const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
  const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
@@ -246,7 +287,10 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  if(t<0){
  const trail=(i%24)*.003+j*.004,riseAge=f.kind==='silver'?Math.max(0,age-j*.03):age;
  x=f.x;y=Math.max(.02,f.y*(f.size<10?Math.pow(riseAge/f.ascent,.85):(1-Math.pow(1-Math.min(1,riseAge/(f.ascent-(f.size===20?.6:.28))),2)))-(f.kind==='silver'?0:trail));z=f.z;
- brightness=i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
+ brightness=f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
+ }
+ else if(f.kind==='ear'){
+ const v=earPoint(f.earStars[i],f.r,t,j);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
  }
  else if(f.kind==='silver'){
  // The tail is a short history of the same star, never a fresh delayed shell.
@@ -280,9 +324,10 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(j===0?2:.9);
  // Fade tails along with their heads so the whole break has a clean ending.
  }
- f.positions[index]=x;f.positions[index+1]=Math.max(.018,y);f.positions[index+2]=z;
+ if(f.kind==='ear'&&y<=.025)brightness=0;
+ f.positions[index]=x;f.positions[index+1]=f.kind==='ear'?y:Math.max(.018,y);f.positions[index+2]=z;
  // Head samples already computed above: no second particle pass or temporary vectors.
- if(t>=0&&j===0&&brightness>0&&(f.kind!=='senrin'||t>=f.clusterDelays[Math.floor(i/24)])){
+ if(t>=0&&(j===0||f.kind==='ear')&&brightness>0&&(f.kind!=='senrin'||t>=f.clusterDelays[Math.floor(i/24)])){
   const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
@@ -295,26 +340,69 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   f.reflectionCenter.set(cx,cy,cz);
   f.reflectionRadius=Math.sqrt(Math.max(0,lightR2/light-cx*cx-cy*cy-cz*cz))/(f.layerLight?Math.sqrt(lightShellR2/light):f.reflectionRadiusScale);
   const headBrightness=f.kind==='silver'?2.2:f.kind==='senrin'?3.8:2;
-  f.reflectionGain=.9*fade*Math.min(1,light/(f.n*headBrightness))*reflectionAppearance(f.reflectionRadius/f.r);
+  f.reflectionGain=.9*fade*Math.min(1,light/(f.n*headBrightness*(f.kind==='ear'?f.trailCount*.30:1)))*reflectionAppearance(f.reflectionRadius/f.r);
  }
 } }
-let fanQueue=[],fans=[];
-function clearFans(){for(const f of fans){town.remove(f.p);f.g.dispose();f.m.dispose();}fans=[];}
-function launchFans(mode='fan'){
- soundEngine?.playCrackle(mode==='cross');
- const coords=new Float32Array(5*9*64*3),colors=new Float32Array(coords.length),g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(coords,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- let ci=0;for(let site=0;site<5;site++)for(let ray=0;ray<9;ray++)for(let tail=0;tail<64;tail++){const palette=[0xff527d,0x7de9e3,0xffd38a,0xb8df91,0xff9261,0xd7b1ff];const c=new T.Color(tail<6?0xff6472:palette[(site+Math.floor(ray/2))%palette.length]);const gain=Math.pow(1-tail/64,.8);colors.set([c.r*gain,c.g*gain,c.b*gain],ci);ci+=3;}
- const m=new T.PointsMaterial({color:0xffffff,vertexColors:true,size:.012,map:sprite,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);fans.push({p,g,m,coords,mode,start:time});
+let fanQueue=[],cometFinishAt=null,cometCompleted=false;
+const cometSoundSlots=new Map();
+const comets=new CometField({town,bridge:bridgeView,map:sprite,headMaps:fireworkMaps,onLaunch:(s,now)=>{
+ // One quiet launch voice per firing position and instant; no invented crackle.
+ const key=s.group+':'+s.x.toFixed(2)+':'+Math.round(s.at/.06);
+ if(cometSoundSlots.has(key)||!soundEngine||!audio)return;
+ cometSoundSlots.set(key,now);
+ const delay=bridgeView.active?bridgeView.delay(s.x,s.y,s.z,latestViewerTransform):.12;
+ const position=bridgeView.active?bridgeView.position(s.x,s.y,s.z):null;
+ soundEngine.playComet(s.x,audio.currentTime+Math.max(0,delay-(now-s.at)),position);
+}});
+function clearFans(){comets.clear();cometSoundSlots.clear();cometFinishAt=null;cometCompleted=false;}
+function launchFans(mode='fan',startAt=time,style=mode==='cross'?'silver':'gold'){
+ return comets.launch(mode,style,startAt);
 }
 function updateFans(){
- while(fanQueue.length&&fanQueue[0].at<=time){const cue=fanQueue.shift();launchFans(cue.mode);}
- for(let i=fans.length-1;i>=0;i--){const f=fans[i],age=time-f.start;if(age>3.8){town.remove(f.p);f.g.dispose();f.m.dispose();fans.splice(i,1);continue;}
- let index=0;for(let site=0;site<5;site++)for(let ray=0;ray<9;ray++)for(let tail=0;tail<64;tail++){
- const t=Math.max(0,age-tail*.025),cross=f.mode==='cross',angle=cross?(ray<4?-.82:.82)+(ray%4-1.5)*.035:(ray-4)*.15,v=cross?.84:.54;
- const x=-.8+site*.4+1.4*Math.sin(angle)*v*t,y=.05+1.4*(Math.cos(angle)*v*t-(cross?.45:.32)*t*t),z=-.35+site*.1;
- f.coords.set([x,Math.max(.018,y),z],index);index+=3;
- }f.g.attributes.position.needsUpdate=true;f.m.opacity=age<2.1?1:Math.max(0,1-(age-2.1)/1.7);
- }
+ while(fanQueue.length&&fanQueue[0].at<=time){const cue=fanQueue.shift();if(time-cue.at>.35)continue;launchFans(cue.mode,cue.at,cue.style);}
+ comets.update(time);
+ for(const [key,at] of cometSoundSlots)if(time-at>5)cometSoundSlots.delete(key);
+}
+function beginCometStudy(pattern=$('cometPattern').value,style=$('cometStyle').value){
+ beginPreview();launchFans(pattern,0,style);queueCometCrown(pattern,0);
+ cometFinishAt=pattern==='guide'?12:pattern.startsWith('small-')?3.5:6.5;
+ const spec=COMET_PATTERNS.find(p=>p.id===pattern);
+ $('chapter').textContent='トラ打ち · '+spec.label;$('last').textContent=pattern.startsWith('small-')?SMALL_STYLE_LABELS[style]:COMET_STYLES[style].label;
+ $('status').textContent=spec.description+' 同じ打ち方は「このトラを観る」で繰り返せます。';
+}
+function queueCometCrown(pattern,at){
+ if(pattern!=='guide')return;
+ // The first foreground stars lead; the existing crown then climbs behind them.
+ burstQueue.push({at:at+.72,kind:'core',size:10,position:{x:0,z:-.84,heightOffset:.16,ignitionDelay:.04,startAt:at+.72}});
+ burstQueue.sort((a,b)=>a.at-b.at);
+}
+function beginCometSequence(){
+ if(['sweep','sweep-reverse','sweep-cross','sweep-cross-high'].includes($('cometPattern').value)){beginDirectionalCometSequence();return;}
+ if($('cometPattern').value.startsWith('small-')){beginSmallCometSequence();return;}
+ beginPreview();
+ const cues=[{at:0,mode:'single',style:'gold'},{at:4,mode:'row',style:'silver'},{at:8,mode:'fan',style:'gold'},{at:12,mode:'cross',style:'blue'},{at:16,mode:'sweep',style:'red'},{at:20,mode:'inward',style:'gold'},{at:24,mode:'guide',style:'gold'}];
+ fanQueue.push(...cues);queueCometCrown('guide',24);
+ cometFinishAt=34;
+ $('chapter').textContent='トラ打ち · 小さな演出';$('last').textContent='一本 → 列 → 扇 → 交差 → 流し → 中央 → 尺玉';
+ $('status').textContent='約34秒。星と尾を主役にして、最後は尺玉へ視線をつなぎます。';
+}
+function beginDirectionalCometSequence(){
+ beginPreview();
+ const modes=['sweep','sweep-reverse','sweep','sweep-reverse','sweep-cross','sweep-cross-high','small-cross-tight'];
+ const times=[0,2.1,4.2,6.3,8.4,10.8,13.2];
+ fanQueue.push(...modes.map((mode,i)=>({at:times[i],mode,style:i===6?'green':'gold'})));
+ cometFinishAt=18;
+ $('chapter').textContent='大トラ・子トラ · 左右の掛け合い';$('last').textContent='右 → 左 → 右 → 左 → クロス → 高いクロス → 子トラ';
+ $('status').textContent='約18秒。右と左の尾、２回目は高いクロス、最後は緑の星と金の尾の子トラへ。';
+}
+function beginSmallCometSequence(){
+ const tight=$('cometPattern').value.endsWith('-tight');
+ beginPreview();
+ const cues=[{at:0,mode:'small-up',style:'green'},{at:4,mode:'small-cross',style:'red'},{at:8,mode:'small-fan',style:'silver'},{at:12,mode:'small-up',style:'blue'},{at:16,mode:'small-fan',style:'gold'}];
+ if(tight)for(const cue of cues)if(cue.mode!=='small-fan')cue.mode+='-tight';
+ fanQueue.push(...cues);queueCometCrown('guide',16);cometFinishAt=26;
+ $('chapter').textContent=tight?'子トラ · すぼめた束の小さな演出':'子トラ · 星の束の小さな演出';$('last').textContent='吹き上げ → クロス → 扇 → 青い星 → 尺玉';
+ $('status').textContent='約26秒。小さな星の束を主役にして、最後は尺玉の土台になります。';
 }
 function startRandomStarmine(plan,index=0){
  const sequence=randomStarmine(plan,time,index,$('mood').value==='lively');
@@ -343,7 +431,8 @@ function startStarmine(finale=false,wide=showPlan?.wideFinale){
  }
  burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=300;
  }else nextLaunch=time+19;
- for(const [offset,mode] of [[0,'fan'],[2.4,'cross'],[4.8,'fan']])fanQueue.push({at:time+offset,mode});if(finale)fanQueue.push({at:time+14.5,mode:'cross'});
+ const groundIndex=Math.max(0,(showPlan?.slots??[]).filter(at=>at<=time+.1).length-1);
+ fanQueue.push(...normalGroundCues(showPlan?.mode??'one',showPlan?.seed??101,groundIndex,time,finale));fanQueue.sort((a,b)=>a.at-b.at);
  $('last').textContent='スターマイン · 連続打ち';
 }
 function advanceStarmine(){
@@ -357,31 +446,41 @@ function advanceStarmine(){
  }
 }
 function stopShow(){
+ cancelMusicRequest();music.stop();
  running=false;previewing=false;showPlan=null;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();time=0;cueIndex=0;nextLaunch=.8;
  if(audio){audio.close();audio=null;soundEngine=null;}
- $('play').textContent='花火大会を観る';$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';
+ syncShowButtons();$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';drawMusicTimeline();
 }
 function resetAll(){
- cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();stopShow();loadedShells.left=loadedShells.right=null;$('loadedLeft').textContent=$('loadedRight').textContent='選択中の一玉';if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
- for(const [id,value] of Object.entries(defaults))$(id).value=value;
+ cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();stopShow();restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one',musicVolume:'0.65'};
+ for(const [id,value] of Object.entries(defaults))$(id).value=value;music.setVolume(.65);
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
  if(renderer.xr.isPresenting)placeTown();
  $('chapter').textContent='幕開け · 0:00';$('last').textContent='次の一玉を待つ';$('status').textContent='設定と視点を初期状態に戻しました。';
 }
-function restart(){previewing=false;showPlan=null;fanQueue=[];clearFans();clearFireworks();burstQueue=[];burstSlots.clear();time=0;nextLaunch=.8;cueIndex=0;$('last').textContent='次の一玉を待つ';if(!running)toggle();else prepareProgram();}
+function restart(){
+ const musical=!!showPlan?.music;cancelMusicRequest();music.stop();previewing=false;previewPaused=false;fanQueue=[];clearFans();clearFireworks();burstQueue=[];burstSlots.clear();time=0;nextLaunch=.8;cueIndex=0;$('last').textContent='次の一玉を待つ';
+ if(musical){prepareMusicProgram();ensureAudio();music.play(audio,0);running=true;}else{showPlan=null;if(!running)toggle();else prepareProgram();}syncShowButtons();
+}
+
 function beginPreview(){
+ cancelMusicRequest();music.stop();
  running=false;previewing=true;previewPaused=false;showPlan=null;time=0;cueIndex=0;nextLaunch=.8;
  clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();
- $('play').textContent='花火大会を観る';$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
+ syncShowButtons();$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
  $('status').textContent='試し打ち中。選んだ花火だけを上げます。';ensureAudio();
 }
 function advanceEmbers(dt){
  triggerEmbers.update(dt,shot=>{const ok=launch(shot.shell.kind,shot.shell.size,{x:shot.target.x,z:shot.target.z,palette:shot.shell.palette,manual:true});$('status').textContent=ok?(shot.hand==='left'?'左':'右')+'から送った '+shellName(shot.shell)+' が打ち上がりました。':'いまは打ち上げが混み合っています。少し間を置いてもう一度どうぞ。';});
 }
 function advance(dt){
+ if(!running&&!previewing)return;
+ if(showPlan?.music){advanceMusic(dt);return;}
  if(previewing){
-  time+=dt;advanceEmbers(dt);updateFireworkEvents();advanceStarmine();updateFans();updateFireworks();return;
+  time+=dt;advanceEmbers(dt);updateFireworkEvents();advanceStarmine();updateFans();updateFireworks();
+  if(cometFinishAt!==null&&time>=cometFinishAt){previewing=false;previewPaused=false;cometCompleted=true;cometFinishAt=null;cancelFutureSounds();$('chapter').textContent='トラ打ち · 終了';$('status').textContent='余韻まで終わりました。「このトラを観る」「次の打ち方を観る」で見比べられます。';}
+  return;
  }
  time=Math.min(300,time+dt);advanceEmbers(dt);
  for(const [index,at] of (showPlan?.senrinAt??[]).entries()){
@@ -393,11 +492,16 @@ function advance(dt){
  }
 
  if(time>=(showPlan?.bigAt??130)&&!burstSlots.has('big')&&fireworks.length===0&&triggerEmbers.count===0){burstSlots.add('big');clearFireworks();clearFans();burstQueue=[];fanQueue=[];const special=showPlan?.special??{kind:'triple',size:20};launch(special.kind,special.size,{x:0,z:-.1});nextLaunch=time+17;$('status').textContent='特別玉：'+SIZES[special.size].label+'・'+TYPES[special.kind].label+'。一玉の層をゆっくりお楽しみください。';}
+ if(time>=145&&time<155&&!burstSlots.has('ear-middle')&&fireworks.length===0&&triggerEmbers.count===0&&burstQueue.length===0&&comets.points===0){
+  const study=normalEarSequence((showPlan.earSeed^0x75eac013)>>>0,time,1);burstSlots.add('ear-middle');burstQueue.push(...study.shots);nextLaunch=Math.max(nextLaunch,study.finishAt);
+  $('status').textContent='稲穂の横一列 · 金の尾の余韻を味わう';
+ }
  for(const slot of (showPlan?.slots??[45,200,250,270]))if(time>=slot&&!burstSlots.has(slot)&&(showPlan?.mode!=='random'||(fireworks.length===0&&triggerEmbers.count===0&&burstQueue.length===0))){burstSlots.add(slot);startStarmine(slot===270);break;}
  updateFireworkEvents();advanceStarmine();updateFans();
  const awaitingSpecial=(time>=(showPlan.bigAt-10)&&!burstSlots.has('big'))||showPlan.senrinAt.some((at,index)=>time>=at-10&&!burstSlots.has('senrin-'+index));
+ const awaitingEar=time>=140&&time<155&&!burstSlots.has('ear-middle');
  const awaitingPattern=showPlan.mode==='random'&&showPlan.slots.some(slot=>time>=slot-10&&!burstSlots.has(slot));
- if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern){const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}
+ if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern&&!awaitingEar){const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}
  updateFireworks();
  const elapsed=Math.min(300,Math.floor(time));$('chapter').textContent=chapter(Math.min(time,299))+' · '+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
  if(time>=300){if($('ending').value==='loop'){clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();time=0;nextLaunch=2;cueIndex=0;prepareProgram();}else{running=false;$('play').textContent='花火大会を観る';$('status').textContent='大会が終わりました。街の灯りをお楽しみください。';}}
@@ -411,18 +515,38 @@ function ensureAudio(){
  if(!audio){audio=new(window.AudioContext||window.webkitAudioContext)();soundEngine=new FireworkAudio(audio,Number($('volume').value));}
  audio.resume().catch(e=>{$('status').textContent='音声を開始できませんでした：'+e.message;});
 }
-function toggle(){if(previewing){previewing=false;time=0;cueIndex=0;nextLaunch=.8;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();}if(!running&&!showPlan)prepareProgram();running=!running;$('play').textContent=running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';$('status').textContent=running?'オート大会を鑑賞中。操作せず、そのまま眺めてください。':'夜の街で、ひと休み。';if(running)ensureAudio();else{
- cancelFutureSounds();
-}}
-$('play').disabled=false;$('play').textContent='花火大会を観る';$('play').onclick=()=>{if(time>=300)restart();else toggle();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
-let fanPreviewCross=false;$('fans').onclick=()=>{beginPreview();launchFans(fanPreviewCross?'fan':'cross');fanPreviewCross=!fanPreviewCross;};
+function toggle(){
+ if(showPlan?.music){
+  if(!running){
+   if(time>=MUSIC_PLAN.showDuration-.01){clearFireworks();clearFans();time=0;prepareMusicProgram();}
+   ensureAudio();music.play(audio,time);running=true;
+  }else{time=music.pause();running=false;cancelFutureSounds();}
+  syncShowButtons();$('status').textContent=running?'音楽と花火を鑑賞中です。':'音楽と花火を一時停止しました。';return;
+ }
+ cancelMusicRequest();
+ if(previewing){previewing=false;time=0;cueIndex=0;nextLaunch=.8;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();}
+ if(!running&&!showPlan)prepareProgram();running=!running;
+ syncShowButtons();$('status').textContent=running?(time<18.3?'稲穂の横一列から幕開け。金の尾の余韻をお楽しみください。':'オート大会を鑑賞中。操作せず、そのまま眺めてください。'):'夜の街で、ひと休み。';if(running)ensureAudio();else cancelFutureSounds();
+}
+$('play').disabled=false;$('play').textContent='花火大会を観る';
+$('play').onclick=()=>{if(showPlan?.music)beginNormalShow();else if(time>=300)restart();else toggle();};
+$('musicShow').onclick=beginMusicShow;$('musicStop').onclick=stopShow;$('musicRestart').onclick=()=>{if(showPlan?.music)restart();else beginMusicShow();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
+$('musicFinale').onclick=()=>beginMusicExcerpt(MUSIC_PLAN.duration-12,'最後の大輪と、曲後の余韻を観ます。');
+$('musicPyramid').onclick=()=>beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');
+$('cometShow').onclick=()=>beginCometStudy();
+$('cometNext').onclick=()=>{const options=[...$('cometPattern').options];const i=options.findIndex(o=>o.value===$('cometPattern').value);$('cometPattern').value=options[(i+1)%options.length].value;$('cometPattern').onchange();beginCometStudy();};
+$('cometSequence').onclick=beginCometSequence;
+$('cometPause').onclick=()=>{if(previewing)pauseShow();};
+$('cometPattern').onchange=()=>{const small=$('cometPattern').value.startsWith('small-');$('cometSequence').textContent=small?($('cometPattern').value.endsWith('-tight')?'すぼめた子トラの演出 · 約26秒':'子トラの演出を観る · 約26秒'):(['sweep','sweep-reverse','sweep-cross','sweep-cross-high'].includes($('cometPattern').value)?'左右の掛け合いを観る · 約18秒':'大トラの演出を観る · 約34秒');$('cometDescription').textContent=COMET_PATTERNS.find(p=>p.id===$('cometPattern').value)?.description??'';for(const option of $('cometStyle').options){option.disabled=!small&&!COMET_STYLES[option.value];option.textContent=small?SMALL_STYLE_LABELS[option.value]:(COMET_STYLES[option.value]?.label??SMALL_STYLE_LABELS[option.value]);}if(!small&&!COMET_STYLES[$('cometStyle').value])$('cometStyle').value='gold';mrPanel.draw();};
+
+$('fans').onclick=()=>beginCometStudy();
 $('big').onclick=()=>{beginPreview();launch('triple',20,{x:0,z:-.1});};
 $('finale').onclick=()=>{beginPreview();startStarmine(true,false);};
 $('wideFinale').onclick=()=>{beginPreview();startStarmine(true,true);$('status').textContent='特別な締め：5号5発 → 0.6秒後に尺玉3発 → 頂上の二尺玉1発。';};
 $('starmine').onclick=()=>{beginPreview();if($('program').value==='random')startRandomStarmine(createProgram('random',crypto.getRandomValues(new Uint32Array(1))[0]));else startStarmine(false,false);};
 $('sample').onclick=()=>{beginPreview();syncSize();const ok=launch($('type').value,Number($('size').value),{x:0,z:.05,palette:$('palette').value});$('status').textContent=ok?'選んだ一玉を打ち上げています。':'この組み合わせを上げられません。種類と号数を確認してください。';};$('status').textContent='川と橋のある街へ、ようこそ。';
 $('program').onchange=()=>{$('status').textContent=showPlan?'次の大会から「'+PROGRAM_NAMES[$('program').value]+'」で始まります。「大会を最初から」で今すぐ切り替えられます。':'「'+PROGRAM_NAMES[$('program').value]+'」を選びました。';};
-$('audioMode').onchange=async()=>{if($('audioMode').value==='reference'){try{if(soundEngine)await soundEngine.ready;$('status').textContent='録音参考版：開花音を録音の切り出しで比較。打ち上げ音は現在のままです。';}catch{$('audioMode').value='original';$('status').textContent='参考音を読み込めませんでした。現在の音へ戻しました。';}}else $('status').textContent=$('audioMode').value==='realistic'?'リアル寄せ合成：号数別の開花音と、短い破裂・噴出の打ち上げ音を比較できます。':'現在の合成音へ戻しました。';};
+$('audioMode').onchange=()=>{$('status').textContent=$('audioMode').value==='realistic'?'リアル寄せ合成の花火音です。':'現在の合成音です。';};
 $('volume').oninput=()=>soundEngine?.setVolume(Number($('volume').value));
 function applyTownHeight(){if(!bridgeView.active&&renderer.xr.isPresenting)town.position.y=Number($('height').value)-groundBottomY*town.scale.y;}
 function adjustTownDistance(){
@@ -435,15 +559,15 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
+function allowedSize(kind,value){if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label;return option;}));
  select.disabled=!options.length;select.value=options.some(p=>p.id===previous)?previous:'original';
 }
 $('type').addEventListener('change',()=>{syncSize();syncPalette();});
-const settingsIds=['program','mood','ending','volume','scale','distance','height','roomBrightness','type','size','palette','towerColor','audioMode'];
+const settingsIds=['program','mood','ending','volume','scale','distance','height','roomBrightness','type','size','palette','towerColor','audioMode','musicVolume'];
 try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');for(const id of settingsIds){if(id==='palette')syncPalette();const el=$(id);if(saved[id]!==undefined){const old=el.value;el.value=saved[id];if(el.value==='')el.value=old;}}town.scale.setScalar(Number($('scale').value));}catch{}
 setTowerColor();syncSize();syncPalette();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
 for(const id of settingsIds)$(id).addEventListener('change',()=>{try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
@@ -467,11 +591,11 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
- for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor']){
+ const result={cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
- for(const id of ['scale','distance','height','volume','roomBrightness'])result[id]={value:Number($(id).value)};
+ for(const id of ['scale','distance','height','volume','roomBrightness','musicVolume'])result[id]={value:Number($(id).value)};
  return result;
 }
 function cyclePanel(id,direction){
@@ -480,7 +604,7 @@ function cyclePanel(id,direction){
 }
 function adjustPanel(id,direction){
  if(bridgeView.active&&['scale','distance','height'].includes(id))return;
- const el=$(id);el.value=String(stepRange(Number(el.value),direction,Number(el.min),Number(el.max),id==='volume'?.05:Number(el.step)));
+ const el=$(id);el.value=String(stepRange(Number(el.value),direction,Number(el.min),Number(el.max),['volume','musicVolume'].includes(id)?.05:Number(el.step)));
  el.dispatchEvent(new Event('input'));el.dispatchEvent(new Event('change'));
 }
 function setPanelRange(id,value,commit=false){
@@ -501,7 +625,12 @@ function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').t
 $('showInfo').onclick=toggleShowInfo;
 // Each hand keeps a snapshot of the chosen shell; changing the picker later
 // does not silently replace a prepared shell during the automatic show.
+const DEFAULT_PREPARED_SHELLS={left:{kind:'triple',size:20,palette:'original'},right:{kind:'silver',size:10,palette:'original'}};
 const loadedShells={left:null,right:null};
+function restoreDefaultShells(){
+ for(const hand of ['left','right']){loadedShells[hand]={...DEFAULT_PREPARED_SHELLS[hand]};$('loaded'+(hand==='left'?'Left':'Right')).textContent=preparedShellName(loadedShells[hand]);}
+}
+restoreDefaultShells();
 function chosenShell(){syncSize();return {kind:$('type').value,size:Number($('size').value),palette:$('palette').value};}
 function shellName(shell){return shell?SIZES[shell.size].label+' · '+TYPES[shell.kind].label.replace('（軽量テスト）',''):'選択中の一玉';}
 function preparedShellName(shell){const label=shell&&paletteOptions(shell.kind).find(p=>p.id===shell.palette)?.label;return shellName(shell)+(label?' · '+label:'');}
@@ -518,7 +647,7 @@ function prepareOptions(){
 function prepareSummary(){const d=preparation.draft,p=paletteOptions(d.kind).find(p=>p.id===d.palette);return shellName(d)+(p?' · '+p.label:'');}
 function drawPreparation(){
  $('preparePanel').hidden=!preparation;
- for(let i=0;i<4;i++)$('browserPage'+i).hidden=!!preparation||i!==mrPanel.page;
+ for(let i=0;i<5;i++)$('browserPage'+i).hidden=!!preparation||i!==mrPanel.page;
  if(preparation){
   const hand=preparation.hand==='left'?'左':'右';$('prepareTitle').textContent=hand+'トリガーに仕込む';$('prepareConfirm').textContent='この玉を'+hand+'に仕込む';$('prepareSummary').textContent=prepareSummary();
   for(let i=0;i<3;i++){const el=$('prepareTab'+i);el.setAttribute('aria-selected',String(i===preparation.tab));el.tabIndex=i===preparation.tab?0:-1;}
@@ -555,17 +684,19 @@ function firePrepared(hand,origin,direction){
  else if(!running){$('status').textContent='大会を開始・再開すると、仕込んだ一玉を追加できます。';return;}
  // A prepared hand always wins, including when the trial tab stays selected.
  ensureAudio();const shell=loadedShells[hand]??chosenShell();
- const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
+ const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
  const ok=manualBudget.accepts(points)&&triggerEmbers.send(hand,shell,origin,direction);
  $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
 }
 function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
 function setPanelTab(page){
  preparation=null;$('preparePanel').hidden=true;mrPanel.page=page;
- for(let i=0;i<4;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
+ for(let i=0;i<5;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
  mrPanel.draw();
 }
-for(let i=0;i<4;i++){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?3:(i+(e.key==='ArrowRight'?1:3))%4;setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
+const PANEL_PAGES=[0,4,1,2,3];
+for(const [index,i] of PANEL_PAGES.entries()){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=PANEL_PAGES[e.key==='Home'?0:e.key==='End'?PANEL_PAGES.length-1:(index+(e.key==='ArrowRight'?1:PANEL_PAGES.length-1))%PANEL_PAGES.length];setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
+
 const townGrabTarget=new T.Mesh(new T.BoxGeometry(3.2,.10,2.1),new T.MeshBasicMaterial({side:T.DoubleSide}));townGrabTarget.position.y=ground.position.y;townGrabTarget.visible=false;town.add(townGrabTarget);
 const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
  $('scale').value=String(town.scale.x);$('height').value=String(Math.max(0,town.position.y+groundBottomY*town.scale.y));
@@ -609,9 +740,11 @@ async function checkMR(){
  try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'部屋で観る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
+ cancelMusicRequest();
+ if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();}
  entryTip.end();cancelPreparation();
  triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
- if(running){running=false;$('play').textContent='花火大会を観る';}
+ if(running){if(showPlan?.music)time=music.pause();running=false;syncShowButtons();}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
  lastMRReport=mrReport();$('mr').disabled=false;$('mr').textContent='部屋で観る';$('bridge').disabled=false;
@@ -624,7 +757,7 @@ async function startXR(mode,bridge=false){
   ensureAudio();if(bridgeView.active)leaveBridge();desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
-  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
+  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
@@ -643,7 +776,8 @@ $('bridge').onclick=()=>{
 };syncViewControls();checkMR();
 let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  const session=renderer.xr.getSession();const pose=frame?frame.getViewerPose(renderer.xr.getReferenceSpace()):null;
- const xrVisible=!session||(session.visibilityState==='visible'&&pose!==null);
+ const xrVisible=(!session||(session.visibilityState==='visible'&&pose!==null))&&!document.hidden;
+ if(!xrVisible)pauseMusicForVisibility();
  if(pose)latestViewerTransform=pose.transform;
  const dt=previous&&xrVisible?Math.min((stamp-previous)/1000,.05):0;previous=xrVisible?stamp:0;
  if(pendingPlace&&pose){
@@ -655,6 +789,8 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  }
  if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);pendingPanelOpen=false;}
  entryTip.update(stamp,!!session&&xrVisible&&!bridgeView.active);
+ $('cometTime').textContent=previewing?'試し打ち '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':''):cometCompleted?'試し打ちが終了しました':showPlan?.music?'曲つき演出':'開演前';
+ $('cometPause').textContent=previewPaused?'試し打ちを再開':'試し打ちを一時停止';$('cometPause').disabled=!previewing;
  const updateStart=performance.now();
  manualBudget.observe(stamp,!!frame&&xrVisible&&(running||(previewing&&!previewPaused)));
  if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt);
@@ -662,11 +798,63 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  bridgeView.listener(audio,pose?.transform);
  if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
-  const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
+  const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
  }else if(frame&&mrMetrics)mrMetrics.breakWindow();
 });
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-window.__hanabi={get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?'bridge':'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:fans.length,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
+window.__hanabi={get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?'bridge':'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
 
 $('build').textContent=BUILD_VERSION;
+$('cometPattern').onchange();
+$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
+$('musicVolume').oninput=()=>music.setVolume(Number($('musicVolume').value));
+music.setVolume(Number($('musicVolume').value));
+$('musicState').textContent=selectedMusic.description;
+$('musicTrack').onchange=()=>{
+ const chosen=MUSIC_SHOWS.find(item=>item.id===$('musicTrack').value);if(!chosen||chosen===selectedMusic)return;
+ if(showPlan?.music)stopShow();else cancelMusicRequest();music.stop();selectedMusic=chosen;MUSIC_PLAN=chosen.plan;music=new MusicTransport(chosen.src,{autoload:false});music.setVolume(Number($('musicVolume').value));
+ $('musicState').textContent=chosen.description;musicLastUI=-1;syncShowButtons();drawMusicTimeline();mrPanel.draw();
+};
+
+$('musicOffset').oninput=()=>{$('musicOffsetValue').textContent=$('musicOffset').value+' ms（次の開演から）';};
+$('musicClick').onchange=()=>music.clickEnabled=$('musicClick').checked;
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseMusicForVisibility();});
+
+async function beginMusicExcerpt(start,label){
+ if(!music.loaded){await beginMusicShow();if(!showPlan?.music)return;}
+ cancelMusicRequest();music.stop();clearFireworks();clearFans();fanQueue=[];previewing=false;time=Math.max(0,start);prepareMusicProgram();
+ burstQueue=burstQueue.filter(s=>s.at>=time-.02);fanQueue=fanQueue.filter(s=>s.at>=time-.02);ensureAudio();music.play(audio,time);running=true;syncShowButtons();$('status').textContent=label;
+}
+
+function beginMusicFinale(){return beginMusicExcerpt(MUSIC_PLAN.duration-12,'曲が収まる前の大輪と、花火の音だけの余韻を観ます。');}
+function musicMiddleStart(){return MUSIC_PLAN.middlePreviewStart??MUSIC_PLAN.pyramidAt-5;}
+function beginMusicPyramid(){return beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');}
+function pauseMusicForVisibility(){
+ if(musicBusy)cancelMusicRequest();
+ if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();triggerEmbers.clear();$('status').textContent='鑑賞を離れたので、試し打ちを一時停止しました。「試し打ちを再開」で戻れます。';}
+ if(running&&showPlan?.music){time=music.pause();running=false;cancelFutureSounds();triggerEmbers.clear();syncShowButtons();$('status').textContent='鑑賞を離れたので、曲と花火を一時停止しました。';}
+}
+function advanceMusic(dt){
+ time=music.currentTime;
+ advanceEmbers(dt);updateFireworkEvents();
+ while(burstQueue.length&&burstQueue[0].at<=time){
+  const s=burstQueue.shift();
+  // A lost render interval must not release a backlog of obsolete shells.
+  if(time-s.at>.35){musicLog.push({skipped:true,scheduled:s.at,actual:time});continue;}
+  if(!launch(s.kind,s.size,s.position))musicLog.push({skipped:true,capacity:true,scheduled:s.at,actual:time});
+ }
+ updateFans();updateFireworks();music.updateClicks(MUSIC_PLAN.beats);
+ if(Math.floor(time*8)!==musicLastUI){musicLastUI=Math.floor(time*8);drawMusicTimeline();}
+ const section=MUSIC_PLAN.sections.filter(s=>s.at<=time).at(-1);
+ $('chapter').textContent=(section?.label??selectedMusic.title)+' · '+Math.floor(time/60)+':'+String(Math.floor(time%60)).padStart(2,'0');
+ if(time>=MUSIC_PLAN.duration&&time<MUSIC_PLAN.showDuration)$('status').textContent='曲が終わりました。銀かむろと花火の音の余韻をお楽しみください。';
+ if(time>=MUSIC_PLAN.showDuration){music.pause();running=false;cancelFutureSounds();drawMusicTimeline();syncShowButtons();$('musicShow').textContent=selectedMusic.title+'をもう一度';$('status').textContent='花火の余韻とともに、大会が終わりました。';}
+}
+function drawMusicTimeline(){
+ const c=$('musicTimeline'),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);
+ g.fillStyle='#354c60';g.fillRect(0,0,w,h);g.fillStyle='#e8c987';g.fillRect(0,0,Math.min(1,time/MUSIC_PLAN.duration)*w,h);
+ $('musicTime').textContent=time<=MUSIC_PLAN.duration?time.toFixed(1)+' / '+MUSIC_PLAN.duration.toFixed(1)+'秒':'曲終わり · 花火の余韻 '+(time-MUSIC_PLAN.duration).toFixed(1)+'秒';
+}
+drawMusicTimeline();
+window.__musicStudy={get state(){return{time,transport:music.currentTime,running,pending:burstQueue.length,active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),sourceActive:!!music.source,contextState:audio?.state,clicks:music.clicks.size,log:musicLog};},get plan(){return MUSIC_PLAN;}};

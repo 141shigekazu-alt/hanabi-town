@@ -8,7 +8,8 @@ const bridgeAngle=Math.atan(.594*Math.cos(.67*2.7+.35));
 export const FRONT_BRIDGE=new T.Vector3(0,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
 export class BridgeView{
  constructor(town,camera){this.town=town;this.camera=camera;this.active=false;this.saved=null;this.pointSizes=new WeakMap();this.pointMaps=new WeakMap();this.eye=new T.Vector3();this.forward=new T.Vector3();this.up=new T.Vector3();}
- point(material,maps=null){
+ point(material,maps=null,baseSize=null){
+  if(baseSize!==null)this.pointSizes.set(material,baseSize);
   if(!this.pointSizes.has(material))this.pointSizes.set(material,material.size);
   if(maps)this.pointMaps.set(material,maps);
   material.size=this.pointSizes.get(material)*(this.active?BRIDGE_SCALE:1);
