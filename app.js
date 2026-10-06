@@ -1,24 +1,24 @@
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.13';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.13';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.13';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.13';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.14';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.14';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.14';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.14';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.13';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.14';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.13';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.13';
-import {FireworkAudio} from './audio.js?v=1.1.13';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.13';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.13';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.13';
-import {TowerLighting} from './tower-lighting.js?v=1.1.13';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.13';
-import {ShowInfoPanel} from './show-info.js?v=1.1.13';
-import {WristMenu} from './wrist-menu.js?v=1.1.13';
-import {XRControls} from './xr-controls.js?v=1.1.13';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.13';
-import {EntryTip} from './entry-tip.js?v=1.1.13';
-const BUILD_VERSION='1.1.13';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.14';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.14';
+import {FireworkAudio} from './audio.js?v=1.1.14';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.14';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.14';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.14';
+import {TowerLighting} from './tower-lighting.js?v=1.1.14';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.14';
+import {ShowInfoPanel} from './show-info.js?v=1.1.14';
+import {WristMenu} from './wrist-menu.js?v=1.1.14';
+import {XRControls} from './xr-controls.js?v=1.1.14';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.14';
+import {EntryTip} from './entry-tip.js?v=1.1.14';
+const BUILD_VERSION='1.1.14';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -665,7 +665,7 @@ function preparedShellName(shell){const label=shell&&paletteOptions(shell.kind).
 function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=shellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
 let preparation=null;
 const prepareFields=['kind','size','palette'];
-const preparedKinds=['willow','silver','core','double','triple','quad','penta','senrin'];
+const preparedKinds=['willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin'];
 function prepareOptions(){
  const {draft,tab}=preparation;
  if(tab===0)return preparedKinds.map(value=>({value,label:TYPES[value].label.replace('（軽量テスト）',''),disabled:false}));
@@ -685,13 +685,13 @@ function drawPreparation(){
  mrPanel.draw();
 }
 function openPreparation(hand){
- const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!['10','20'].includes(String(draft.size))||!allowedSize(draft.kind,String(draft.size)))draft.size=Number(['10','20'].find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette='original';
+ const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!['10','20'].includes(String(draft.size))||!allowedSize(draft.kind,String(draft.size)))draft.size=Number(['10','20'].find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette=paletteOptions(draft.kind)[0]?.id??'original';
  preparation={hand,tab:0,draft};drawPreparation();
 }
 function choosePreparation(value){
  if(!preparation||!prepareOptions().some(o=>o.value===value&&!o.disabled))return;
  const d=preparation.draft,field=prepareFields[preparation.tab];d[field]=field==='size'?Number(value):value;
- if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number(['10','20'].find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette='original';}
+ if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number(['10','20'].find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette=paletteOptions(d.kind)[0]?.id??'original';}
  drawPreparation();
 }
 function prepareTab(tab){if(preparation){preparation.tab=tab;drawPreparation();}}

@@ -1,8 +1,9 @@
-import {candyColor} from './candy-colors.js?v=1.1.13';
+import {candyColor} from './candy-colors.js?v=1.1.14';
 import * as T from './vendor/three.module.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TAIL_POINTS=10;
+export const STAR_BUNDLE_TIME_SCALE=1.3;
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
 export const STAR_BUNDLE_EXTRA_STYLES={
  'pink-silver':{label:'桃の星・銀の尾',head:0xff73c8,tail:0xdbeeff},
@@ -39,7 +40,7 @@ export function bundleStarPosition(star,t){
  return {x:star.x+star.vx*q,y:star.y+star.vy*q-star.gravity*(t-q)/star.drag,z:star.z+star.vz*q};
 }
 export function makeStarBundle(shot,start,style){
- const random=randomFrom(shot.seed),stars=[],span=.32;
+ const random=randomFrom(shot.seed),stars=[],span=.32,timeScale=shot.timeScale??STAR_BUNDLE_TIME_SCALE;
  for(const angle of shot.angles)for(let i=0;i<Math.ceil(shot.count*(style.bundleCountScale??1));i++){
   const drag=.25+random()*.035,gravity=.90,peak=1.03+random()*.18;
   const height=shot.height*(shot.tight?(.83+random()*.11):(.64+random()*.42)),q=(1-Math.exp(-drag*peak))/drag;
@@ -49,12 +50,12 @@ export function makeStarBundle(shot,start,style){
    drag,gravity,at:random()*.035,life:1.40+random()*.48,gain:.84+random()*.40});
  }
  if(style.headPalette)for(let i=0;i<stars.length;i++){const color=candyColor(i,shot.seed,style.headPalette);stars[i].headColor=new T.Color(color);stars[i].tailColor=new T.Color(color);}
- return {...shot,start,stars,span,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:Math.max(...stars.map(s=>s.at+s.life))+span};
+ return {...shot,start,stars,span,timeScale,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:(Math.max(...stars.map(s=>s.at+s.life))+span)*timeScale};
 }
 
 export class StarBundleField{
- constructor({town,bridge,map,headMaps,styles,onLaunch=()=>{},capacity=1024}){
-  Object.assign(this,{town,bridge,styles,onLaunch,capacity});this.tailSamples=TAIL_POINTS;this.active=[];this.pending=[];this.seed=0x141710;this.group=0;this.dropped=0;this.points=0;
+ constructor({town,bridge,map,headMaps,styles,onLaunch=()=>{},capacity=1024,timeScale=STAR_BUNDLE_TIME_SCALE}){
+  Object.assign(this,{town,bridge,styles,onLaunch,capacity,timeScale});this.tailSamples=TAIL_POINTS;this.active=[];this.pending=[];this.seed=0x141710;this.group=0;this.dropped=0;this.points=0;
   this.headPositions=new Float32Array(capacity*3);this.headColors=new Float32Array(capacity*3);
   this.tailPositions=new Float32Array(capacity*TAIL_POINTS*3);this.tailColors=new Float32Array(capacity*TAIL_POINTS*3);
   const geometry=(positions,colors)=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));g.setAttribute('color',new T.BufferAttribute(colors,3).setUsage(T.DynamicDrawUsage));g.setDrawRange(0,0);return g;};
@@ -72,7 +73,7 @@ export class StarBundleField{
   const used=this.active.reduce((n,s)=>n+s.stars.length,0)+this.pending.reduce((n,s)=>n+total(s),0);
   if(used+shots.reduce((n,s)=>n+total(s),0)>this.capacity){this.dropped++;return false;}
   const group='small-'+(++this.group);
-  for(const shot of shots)this.pending.push({...shot,at:at+shot.at,group});
+  for(const shot of shots)this.pending.push({...shot,at:at+shot.at,group,timeScale:this.timeScale});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
  update(time){
@@ -84,7 +85,7 @@ export class StarBundleField{
   const desiredSize=.022;if(this.headSize!==desiredSize){this.headSize=desiredSize;this.bridge.point(this.headMaterial,null,desiredSize);}
   let heads=0,tails=0;
   for(const bundle of this.active)for(const star of bundle.stars){
-   const age=time-bundle.start-star.at;if(age<0)continue;
+   const age=(time-bundle.start)/bundle.timeScale-star.at;if(age<0)continue;
    const gain=t=>star.gain*clamp(t/.030,0,1)*Math.pow(clamp((star.life-t)/.42,0,1),1.25);
    if(age<star.life){
     const p=bundleStarPosition(star,age),light=gain(age)*bundle.headGain,headColor=star.headColor??bundle.headColor;
