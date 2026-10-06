@@ -193,7 +193,7 @@ export class MRPanel{
   this.text(s.last,32,182,42,'#ffe0a3',736);
   c.save();c.translate(0,HEADER_GROWTH);
   c.fillStyle='#132536';c.beginPath();c.roundRect(20,152,760,76,14);c.fill();
-  ['花火大会','試し打ち','街・音'].forEach((label,i)=>{this.button('page'+i,label,28+i*254,160,236,54,()=>{if(this.page!==i){this.page=i;this.pageChanged(i);}},{selected:this.page===i});if(this.page===i){c.fillStyle='#ffe0a3';c.fillRect(48+i*254,211,196,4);}});
+  ['花火大会','試し打ち','街・音','使い方'].forEach((label,i)=>{this.button('page'+i,label,28+i*190,160,174,54,()=>{if(this.page!==i){this.page=i;this.pageChanged(i);}},{selected:this.page===i});if(this.page===i){c.fillStyle='#ffe0a3';c.fillRect(48+i*190,211,134,4);}});
   if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
    this.button('play',s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る',28,238,744,64,()=>this.click('play'),{selected:!s.running});
@@ -224,7 +224,7 @@ export class MRPanel{
    this.button('finale','銀かむろの締め',412,816,360,48,()=>this.click('finale'));
    this.button('wideFinale','空いっぱいのかむろを見る',28,877,744,48,()=>this.click('wideFinale'));
    this.text('空へ向けてトリガーで一発 · グリップで掴む',32,950,21,'#aebfc9');
-  }else{
+  }else if(this.page===2){
    if(s.bridge){this.text('手前の橋に座って鑑賞中',32,280,34,'#ffe0a3');this.wrap('花火は頭上に、川面は眼下に。座ったまま、顔を向けて街を見回せます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
@@ -234,7 +234,18 @@ export class MRPanel{
    this.selector('towerColor','塔のライトアップ',785,s.towerColor);
    if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
    this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));}
+  }else{
+   this.text('街を眺めてから、開演。',32,255,30,'#ffe0a3');
+   this.wrap('「花火大会を観る」で始まります。左X：クルッとパネル、右A：サイドパネル、右B：一時停止・再開。',32,313,736,3);
+   this.text('街を掴む・動かす',32,438,28,'#ffe0a3');
+   this.wrap('台座へビーム＋左右どちらかのグリップ。押したまま、左右・前後へ動かし、離して置きます。',32,485,736,2);
+   this.wrap('掴んだままスティックを倒すと、左右で街を回し、上下で大きさを変えます。街の高さはそのまま。',32,570,736,2);
+   this.text('パネルを動かす',32,658,28,'#ffe0a3');
+   this.wrap('白い棒へビーム＋グリップで移動。掴んだままスティック左右で角度、上下で手前・奥を調整。',32,702,736,2);
+   this.text('自分で一発、上げる',32,794,28,'#ffe0a3');
+   this.wrap('左／右トリガーに玉を仕込み、街へ向けてトリガーで一発。火の点が飛び、着地点から上がります。パネルへ向けるとボタン選択です。',32,838,736,3);
   }
+
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,'#8caabb',736);
   if(!s.preparing&&s.bridge)this.wrap('橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else if(!s.preparing)this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});
   this.button('bridge',s.bridge?'ミニチュアに戻る':'街に入る · 手前の橋',28,1116,744,44,()=>this.click('bridge'),{selected:s.bridge});

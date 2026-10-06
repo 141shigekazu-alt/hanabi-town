@@ -1,18 +1,19 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.28';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.29';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.28';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.28';
-import {FireworkAudio} from './audio.js?v=beta.1.0.28';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.28';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.28';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.28';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.28';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.28';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.28';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.28';
-import {XRControls} from './xr-controls.js?v=beta.1.0.28';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.28';
-const BUILD_VERSION='beta.1.0.28';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.29';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.29';
+import {FireworkAudio} from './audio.js?v=beta.1.0.29';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.29';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.29';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.29';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.29';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.29';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.29';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.29';
+import {XRControls} from './xr-controls.js?v=beta.1.0.29';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.29';
+import {EntryTip} from './entry-tip.js?v=beta.1.0.29';
+const BUILD_VERSION='beta.1.0.29';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -492,6 +493,7 @@ async function exitMRToPage(){
  if(!mrSession)return;
  try{await mrSession.end();}catch(e){$('status').textContent='MRを終了できませんでした：'+e.message;}
 }
+const entryTip=new EntryTip(scene);
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
 const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,choose:mode=>{if(mode==='show-info')toggleShowInfo();else if((mode==='bridge')!==bridgeView.active)$('bridge').click();}});
@@ -516,7 +518,7 @@ function prepareOptions(){
 function prepareSummary(){const d=preparation.draft,p=paletteOptions(d.kind).find(p=>p.id===d.palette);return shellName(d)+(p?' · '+p.label:'');}
 function drawPreparation(){
  $('preparePanel').hidden=!preparation;
- for(let i=0;i<3;i++)$('browserPage'+i).hidden=!!preparation||i!==mrPanel.page;
+ for(let i=0;i<4;i++)$('browserPage'+i).hidden=!!preparation||i!==mrPanel.page;
  if(preparation){
   const hand=preparation.hand==='left'?'左':'右';$('prepareTitle').textContent=hand+'トリガーに仕込む';$('prepareConfirm').textContent='この玉を'+hand+'に仕込む';$('prepareSummary').textContent=prepareSummary();
   for(let i=0;i<3;i++){const el=$('prepareTab'+i);el.setAttribute('aria-selected',String(i===preparation.tab));el.tabIndex=i===preparation.tab?0:-1;}
@@ -560,10 +562,10 @@ function firePrepared(hand,origin,direction){
 function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
 function setPanelTab(page){
  preparation=null;$('preparePanel').hidden=true;mrPanel.page=page;
- for(let i=0;i<3;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
+ for(let i=0;i<4;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
  mrPanel.draw();
 }
-for(let i=0;i<3;i++){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
+for(let i=0;i<4;i++){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?3:(i+(e.key==='ArrowRight'?1:3))%4;setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
 const townGrabTarget=new T.Mesh(new T.BoxGeometry(3.2,.10,2.1),new T.MeshBasicMaterial({side:T.DoubleSide}));townGrabTarget.position.y=ground.position.y;townGrabTarget.visible=false;town.add(townGrabTarget);
 const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
  $('scale').value=String(town.scale.x);$('height').value=String(Math.max(0,town.position.y+groundBottomY*town.scale.y));
@@ -591,7 +593,7 @@ function applyViewBackground(){
  renderer.setClearColor(miniAR?0x000000:0x050a16,miniAR?0:1);applyRoomBrightness();
 }
 function enterBridge(transform=null){
- if(bridgeView.active)return;triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
+ if(bridgeView.active)return;entryTip.end();triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
  bridgeView.enter(transform);yaw=0;pitch=.95;applyViewBackground();syncViewControls();
  showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'bridge'});
  $('status').textContent='手前の橋に座りました。パネルを閉じて、花火を見上げてください。';
@@ -607,7 +609,7 @@ async function checkMR(){
  try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'部屋で観る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
- cancelPreparation();
+ entryTip.end();cancelPreparation();
  triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
  if(running){running=false;$('play').textContent='花火大会を観る';}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
@@ -651,7 +653,8 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
   mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
   if(pendingBridge){enterBridge(pose.transform);pendingBridge=false;}
  }
- if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);pendingPanelOpen=false;}
+ if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);pendingPanelOpen=false;}
+ entryTip.update(stamp,!!session&&xrVisible&&!bridgeView.active);
  const updateStart=performance.now();
  manualBudget.observe(stamp,!!frame&&xrVisible&&(running||(previewing&&!previewPaused)));
  if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt);
