@@ -196,7 +196,7 @@ export class MRPanel{
    this.selector('size','玉の大きさ',344,s.size);
    if(s.palette)this.selector('palette','配色：外星 × 芯星／菊の色',441,s.palette);
    this.button('sample','この一発を試す',28,539,444,64,()=>this.click('sample'));
-   this.text('トリガーでも発射',490,571,23,'#ffe0a3');
+   this.text('トリガーは仕込み玉',490,571,23,'#ffe0a3');
    this.button('loadLeft','左に仕込む',28,617,360,48,()=>this.click('loadLeft'));
    this.button('loadRight','右に仕込む',412,617,360,48,()=>this.click('loadRight'));
    this.text('左：'+s.loadedLeft,32,686,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,716,20,'#b8c9d4',736);

@@ -1,18 +1,18 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.25';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.26';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.25';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.25';
-import {FireworkAudio} from './audio.js?v=beta.1.0.25';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.25';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.25';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.25';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.25';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.25';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.25';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.25';
-import {XRControls} from './xr-controls.js?v=beta.1.0.25';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.25';
-const BUILD_VERSION='beta.1.0.25';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.26';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.26';
+import {FireworkAudio} from './audio.js?v=beta.1.0.26';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.26';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.26';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.26';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.26';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.26';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.26';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.26';
+import {XRControls} from './xr-controls.js?v=beta.1.0.26';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.26';
+const BUILD_VERSION='beta.1.0.26';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -510,7 +510,8 @@ function firePrepared(hand,origin,direction){
  // Show-tab shots append to the existing show, including its pending cues.
  if(mrPanel.page===1){if(!previewing)beginPreview();}
  else if(!running){$('status').textContent='大会を開始・再開すると、仕込んだ一玉を追加できます。';return;}
- ensureAudio();const shell=mrPanel.page===1?chosenShell():loadedShells[hand]??chosenShell();
+ // A prepared hand always wins, including when the trial tab stays selected.
+ ensureAudio();const shell=loadedShells[hand]??chosenShell();
  const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
  const ok=manualBudget.accepts(points)&&triggerEmbers.send(hand,shell,origin,direction);
  $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
