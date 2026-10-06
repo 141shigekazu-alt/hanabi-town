@@ -33,7 +33,8 @@ export class XRControls{
   const hit=this.panelHit(e.controller);
   if(hit){if(hit.object===hit.panel.mesh&&hit.panel!==this.panels[2])hit.panel.select(e.controller);return;}
   if(e.source.hand)return;
-  this.fire(e.source.handedness);
+  this.cast(e.controller);
+  this.fire(e.source.handedness,this.origin.clone().addScaledVector(this.direction,.055),this.direction.clone());
  }
  squeeze(e){
   if(!this.active||!e.source||e.source.hand||!this.tracked.has(e.source)||this.grabs.has(e.controller)||this.sidebar.sliderDrag)return;

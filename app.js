@@ -1,17 +1,18 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.24';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.25';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.24';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.24';
-import {FireworkAudio} from './audio.js?v=beta.1.0.24';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.24';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.24';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.24';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.24';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.24';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.24';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.24';
-import {XRControls} from './xr-controls.js?v=beta.1.0.24';
-const BUILD_VERSION='beta.1.0.24';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.25';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.25';
+import {FireworkAudio} from './audio.js?v=beta.1.0.25';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.25';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.25';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.25';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.25';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.25';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.25';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.25';
+import {XRControls} from './xr-controls.js?v=beta.1.0.25';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=beta.1.0.25';
+const BUILD_VERSION='beta.1.0.25';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -115,6 +116,7 @@ const palette=[0xffc878,0xff647d,0x9fd9ff,0xbba0ff,0x94edb1];
 
 let running=false,previewing=false,previewPaused=false,time=0,nextLaunch=.8,cueIndex=0,burstQueue=[],burstSlots=new Set(),fireworks=[],audio=null,soundEngine=null,yaw=0,pitch=0,drag=null;
 const spriteCanvas=document.createElement('canvas');spriteCanvas.width=spriteCanvas.height=32;const ctx=spriteCanvas.getContext('2d'),grad=ctx.createRadialGradient(16,16,0,16,16,16);grad.addColorStop(0,'rgba(255,255,255,1)');grad.addColorStop(.2,'rgba(255,255,255,.9)');grad.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=grad;ctx.fillRect(0,0,32,32);const sprite=new T.CanvasTexture(spriteCanvas);
+const triggerEmbers=new TriggerEmbers({scene,town,map:sprite}),manualBudget=new ManualLaunchBudget();
 // Keep tiny miniature stars bright while giving their cores a clearer edge.
 // Town warning lights and ground effects retain the original soft image.
 const miniatureStarCanvas=document.createElement('canvas');miniatureStarCanvas.width=miniatureStarCanvas.height=32;
@@ -154,7 +156,7 @@ function cancelFutureSounds(){
  soundEngine?.cancelScheduled?.();for(const f of fireworks){const t=time-f.start-f.ascent;if(t<(f.soundDue??soundDelayFor(f)))f.soundPlayed=false;if(f.kind==='senrin'&&t<(f.childSoundDue??f.clusterDelays[0]+soundDelayFor(f)))f.childSoundPlayed=false;}
 }
 function launch(kind='core',size=5,position=null){
- if(fireworks.length>=(position?.wide?9:8))return false;
+ if(!position?.manual&&(fireworks.length>=(position?.wide?9:8)||(triggerEmbers.count&&fireworks.length+triggerEmbers.count>=8)))return false;
  if(kind==='kiku'&&size!==3)return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
  if(kind==='double'&&size!==10)return false;if(kind==='senrin'&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&kind!=='senrin'&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
@@ -220,7 +222,7 @@ function launch(kind='core',size=5,position=null){
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  return true;
 }
-function clearFireworks(){soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
+function clearFireworks(){triggerEmbers.clear();soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
 // Free expired launch slots and fire sounds before queued shots, without computing points.
 function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime;for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
@@ -373,21 +375,24 @@ function beginPreview(){
  $('play').textContent='花火大会を始める';$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
  $('status').textContent='試し打ち中。選んだ花火だけを上げます。';ensureAudio();
 }
+function advanceEmbers(dt){
+ triggerEmbers.update(dt,shot=>{const ok=launch(shot.shell.kind,shot.shell.size,{x:shot.target.x,z:shot.target.z,palette:shot.shell.palette,manual:true});$('status').textContent=ok?(shot.hand==='left'?'左':'右')+'から送った '+shellName(shot.shell)+' が打ち上がりました。':'いまは打ち上げが混み合っています。少し間を置いてもう一度どうぞ。';});
+}
 function advance(dt){
  if(previewing){
-  time+=dt;updateFireworkEvents();advanceStarmine();updateFans();updateFireworks();return;
+  time+=dt;advanceEmbers(dt);updateFireworkEvents();advanceStarmine();updateFans();updateFireworks();return;
  }
- time=Math.min(300,time+dt);
+ time=Math.min(300,time+dt);advanceEmbers(dt);
  for(const [index,at] of (showPlan?.senrinAt??[]).entries()){
  const key='senrin-'+index;
- if(time>=at&&!burstSlots.has(key)&&fireworks.length===0&&burstQueue.length===0){
+ if(time>=at&&!burstSlots.has(key)&&fireworks.length===0&&triggerEmbers.count===0&&burstQueue.length===0){
  burstSlots.add(key);clearFans();fanQueue=[];const size=index===0?10:20;launch('senrin',size,{x:index===0?-.35:.35,z:-.1});nextLaunch=time+(size===20?16:11);
  $('status').textContent='彩色千輪：暗い間のあと、30輪が咲きます。';break;
  }
  }
 
- if(time>=(showPlan?.bigAt??130)&&!burstSlots.has('big')&&fireworks.length===0){burstSlots.add('big');clearFireworks();clearFans();burstQueue=[];fanQueue=[];const special=showPlan?.special??{kind:'triple',size:20};launch(special.kind,special.size,{x:0,z:-.1});nextLaunch=time+17;$('status').textContent='特別玉：'+SIZES[special.size].label+'・'+TYPES[special.kind].label+'。一玉の層をゆっくりお楽しみください。';}
- for(const slot of (showPlan?.slots??[45,200,250,270]))if(time>=slot&&!burstSlots.has(slot)&&(showPlan?.mode!=='random'||(fireworks.length===0&&burstQueue.length===0))){burstSlots.add(slot);startStarmine(slot===270);break;}
+ if(time>=(showPlan?.bigAt??130)&&!burstSlots.has('big')&&fireworks.length===0&&triggerEmbers.count===0){burstSlots.add('big');clearFireworks();clearFans();burstQueue=[];fanQueue=[];const special=showPlan?.special??{kind:'triple',size:20};launch(special.kind,special.size,{x:0,z:-.1});nextLaunch=time+17;$('status').textContent='特別玉：'+SIZES[special.size].label+'・'+TYPES[special.kind].label+'。一玉の層をゆっくりお楽しみください。';}
+ for(const slot of (showPlan?.slots??[45,200,250,270]))if(time>=slot&&!burstSlots.has(slot)&&(showPlan?.mode!=='random'||(fireworks.length===0&&triggerEmbers.count===0&&burstQueue.length===0))){burstSlots.add(slot);startStarmine(slot===270);break;}
  updateFireworkEvents();advanceStarmine();updateFans();
  const awaitingSpecial=(time>=(showPlan.bigAt-10)&&!burstSlots.has('big'))||showPlan.senrinAt.some((at,index)=>time>=at-10&&!burstSlots.has('senrin-'+index));
  const awaitingPattern=showPlan.mode==='random'&&showPlan.slots.some(slot=>time>=slot-10&&!burstSlots.has(slot));
@@ -498,7 +503,7 @@ function chosenShell(){syncSize();return {kind:$('type').value,size:Number($('si
 function shellName(shell){return shell?SIZES[shell.size].label+' · '+TYPES[shell.kind].label.replace('（軽量テスト）',''):'選択中の一玉';}
 function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=shellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
 $('loadLeft').onclick=()=>loadShell('left');$('loadRight').onclick=()=>loadShell('right');
-function firePrepared(hand){
+function firePrepared(hand,origin,direction){
  if(hand!=='left'&&hand!=='right')return;
  if(previewing&&previewPaused){$('status').textContent='試し打ちを一時停止中です。右Bで再開できます。';return;}
  // Trial shots start a trial only when the user actually fires on that tab.
@@ -506,8 +511,9 @@ function firePrepared(hand){
  if(mrPanel.page===1){if(!previewing)beginPreview();}
  else if(!running){$('status').textContent='大会を開始・再開すると、仕込んだ一玉を追加できます。';return;}
  ensureAudio();const shell=mrPanel.page===1?chosenShell():loadedShells[hand]??chosenShell();
- const ok=launch(shell.kind,shell.size,{x:hand==='left'?-.35:.35,z:.05,palette:shell.palette});
- $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を打ち上げました。':'いまは打ち上げが混み合っています。少し間を置いてもう一度どうぞ。';
+ const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
+ const ok=manualBudget.accepts(points)&&triggerEmbers.send(hand,shell,origin,direction);
+ $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
 }
 function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
 function setPanelTab(page){
@@ -543,13 +549,13 @@ function applyViewBackground(){
  renderer.setClearColor(miniAR?0x000000:0x050a16,miniAR?0:1);applyRoomBrightness();
 }
 function enterBridge(transform=null){
- if(bridgeView.active)return;controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
+ if(bridgeView.active)return;triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
  bridgeView.enter(transform);yaw=0;pitch=.95;applyViewBackground();syncViewControls();
  showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'bridge'});
  $('status').textContent='手前の橋に座りました。パネルを閉じて、花火を見上げてください。';
 }
 function leaveBridge(){
- if(!bridgeView.active)return;controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
+ if(!bridgeView.active)return;triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
  applyViewBackground();syncViewControls();showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'miniature'});
  $('status').textContent='ミニチュアの街へ戻りました。花火大会は続いています。';
 }
@@ -559,7 +565,7 @@ async function checkMR(){
  try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'部屋で観る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
- controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
+ triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
  if(running){running=false;$('play').textContent='花火大会を始める';}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
@@ -573,7 +579,7 @@ async function startXR(mode,bridge=false){
   ensureAudio();if(bridgeView.active)leaveBridge();desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
-  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
+  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
@@ -603,10 +609,11 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  }
  if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);pendingPanelOpen=false;}
  const updateStart=performance.now();
+ manualBudget.observe(stamp,!!frame&&xrVisible&&(running||(previewing&&!previewPaused)));
  if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt);
  if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*1.2,.55+pitch,0);camera.lookAt(target);}
  bridgeView.listener(audio,pose?.transform);
- if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
