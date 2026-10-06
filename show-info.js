@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES} from './fireworks.js?v=beta.1.0.23';
+import {SIZES,TYPES} from './fireworks.js?v=beta.1.0.24';
 
 // Announce shells as soon as they launch, through ascent and opening. No DOM
 // label, new timer, random draw or extra particle traversal is needed.
