@@ -1,9 +1,10 @@
+import {isSenrin} from './fireworks.js?v=1.1.10';
 import * as T from './vendor/three.module.js';
 
 export function manualPointCost(kind,size,sizes,types){
  const spec=types[kind],scale=sizes[size];if(!spec||!scale)return Infinity;
- const stars=kind==='sunflower'?232:kind==='senrin'?720:spec.radii.reduce((sum,_,i)=>sum+Math.round(scale.stars*(spec.layerWeights?.[i]??(i===0?1:i===1?.6:.35))),0);
- return stars*(kind==='ear'?48:kind==='kiku'?16:kind==='senrin'?4:kind==='sunflower'?36:kind==='silver'?12:10);
+ const stars=kind==='sunflower'?232:isSenrin(kind)?720:spec.radii.reduce((sum,_,i)=>sum+Math.round(scale.stars*(spec.layerWeights?.[i]??(i===0?1:i===1?.6:.35))),0);
+ return stars*(kind==='ear'?48:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10);
 }
 
 // A generous allocation bound, plus measured delivered XR callbacks. Neither

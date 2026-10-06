@@ -1,10 +1,14 @@
+import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.10';
 import * as T from './vendor/three.module.js';
-import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.4';
+import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.10';
 
 // An independent stream: ground shots cannot change the shapes of upper shells.
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const COMET_STYLES={
+ ...CANDY_COMET_STYLES,
+ pink:{label:'桃の星・銀の尾',head:0xff73c8,tail:0xdbeeff,burn:1.02,afterglow:.78,spread:.030,lanes:2},
+ aqua:{label:'水色の星・金の尾',head:0x66ddff,tail:0xffbd65,burn:1.02,afterglow:.95,spread:.030,lanes:2},
  gold:{label:'金の太い尾',head:0xffefc2,tail:0xffbd65,burn:1.28,afterglow:1.65,spread:.045,lanes:3},
  silver:{label:'銀の細かい尾',head:0xf4fbff,tail:0xdbeeff,burn:1.08,afterglow:.78,spread:.030,lanes:2},
  red:{label:'紅の星・金の尾',head:0xff263f,tail:0xffb463,burn:1.16,afterglow:1.25,spread:.037,lanes:3},
@@ -59,7 +63,7 @@ export function makeComet(shot,start){
  const q=(1-Math.exp(-drag*burn))/drag;
  const vy=(shot.height*(.975+random()*.05)+gravity*(burn-q)/drag)/q;
  const tail=Array.from({length:80*style.lanes},(_,i)=>({at:(Math.floor(i/style.lanes)+random()*.85)/80*burn,dx:(random()-.5)*style.spread,dy:(random()-.5)*.025,dz:(random()-.5)*style.spread,life:style.afterglow*(.65+random()*.5),glint:.80+random()*.35}));
- const comet={...shot,start,burn,drag,gravity,vy,vx:Math.tan(angle)*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.head),tailColor:new T.Color(style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
+ const comet={...shot,start,burn,drag,gravity,vy,vx:Math.tan(angle)*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
  for(const s of tail){const birth=cometPosition(comet,s.at),remaining=Math.exp(-drag*s.at);s.x=birth.x;s.y=birth.y;s.z=birth.z;s.dx+=comet.vx*remaining*.04;s.dy+=vy*remaining*.025;s.dz+=comet.vz*.05;}
  return comet;
 }
@@ -93,17 +97,17 @@ export class CometField{
   let heads=0,tails=0;
   for(const s of this.active){
    const age=time-s.start;
-   if(age<s.burn){const p=cometPosition(s,age),fade=clamp((s.burn-age)/.16,0,1),ignite=clamp(age/.035,0,1),gain=fade*ignite*1.65;
+   if(age<s.burn){const p=cometPosition(s,age),fade=clamp((s.burn-age)/.16,0,1),ignite=clamp(age/.035,0,1),gain=fade*ignite*(s.styleData.headGain??1.65);
     if(p.y>.012){this.headPositions.set([p.x,p.y,p.z],heads*3);this.headColors.set([s.headColor.r*gain,s.headColor.g*gain,s.headColor.b*gain],heads*3);heads++;}
    }
    for(const particle of s.tail){
     const t=age-particle.at;if(t<0||t>=particle.life)continue;
     const x=particle.x+particle.dx*t,y=particle.y+particle.dy*t-.15*t*t,z=particle.z+particle.dz*t;
     if(y<=.012)continue;
-    const warm=clamp(t/particle.life,0,1),gain=Math.pow(1-warm,1.6)*particle.glint*(s.style==='gold'?1.20:.94);
+    const warm=clamp(t/particle.life,0,1),gain=Math.pow(1-warm,1.6)*particle.glint*(s.styleData.tailGain??(s.style==='gold'?1.20:.94));
     this.tailPositions[tails*3]=x;this.tailPositions[tails*3+1]=y;this.tailPositions[tails*3+2]=z;
     // Golden sparks cool toward orange; silver keeps its cooler, shorter afterglow.
-    this.tailColors[tails*3]=s.tailColor.r*gain;this.tailColors[tails*3+1]=s.tailColor.g*gain*(1-(s.style==='silver'||s.style==='blue'?0:.35)*warm);this.tailColors[tails*3+2]=s.tailColor.b*gain*(1-.42*warm);tails++;
+    this.tailColors[tails*3]=s.tailColor.r*gain;this.tailColors[tails*3+1]=s.tailColor.g*gain*(1-(s.styleData.coloredTail||s.style==='silver'||s.style==='blue'?0:.35)*warm);this.tailColors[tails*3+2]=s.tailColor.b*gain*(1-(s.styleData.coloredTail?0:.42)*warm);tails++;
    }
   }
   this.headGeometry.setDrawRange(0,heads);this.tailGeometry.setDrawRange(0,tails);

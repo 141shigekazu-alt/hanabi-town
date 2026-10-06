@@ -1,23 +1,26 @@
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.4';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.4';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.10';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.10';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.10';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.10';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.4';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.10';
 import * as T from './vendor/three.module.js';
-import {EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.4';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.4';
-import {FireworkAudio} from './audio.js?v=1.1.4';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.4';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.4';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.4';
-import {TowerLighting} from './tower-lighting.js?v=1.1.4';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.4';
-import {ShowInfoPanel} from './show-info.js?v=1.1.4';
-import {WristMenu} from './wrist-menu.js?v=1.1.4';
-import {XRControls} from './xr-controls.js?v=1.1.4';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.4';
-import {EntryTip} from './entry-tip.js?v=1.1.4';
-const BUILD_VERSION='1.1.4';
-const SMALL_STYLE_LABELS={gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.10';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.10';
+import {FireworkAudio} from './audio.js?v=1.1.10';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.10';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.10';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.10';
+import {TowerLighting} from './tower-lighting.js?v=1.1.10';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.10';
+import {ShowInfoPanel} from './show-info.js?v=1.1.10';
+import {WristMenu} from './wrist-menu.js?v=1.1.10';
+import {XRControls} from './xr-controls.js?v=1.1.10';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.10';
+import {EntryTip} from './entry-tip.js?v=1.1.10';
+const BUILD_VERSION='1.1.10';
+let candyFreezeAt=null;
+const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -157,7 +160,11 @@ let showPlan=null,showNumber=0;
 let selectedMusic=MUSIC_SHOWS[0],MUSIC_PLAN=selectedMusic.plan;
 let music=new MusicTransport(selectedMusic.src,{autoload:false});
 $('musicTrack').replaceChildren(...MUSIC_SHOWS.map(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.title;return option;}));$('musicTrack').value=selectedMusic.id;
-let musicRequest=0,musicBusy=false;
+function syncMusicScenes(){
+ $('musicScene').replaceChildren(...MUSIC_PLAN.sections.filter(q=>q.at<MUSIC_PLAN.duration).map(q=>{const option=document.createElement('option');option.value=q.previewStart??Math.max(0,q.at-5);option.textContent=Math.floor(q.at/60)+':'+String(Math.floor(q.at%60)).padStart(2,'0')+' · '+q.label;return option;}));
+}
+syncMusicScenes();
+let musicRequest=0,musicBusy=false,candyPeakAt=null,candyPeakLabel='キャンディー全開の瞬間です。';
 let musicLog=[],musicLastUI=-1;
 
 function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalEarSequence(seed,.8,3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,intro.finishAt);$('programInfo').textContent=showPlan.name; }
@@ -168,8 +175,9 @@ function prepareMusicProgram(){
  fanQueue=MUSIC_PLAN.fans.map(f=>({...f,at:f.at+shift}));
  musicLog=[];$('musicState').textContent=selectedMusic.title+' · '+MUSIC_PLAN.duration.toFixed(1)+'秒';
 }
-function cancelMusicRequest(){musicRequest++;musicBusy=false;syncShowButtons();}
+function cancelMusicRequest(){candyPeakAt=null;musicRequest++;musicBusy=false;syncShowButtons();}
 function syncShowButtons(){
+ for(const id of ['candyPeak','candyQuiet','candySenrin'])if($(id))$(id).hidden=selectedMusic.id!=='pastel-parasite';
  $('play').textContent=showPlan?.music?'曲なしの大会へ':running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';
  $('musicShow').disabled=musicBusy;
  $('musicShow').textContent=musicBusy?'曲を準備中…':showPlan?.music?(running?'音楽付き · ひと休み':'音楽付き · 再開'):selectedMusic.title+'を観る';
@@ -189,20 +197,23 @@ function beginNormalShow(){stopShow();prepareProgram();running=true;ensureAudio(
 function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0){const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,...(position?[position]:[]));}
 function soundDelayFor(f){return bridgeView.active?bridgeView.delay(f.x,f.y,f.z,latestViewerTransform):({2:.18,3:.2,5:.5,10:1,20:1.5})[f.size]??0;}
 function cancelFutureSounds(){
- soundEngine?.cancelScheduled?.();for(const f of fireworks){const t=time-f.start-f.ascent;if(t<(f.soundDue??soundDelayFor(f)))f.soundPlayed=false;if(f.kind==='senrin'&&t<(f.childSoundDue??f.clusterDelays[0]+soundDelayFor(f)))f.childSoundPlayed=false;}
+ soundEngine?.cancelScheduled?.();for(const f of fireworks){const t=time-f.start-f.ascent;if(t<(f.soundDue??soundDelayFor(f)))f.soundPlayed=false;if(isSenrin(f.kind)&&t<(f.childSoundDue??f.clusterDelays[0]+soundDelayFor(f)))f.childSoundPlayed=false;}
 }
 let earSerial=0;
 function launch(kind='core',size=5,position=null){
+ if(kind==='candysenrin'&&size!==10)return false;
+ if(kind==='candy'&&![3,5,10].includes(size))return false;
+ if(kind==='candyburst'&&size!==5&&size!==10)return false;
  if(kind==='ear'&&size!==2||size===2&&kind!=='ear')return false;
  const activeUpper=fireworks.filter(f=>f.kind!=='ear').length;
  if(kind==='ear'){if(fireworks.filter(f=>f.kind==='ear').length>=14)return false;}
- else if(!position?.manual&&(activeUpper>=(position?.wide||position?.musicNine?9:8)||(triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
+ else if(!position?.manual&&(activeUpper>=(showPlan?.music&&selectedMusic.id==='pastel-parasite'?14:position?.wide||position?.musicNine?9:8)||(triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
  if(kind==='kiku'&&size!==3)return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
- if(kind==='double'&&size!==10)return false;if(kind==='senrin'&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&kind!=='senrin'&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
+ if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
  const spec=TYPES[kind],scale=SIZES[size];if(!spec||!scale)return false;
  const z=position?.z??(rand()*1.6-.85),x=position?.x??(riverCenter(z)+(rand()>.5?1:-1)*(.12+rand()*.7));
- const y=scale.height+(position?.heightOffset??0),r=scale.radius,trailCount=kind==='ear'?EAR_PROFILE.trails:kind==='kiku'?16:kind==='senrin'?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
+ const y=scale.height+(position?.heightOffset??0),r=scale.radius*(kind==='candyburst'?1.22:1),trailCount=kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?rand()*1000:0;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
  for(let layer=0;layer<spec.radii.length;layer++){
@@ -236,30 +247,33 @@ function launch(kind='core',size=5,position=null){
  const rotation=new T.Quaternion(Math.sqrt(1-u)*Math.sin(a),Math.sqrt(1-u)*Math.cos(a),Math.sqrt(u)*Math.sin(b),Math.sqrt(u)*Math.cos(b));
  for(const dir of directions)dir.applyQuaternion(rotation);
  }
- if(kind==='senrin'){
- directions.length=0;shells.length=0;starColors.length=0;
+ if(isSenrin(kind)){
+ directions.length=0;shells.length=0;starColors.length=0;if(kind==='candysenrin')starLayers.length=0;
  const childStars=sphere(24);
  sphere(30).forEach((center,cluster)=>{
  const radius=.70+.12*Math.sin(cluster*2.7);
  clusterCenters.push(new T.Vector3(...center).multiplyScalar(r*radius));clusterDelays.push(1.74+(cluster%7)*.035);
- for(const dir of childStars){directions.push(new T.Vector3(...dir));shells.push(1);starColors.push(scheme[cluster%scheme.length]);}
+ for(const dir of childStars){directions.push(new T.Vector3(...dir));shells.push(1);starColors.push(kind==='candysenrin'?new T.Color(candyColor(cluster,position?.candySeed??0x191119,scheme.map(c=>c.getHex()))):scheme[cluster%scheme.length]);if(kind==='candysenrin')starLayers.push(0);}
  });
  }
+ const bigStars=kind==='candyburst'?createCandyBigStars(size,position?.candySeed??(0x141716+Math.floor(time*1000))):null;
+ if(bigStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of bigStars){directions.push(new T.Vector3(...star.direction));shells.push(star.radius);starLayers.push(star.layer);starColors.push(star.layer===0?scheme[0]:new T.Color(0xffdfa0));}}
  const earStars=kind==='ear'?createEarStars(position?.earSeed??((++earSerial*0x9e3779b9)>>>0)):null;
- const shape=kind==='ear'?{level:0}:sampleShellShape(kind,size);
- for(let i=0;i<directions.length;i++)deformShellVector(directions[i],shape,kind==='senrin'?.35:shells[i]<.75?.65:1);
+ const shape=kind==='ear'||kind==='candyburst'?{level:0}:sampleShellShape(kind,size);
+ for(let i=0;i<directions.length;i++)deformShellVector(directions[i],shape,isSenrin(kind)?.35:shells[i]<.75?.65:1);
  for(const center of clusterCenters)deformShellVector(center,shape);
+ if(kind==='candy'){const seed=position?.candySeed??(0x141715+Math.floor(time*1000));for(let i=0;i<starColors.length;i++)starColors[i]=new T.Color(starLayers[i]===0?candyColor(i,seed,scheme.map(c=>c.getHex())):scheme.length===1?scheme[0].getHex():0xffeec7);}
  const n=directions.length,positions=new Float32Array(n*trailCount*3),colors=new Float32Array(n*trailCount*3);
  // These per-star values are constant for the entire shell. Keep double precision.
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- const m=new T.PointsMaterial({size:kind==='ear'?.004:kind==='senrin'?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ const m=new T.PointsMaterial({size:kind==='ear'?.004:kind==='candyburst'?.026:kind==='candy'?.024:kind==='candysenrin'?.026:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
- const reflectionRadiusScale=kind==='senrin'?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false});sound(false,x,z,size);
+ const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
+ fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,bigStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false});sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
@@ -271,7 +285,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
  if(t>=0&&!f.burst){f.burst=true;if(f.kind==='ear')bridgeView.point(f.m,null,EAR_PROFILE.pointSize);}
  const soundDelay=soundDelayFor(f);
  if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y);}
- if(f.kind==='senrin'&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),...(bridgeView.active?[bridgeView.position(f.x,f.y,f.z)]:[]));}
+ if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),...(bridgeView.active?[bridgeView.position(f.x,f.y,f.z)]:[]));}
  if(t>f.spec.life){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
 } }
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
@@ -282,12 +296,26 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
  const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
  f.layerLight?.fill(0);
+ // A candy shell shares expansion and tail weights across its stars.
+ // Keep the approved density and trajectory, calculating each trail time once.
+ if(f.kind==='candy'&&t>=0){
+  f.candyTrailCache??=new Float64Array(f.trailCount*4);
+  for(let j=0;j<f.trailCount;j++){const lag=j*f.spec.tail,at=Math.max(0,t-lag),k=j*4;f.candyTrailCache[k]=1-Math.exp(-1.9*at);f.candyTrailCache[k+1]=.085*at;f.candyTrailCache[k+2]=f.spec.gravity*at*at;f.candyTrailCache[k+3]=(t>=lag?1:0)*Math.pow(1-j/f.trailCount,1.7);}
+ }
  for(let i=0;i<f.n;i++)for(let j=0;j<f.trailCount;j++){
  const index=(i*f.trailCount+j)*3;let x,y,z,brightness;
  if(t<0){
  const trail=(i%24)*.003+j*.004,riseAge=f.kind==='silver'?Math.max(0,age-j*.03):age;
  x=f.x;y=Math.max(.02,f.y*(f.size<10?Math.pow(riseAge/f.ascent,.85):(1-Math.pow(1-Math.min(1,riseAge/(f.ascent-(f.size===20?.6:.28))),2)))-(f.kind==='silver'?0:trail));z=f.z;
  brightness=f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
+ }
+ else if(f.kind==='candyburst'){
+ const v=candyBigStarPoint(f.bigStars[i],f.r,t,j,f.trailCount);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
+ }
+ else if(f.kind==='candy'){
+ const k=j*4,c=f.candyTrailCache,dir=f.directions[i],travel=f.r*f.shells[i]*c[k];
+ x=f.x+dir.x*travel;y=f.y+dir.y*travel+c[k+1]-c[k+2];z=f.z+dir.z*travel;
+ brightness=c[k+3]*(f.starLayers[i]===0?(j===0?5.2:1.6):(j===0?1.2:.35));
  }
  else if(f.kind==='ear'){
  const v=earPoint(f.earStars[i],f.r,t,j);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
@@ -308,30 +336,30 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+.085*at-f.spec.gravity*at*at;z=f.z+dir.z*travel;
  brightness=Math.pow(1-j/f.trailCount,1.7)*(j===0?2:.9*willowTailGlow);
  }
- else if(f.kind==='senrin'){
+ else if(isSenrin(f.kind)){
  const cluster=Math.floor(i/24),center=f.clusterCenters[cluster],childAge=t-f.clusterDelays[cluster],lag=j*f.spec.tail,at=Math.max(0,childAge-lag),spread=(f.size===20?.118:.083)*(1-Math.exp(-(f.size===20?2.1:2.9)*at)),drift=1-Math.exp(-(f.size===20?1.8:2.4)*t),dir=f.directions[i];
  x=f.x+center.x*drift+dir.x*spread;
  y=f.y+center.y*drift+dir.y*spread-.017*t*t-.025*at*at;
  z=f.z+center.z*drift+dir.z*spread;
  const childFade=Math.pow(Math.max(0,1-Math.max(0,childAge-1.1)/1.7),1.3);
- brightness=childAge>=lag?(j===0?3.8:1.75)*(1-j/f.trailCount)*childFade:0;
+ brightness=childAge>=lag?(j===0?(f.kind==='candysenrin'?5.2:3.8):1.75)*(1-j/f.trailCount)*childFade:0;
  // Brief parent-shell flash, then unlit travelling sub-shells until their fuses finish.
  if(t<.14){const dir=f.directions[i],flashRadius=.012+.045*(t/.14);x=f.x+dir.x*flashRadius;y=f.y+dir.y*flashRadius;z=f.z+dir.z*flashRadius;brightness=i<72&&j===0?4.8*(1-t/.14):0;}
  }
  else{
  const lag=j*(f.kind==='sunflower'&&f.shells[i]<.75?.006:f.spec.tail),at=Math.max(0,t-lag),dir=f.directions[i],travel=f.r*f.shells[i]*(1-Math.exp(-(f.size===20?.7:1.9)*at));
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+.085*at-f.spec.gravity*at*at;z=f.z+dir.z*travel;
- brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(j===0?2:.9);
+ brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(f.kind==='candy'?(f.starLayers[i]===0?(j===0?5.2:1.6):(j===0?1.2:.35)):(j===0?2:.9));
  // Fade tails along with their heads so the whole break has a clean ending.
  }
  if(f.kind==='ear'&&y<=.025)brightness=0;
  f.positions[index]=x;f.positions[index+1]=f.kind==='ear'?y:Math.max(.018,y);f.positions[index+2]=z;
  // Head samples already computed above: no second particle pass or temporary vectors.
- if(t>=0&&(j===0||f.kind==='ear')&&brightness>0&&(f.kind!=='senrin'||t>=f.clusterDelays[Math.floor(i/24)])){
+ if(t>=0&&(j===0||f.kind==='ear')&&brightness>0&&(!isSenrin(f.kind)||t>=f.clusterDelays[Math.floor(i/24)])){
   const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
- const col=f.starColors[i];if(f.kind==='senrin'&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
+ const col=f.starColors[i];if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
  f.reflectionGain=0;f.reflectionRadius=0;
@@ -339,7 +367,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
   f.reflectionCenter.set(cx,cy,cz);
   f.reflectionRadius=Math.sqrt(Math.max(0,lightR2/light-cx*cx-cy*cy-cz*cz))/(f.layerLight?Math.sqrt(lightShellR2/light):f.reflectionRadiusScale);
-  const headBrightness=f.kind==='silver'?2.2:f.kind==='senrin'?3.8:2;
+  const headBrightness=f.kind==='silver'?2.2:f.kind==='candysenrin'?5.2:isSenrin(f.kind)?3.8:2;
   f.reflectionGain=.9*fade*Math.min(1,light/(f.n*headBrightness*(f.kind==='ear'?f.trailCount*.30:1)))*reflectionAppearance(f.reflectionRadius/f.r);
  }
 } }
@@ -531,7 +559,7 @@ function toggle(){
 $('play').disabled=false;$('play').textContent='花火大会を観る';
 $('play').onclick=()=>{if(showPlan?.music)beginNormalShow();else if(time>=300)restart();else toggle();};
 $('musicShow').onclick=beginMusicShow;$('musicStop').onclick=stopShow;$('musicRestart').onclick=()=>{if(showPlan?.music)restart();else beginMusicShow();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
-$('musicFinale').onclick=()=>beginMusicExcerpt(MUSIC_PLAN.duration-12,'最後の大輪と、曲後の余韻を観ます。');
+$('musicFinale').onclick=()=>beginMusicExcerpt(MUSIC_PLAN.finalPreviewStart??MUSIC_PLAN.duration-12,'最後の大輪と、曲後の余韻を観ます。');
 $('musicPyramid').onclick=()=>beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');
 $('cometShow').onclick=()=>beginCometStudy();
 $('cometNext').onclick=()=>{const options=[...$('cometPattern').options];const i=options.findIndex(o=>o.value===$('cometPattern').value);$('cometPattern').value=options[(i+1)%options.length].value;$('cometPattern').onchange();beginCometStudy();};
@@ -559,8 +587,8 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
+function allowedSize(kind,value){if(kind==='candysenrin')return value==='10';if(kind==='candyburst')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(kind==='candyburst'&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label;return option;}));
@@ -793,10 +821,13 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  $('cometPause').textContent=previewPaused?'試し打ちを再開':'試し打ちを一時停止';$('cometPause').disabled=!previewing;
  const updateStart=performance.now();
  manualBudget.observe(stamp,!!frame&&xrVisible&&(running||(previewing&&!previewPaused)));
- if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt);
+ if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt*($('candyCard')?Number($('candySpeed').value):1));
+ if(candyPeakAt!==null&&running&&time>=candyPeakAt){candyPeakAt=null;time=music.pause();running=false;cancelFutureSounds();syncShowButtons();$('status').textContent=candyPeakLabel+'「再開」で続きも観られます。';}
+ if($('candyCard')&&candyFreezeAt!==null&&$('candyFreeze').checked&&time>=candyFreezeAt){previewPaused=true;candyFreezeAt=null;cancelFutureSounds();$('candyPause').textContent='再開';}
+ if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
  if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*1.2,.55+pitch,0);camera.lookAt(target);}
  bridgeView.listener(audio,pose?.transform);
- if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('candyCard')||new URLSearchParams(location.search).has('candyShow'))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
@@ -814,9 +845,10 @@ $('musicState').textContent=selectedMusic.description;
 $('musicTrack').onchange=()=>{
  const chosen=MUSIC_SHOWS.find(item=>item.id===$('musicTrack').value);if(!chosen||chosen===selectedMusic)return;
  if(showPlan?.music)stopShow();else cancelMusicRequest();music.stop();selectedMusic=chosen;MUSIC_PLAN=chosen.plan;music=new MusicTransport(chosen.src,{autoload:false});music.setVolume(Number($('musicVolume').value));
- $('musicState').textContent=chosen.description;musicLastUI=-1;syncShowButtons();drawMusicTimeline();mrPanel.draw();
+ $('musicState').textContent=chosen.description;musicLastUI=-1;syncMusicScenes();syncShowButtons();drawMusicTimeline();mrPanel.draw();
 };
 
+$('musicScenePlay').onclick=()=>beginMusicExcerpt(Number($('musicScene').value),'選んだ場面の少し前から観ます。');
 $('musicOffset').oninput=()=>{$('musicOffsetValue').textContent=$('musicOffset').value+' ms（次の開演から）';};
 $('musicClick').onchange=()=>music.clickEnabled=$('musicClick').checked;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseMusicForVisibility();});
@@ -827,7 +859,7 @@ async function beginMusicExcerpt(start,label){
  burstQueue=burstQueue.filter(s=>s.at>=time-.02);fanQueue=fanQueue.filter(s=>s.at>=time-.02);ensureAudio();music.play(audio,time);running=true;syncShowButtons();$('status').textContent=label;
 }
 
-function beginMusicFinale(){return beginMusicExcerpt(MUSIC_PLAN.duration-12,'曲が収まる前の大輪と、花火の音だけの余韻を観ます。');}
+function beginMusicFinale(){return beginMusicExcerpt(MUSIC_PLAN.finalPreviewStart??MUSIC_PLAN.duration-12,'曲が収まる前の大輪と、花火の音だけの余韻を観ます。');}
 function musicMiddleStart(){return MUSIC_PLAN.middlePreviewStart??MUSIC_PLAN.pyramidAt-5;}
 function beginMusicPyramid(){return beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');}
 function pauseMusicForVisibility(){
@@ -848,7 +880,7 @@ function advanceMusic(dt){
  if(Math.floor(time*8)!==musicLastUI){musicLastUI=Math.floor(time*8);drawMusicTimeline();}
  const section=MUSIC_PLAN.sections.filter(s=>s.at<=time).at(-1);
  $('chapter').textContent=(section?.label??selectedMusic.title)+' · '+Math.floor(time/60)+':'+String(Math.floor(time%60)).padStart(2,'0');
- if(time>=MUSIC_PLAN.duration&&time<MUSIC_PLAN.showDuration)$('status').textContent='曲が終わりました。銀かむろと花火の音の余韻をお楽しみください。';
+ if(time>=MUSIC_PLAN.duration&&time<MUSIC_PLAN.showDuration)$('status').textContent='曲が終わりました。残る光と花火の音の余韻をお楽しみください。';
  if(time>=MUSIC_PLAN.showDuration){music.pause();running=false;cancelFutureSounds();drawMusicTimeline();syncShowButtons();$('musicShow').textContent=selectedMusic.title+'をもう一度';$('status').textContent='花火の余韻とともに、大会が終わりました。';}
 }
 function drawMusicTimeline(){
@@ -858,3 +890,37 @@ function drawMusicTimeline(){
 }
 drawMusicTimeline();
 window.__musicStudy={get state(){return{time,transport:music.currentTime,running,pending:burstQueue.length,active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),sourceActive:!!music.source,contextState:audio?.state,clicks:music.clicks.size,log:musicLog};},get plan(){return MUSIC_PLAN;}};
+
+if($('candyCard')){
+ town.rotation.set(0,0,0);town.scale.setScalar(1);camera.position.set(0,1.15,3.0);camera.lookAt(0,.72,-.12);scene.fog.density=.025;
+ $('candyVolume').oninput=()=>{$('volume').value=$('candyVolume').value;soundEngine?.setVolume(Number($('candyVolume').value));};
+ const monoSelect=$('candyMono');monoSelect.replaceChildren(...CANDY_PALETTES.filter(p=>p.colors.length===1).map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));
+ const candySelect=$('candyPalette');candySelect.replaceChildren(...CANDY_PALETTES.map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));
+ function beginCandyComparison(id){
+  beginPreview();const big=id.startsWith('big'),mono=id.startsWith('mono');candyFreezeAt=id==='all'?null:big?(id.includes('10')?3.95:3.10):id.includes('10')?3.78:id.includes('3')?2.85:id.includes('5')?2.97:.70;$('candyPause').textContent='一時停止';const palette=big||mono?monoSelect.value:candySelect.value;
+  const add=(at,size,x=0,kind='candy')=>burstQueue.push({at,kind,size,position:{x,z:.08,palette:kind==='candyburst'?monoSelect.value:palette,ignitionDelay:.02,startAt:at,candySeed:0x141715+size*71+Math.floor(at*100)}});
+  if(big){const size=id.includes('10')?10:5;for(const [i,x] of (id.includes('pair')?[-.48,.48]:[0]).entries())add(i*.08,size,x,'candyburst');}
+  else if(mono){for(let i=0;i<(id==='mono-row3'?5:1);i++)add(i*.035,3,id==='mono-row3'?(i-2)*.42:0);}
+  else if(['shell3','shell5','shell10'].includes(id))add(0,Number(id.slice(5)));
+  else if(['row3','row5','row10'].includes(id)){const size=Number(id.slice(3));for(let i=0;i<5;i++)add(i*.035,size,(i-2)*.42);}
+  else if(id==='all'){
+   fanQueue.push({at:0,mode:'row',style:palette},{at:4,mode:'small-up-tight',style:palette},{at:7,mode:'small-cross-tight',style:palette},{at:10,mode:'small-fan',style:palette});
+   add(13,3,-.35);add(17.5,5,.35);add(23,10);add(31,5,-.40,'candyburst');add(36.5,10,.20,'candyburst');
+  }else fanQueue.push({at:0,mode:id,style:palette});
+  burstQueue.sort((a,b)=>a.at-b.at);fanQueue.sort((a,b)=>a.at-b.at);
+  $('status').textContent='キャンディーの星と尾を見比べています。';$('chapter').textContent='キャンディー色の確認';
+ }
+ document.querySelectorAll('[data-candy]').forEach(button=>button.onclick=()=>beginCandyComparison(button.dataset.candy));
+ $('candyPause').onclick=()=>{if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();$('candyPause').textContent=previewPaused?'再開':'一時停止';}};
+ $('candyStop').onclick=()=>{stopShow();$('candyPause').textContent='一時停止';};
+ $('candyReplay').onclick=()=>beginCandyComparison('all');
+}
+
+if(new URLSearchParams(location.search).has("candyShow")){town.rotation.set(0,0,0);town.scale.setScalar(1);camera.position.set(0,1.30,3.2);camera.lookAt(0,1.04,-.12);scene.fog.density=.025;setPanelTab(4);}
+
+syncShowButtons();
+
+if($("candyPeak"))$("candyPeak").onclick=async()=>{candyPeakLabel="銀かむろ５玉と大星３玉の全開です。";await beginMusicExcerpt(166.4,"キャンディー全開の瞬間へ進みます。");if(showPlan?.music&&selectedMusic.id==='pastel-parasite'&&running)candyPeakAt=173.55;};
+
+if($("candySenrin"))$("candySenrin").onclick=async()=>{candyPeakLabel="左右のキャンディー千輪です。";await beginMusicExcerpt(160,"左右のキャンディー千輪を観ます。");if(showPlan?.music&&selectedMusic.id==='pastel-parasite'&&running)candyPeakAt=168.5;};
+if($("candyQuiet"))$("candyQuiet").onclick=async()=>{candyPeakLabel="足元だけで溜める間奏です。";await beginMusicExcerpt(126.8,"間奏は足元だけで溜めます。");if(showPlan?.music&&selectedMusic.id==='pastel-parasite'&&running)candyPeakAt=132.7;};
