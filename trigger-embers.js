@@ -1,4 +1,4 @@
-import {isSenrin} from './fireworks.js?v=1.1.10';
+import {isSenrin} from './fireworks.js?v=1.1.11';
 import * as T from './vendor/three.module.js';
 
 export function manualPointCost(kind,size,sizes,types){

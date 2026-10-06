@@ -1,4 +1,4 @@
-import {candyColor} from './candy-colors.js?v=1.1.10';
+import {candyColor} from './candy-colors.js?v=1.1.11';
 import * as T from './vendor/three.module.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -81,7 +81,7 @@ export class StarBundleField{
    this.active.push(makeStarBundle(shot,shot.at,this.styles[shot.style]));this.onLaunch(shot,time);
   }
   this.active=this.active.filter(s=>time-s.start<s.end);
-  const desiredSize=this.active.some(b=>b.colored)?.055:.022;if(this.headSize!==desiredSize){this.headSize=desiredSize;this.bridge.point(this.headMaterial,null,desiredSize);}
+  const desiredSize=.022;if(this.headSize!==desiredSize){this.headSize=desiredSize;this.bridge.point(this.headMaterial,null,desiredSize);}
   let heads=0,tails=0;
   for(const bundle of this.active)for(const star of bundle.stars){
    const age=time-bundle.start-star.at;if(age<0)continue;

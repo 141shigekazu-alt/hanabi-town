@@ -22,6 +22,6 @@ export function candyBigStarPoint(star,radius,age,trail,trails=24){
  const x=star.direction[0]*travel,y=star.direction[1]*travel+.045*t-gravity*t*t,z=star.direction[2]*travel;
  const alive=Math.max(0,Math.min(1,((star.layer===0?3.7:2.5)-age)/.9));
  const twinkle=star.layer===0?1:.55+.45*Math.pow(Math.max(0,Math.sin(age*18+star.phase)),3);
- const brightness=(trail===0?(star.layer===0?5.8:2.0):(star.layer===0?1.7:.32))*Math.pow(1-trail/trails,1.2)*alive*twinkle*Math.min(1,Math.max(0,age)/.07);
+ const brightness=(trail===0?(star.layer===0?3.0:2.0):(star.layer===0?.95:.32))*Math.pow(1-trail/trails,1.2)*alive*twinkle*Math.min(1,Math.max(0,age)/.07);
  return {x,y,z,brightness};
 }

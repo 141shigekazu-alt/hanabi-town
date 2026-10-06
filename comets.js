@@ -1,6 +1,6 @@
-import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.10';
+import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.11';
 import * as T from './vendor/three.module.js';
-import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.10';
+import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.11';
 
 // An independent stream: ground shots cannot change the shapes of upper shells.
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}

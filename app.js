@@ -1,24 +1,24 @@
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.10';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.10';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.10';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.10';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.11';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.11';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.11';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.11';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.10';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.11';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.10';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.10';
-import {FireworkAudio} from './audio.js?v=1.1.10';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.10';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.10';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.10';
-import {TowerLighting} from './tower-lighting.js?v=1.1.10';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.10';
-import {ShowInfoPanel} from './show-info.js?v=1.1.10';
-import {WristMenu} from './wrist-menu.js?v=1.1.10';
-import {XRControls} from './xr-controls.js?v=1.1.10';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.10';
-import {EntryTip} from './entry-tip.js?v=1.1.10';
-const BUILD_VERSION='1.1.10';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.11';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.11';
+import {FireworkAudio} from './audio.js?v=1.1.11';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.11';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.11';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.11';
+import {TowerLighting} from './tower-lighting.js?v=1.1.11';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.11';
+import {ShowInfoPanel} from './show-info.js?v=1.1.11';
+import {WristMenu} from './wrist-menu.js?v=1.1.11';
+import {XRControls} from './xr-controls.js?v=1.1.11';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.11';
+import {EntryTip} from './entry-tip.js?v=1.1.11';
+const BUILD_VERSION='1.1.11';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -268,7 +268,7 @@ function launch(kind='core',size=5,position=null){
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- const m=new T.PointsMaterial({size:kind==='ear'?.004:kind==='candyburst'?.026:kind==='candy'?.024:kind==='candysenrin'?.026:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ const m=new T.PointsMaterial({size:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
@@ -282,7 +282,7 @@ function clearFireworks(){triggerEmbers.clear();soundEngine?.cancelScheduled?.()
 // Free expired launch slots and fire sounds before queued shots, without computing points.
 function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime;for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
- if(t>=0&&!f.burst){f.burst=true;if(f.kind==='ear')bridgeView.point(f.m,null,EAR_PROFILE.pointSize);}
+ if(t>=0&&!f.burst){f.burst=true;if(f.kind==='ear')bridgeView.point(f.m,null,EAR_PROFILE.pointSize);else if(f.kind==='candyburst')bridgeView.point(f.m,null,.020);}
  const soundDelay=soundDelayFor(f);
  if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y);}
  if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),...(bridgeView.active?[bridgeView.position(f.x,f.y,f.z)]:[]));}
@@ -315,7 +315,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  else if(f.kind==='candy'){
  const k=j*4,c=f.candyTrailCache,dir=f.directions[i],travel=f.r*f.shells[i]*c[k];
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+c[k+1]-c[k+2];z=f.z+dir.z*travel;
- brightness=c[k+3]*(f.starLayers[i]===0?(j===0?5.2:1.6):(j===0?1.2:.35));
+ brightness=c[k+3]*(f.starLayers[i]===0?(j===0?3.2:1.05):(j===0?1.2:.35));
  }
  else if(f.kind==='ear'){
  const v=earPoint(f.earStars[i],f.r,t,j);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
@@ -342,14 +342,14 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  y=f.y+center.y*drift+dir.y*spread-.017*t*t-.025*at*at;
  z=f.z+center.z*drift+dir.z*spread;
  const childFade=Math.pow(Math.max(0,1-Math.max(0,childAge-1.1)/1.7),1.3);
- brightness=childAge>=lag?(j===0?(f.kind==='candysenrin'?5.2:3.8):1.75)*(1-j/f.trailCount)*childFade:0;
+ brightness=childAge>=lag?(j===0?3.8:1.75)*(1-j/f.trailCount)*childFade:0;
  // Brief parent-shell flash, then unlit travelling sub-shells until their fuses finish.
  if(t<.14){const dir=f.directions[i],flashRadius=.012+.045*(t/.14);x=f.x+dir.x*flashRadius;y=f.y+dir.y*flashRadius;z=f.z+dir.z*flashRadius;brightness=i<72&&j===0?4.8*(1-t/.14):0;}
  }
  else{
  const lag=j*(f.kind==='sunflower'&&f.shells[i]<.75?.006:f.spec.tail),at=Math.max(0,t-lag),dir=f.directions[i],travel=f.r*f.shells[i]*(1-Math.exp(-(f.size===20?.7:1.9)*at));
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+.085*at-f.spec.gravity*at*at;z=f.z+dir.z*travel;
- brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(f.kind==='candy'?(f.starLayers[i]===0?(j===0?5.2:1.6):(j===0?1.2:.35)):(j===0?2:.9));
+ brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(f.kind==='candy'?(f.starLayers[i]===0?(j===0?3.2:1.05):(j===0?1.2:.35)):(j===0?2:.9));
  // Fade tails along with their heads so the whole break has a clean ending.
  }
  if(f.kind==='ear'&&y<=.025)brightness=0;
@@ -367,7 +367,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
   f.reflectionCenter.set(cx,cy,cz);
   f.reflectionRadius=Math.sqrt(Math.max(0,lightR2/light-cx*cx-cy*cy-cz*cz))/(f.layerLight?Math.sqrt(lightShellR2/light):f.reflectionRadiusScale);
-  const headBrightness=f.kind==='silver'?2.2:f.kind==='candysenrin'?5.2:isSenrin(f.kind)?3.8:2;
+  const headBrightness=f.kind==='silver'?2.2:isSenrin(f.kind)?3.8:2;
   f.reflectionGain=.9*fade*Math.min(1,light/(f.n*headBrightness*(f.kind==='ear'?f.trailCount*.30:1)))*reflectionAppearance(f.reflectionRadius/f.r);
  }
 } }
@@ -897,9 +897,11 @@ if($('candyCard')){
  const monoSelect=$('candyMono');monoSelect.replaceChildren(...CANDY_PALETTES.filter(p=>p.colors.length===1).map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));
  const candySelect=$('candyPalette');candySelect.replaceChildren(...CANDY_PALETTES.map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));
  function beginCandyComparison(id){
-  beginPreview();const big=id.startsWith('big'),mono=id.startsWith('mono');candyFreezeAt=id==='all'?null:big?(id.includes('10')?3.95:3.10):id.includes('10')?3.78:id.includes('3')?2.85:id.includes('5')?2.97:.70;$('candyPause').textContent='一時停止';const palette=big||mono?monoSelect.value:candySelect.value;
-  const add=(at,size,x=0,kind='candy')=>burstQueue.push({at,kind,size,position:{x,z:.08,palette:kind==='candyburst'?monoSelect.value:palette,ignitionDelay:.02,startAt:at,candySeed:0x141715+size*71+Math.floor(at*100)}});
-  if(big){const size=id.includes('10')?10:5;for(const [i,x] of (id.includes('pair')?[-.48,.48]:[0]).entries())add(i*.08,size,x,'candyburst');}
+  beginPreview();const rise=id==='rise5',reference=id.startsWith('reference'),big=id.startsWith('big'),mono=id.startsWith('mono');candyFreezeAt=id==='all'?null:rise?.85:reference?(id==='reference3'?2.85:2.97):big?(id.includes('10')?3.95:3.10):id.includes('10')?3.78:id.includes('3')?2.85:id.includes('5')?2.97:.70;$('candyPause').textContent='一時停止';const palette=big||mono?monoSelect.value:candySelect.value;
+  const add=(at,size,x=0,kind='candy')=>burstQueue.push({at,kind,size,position:{x,z:.08,palette:kind==='kiku'||kind==='core'?'original':kind==='candyburst'?monoSelect.value:palette,ignitionDelay:.02,startAt:at,candySeed:0x141715+size*71+Math.floor(at*100)}});
+  if(reference){add(0,id==='reference3'?3:5,0,id==='reference3'?'kiku':'core');}
+  else if(rise){add(0,5);}
+  else if(big){const size=id.includes('10')?10:5;for(const [i,x] of (id.includes('pair')?[-.48,.48]:[0]).entries())add(i*.08,size,x,'candyburst');}
   else if(mono){for(let i=0;i<(id==='mono-row3'?5:1);i++)add(i*.035,3,id==='mono-row3'?(i-2)*.42:0);}
   else if(['shell3','shell5','shell10'].includes(id))add(0,Number(id.slice(5)));
   else if(['row3','row5','row10'].includes(id)){const size=Number(id.slice(3));for(let i=0;i<5;i++)add(i*.035,size,(i-2)*.42);}

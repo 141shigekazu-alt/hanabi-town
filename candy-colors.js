@@ -14,4 +14,4 @@ export function candyColor(index,seed,colors){
  const stride=colors.length===5||colors.length===3?2:1;
  return colors[(index*stride+hash%colors.length)%colors.length];
 }
-export const CANDY_COMET_STYLES=Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,{label:p.label,head:p.colors[0],headPalette:p.colors,tail:p.colors[0],coloredTail:true,headGain:3.5,bundleCountScale:.42,colorSpread:.22,tailGain:.38,burn:1.04,afterglow:.88,spread:.020,lanes:2}]));
+export const CANDY_COMET_STYLES=Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,{label:p.label,head:p.colors[0],headPalette:p.colors,tail:p.colors[0],coloredTail:true,headGain:1.9,bundleCountScale:.42,colorSpread:.22,tailGain:.38,burn:1.04,afterglow:.88,spread:.020,lanes:2}]));
