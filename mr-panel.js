@@ -41,14 +41,14 @@ export class MRPanel{
   controller.addEventListener('connected',e=>{entry.source=e.data;});
   controller.addEventListener('disconnected',()=>{this.release(controller);if(entry.source)this.edges.delete(entry.source);entry.source=null;beam.visible=false;});
   controller.addEventListener('selectend',()=>this.release(controller));
-  controller.addEventListener('squeezestart',()=>{if(this.active&&entry.source?.handedness==='left')this.toggle();});
+
  }
  openAt(transform,{side=.38,distance=1.05,drop=.08}={}){
   if(!transform)return;this.lastTransform=transform;
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10];const length=Math.hypot(x,z);
   if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
   this.mesh.position.set(p.x+x*distance-z*side,p.y-drop,p.z+z*distance+x*side);
-  this.release();this.moved=false;this.mesh.lookAt(p.x,this.mesh.position.y,p.z);this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.hover='';this.draw();
+  this.release();this.moved=false;this.yawOffset=0;this.mesh.lookAt(p.x,this.mesh.position.y,p.z);this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.hover='';this.draw();
  }
  begin(transform){this.active=true;this.preview=false;this.edges=new WeakMap();this.page=0;this.openAt(transform);}
  end(){this.active=false;this.close();this.edges=new WeakMap();}
@@ -97,18 +97,12 @@ export class MRPanel{
   if(!this.active||!this.visible)return false;
   if(this.grab||this.sliderDrag)return true;
   const entry=this.controllers.find(e=>e.controller===controller),hit=this.hitController(controller);
-  if(hit?.object===this.grabTarget){this.beginGrab(hit,controller);this.pulse(entry?.source);}
+  if(hit?.object===this.grabTarget)return true;
   else if(hit){const control=controlAtUV(this.controls,hit.uv);if(control?.slider){this.beginSlider(control,controller,this.raycaster.ray);this.pulse(entry?.source);}else this.fire(control,entry?.source);}
-  return !!hit||entry?.source?.handedness!=='left';
+  return !!hit;
  }
  update(stamp,frame,referenceSpace,transform){
   if(!this.active)return;if(transform)this.lastTransform=transform;
-  for(const entry of this.controllers){
-   const source=entry.source,gp=source?.gamepad;if(!gp||gp.mapping!=='xr-standard')continue;
-   const index=source.handedness==='left'?4:source.handedness==='right'?5:-1;if(index<0||!gp.buttons[index])continue;
-   const pressed=gp.buttons[index].pressed,was=this.edges.get(source);this.edges.set(source,pressed);
-   if(was===false&&pressed)this.toggle();
-  }
   if(!this.visible)return;
   const held=this.grab??this.sliderDrag;
   if(held?.controller){
@@ -124,7 +118,7 @@ export class MRPanel{
    if(hit&&(!nearest||hit.distance<nearest.distance))nearest=hit;
   }
   this.cursor.visible=!!nearest;if(nearest)this.cursor.position.copy(nearest.point);
-  const hover=this.sliderDrag?this.sliderDrag.control.id:this.grab||nearest?.object===this.grabTarget?'grab':nearest?controlAtUV(this.controls,nearest.uv)?.id??'':'';
+  const hover=this.controllerGrabbed?'grab':this.sliderDrag?this.sliderDrag.control.id:this.grab||nearest?.object===this.grabTarget?'grab':nearest?controlAtUV(this.controls,nearest.uv)?.id??'':'';
   this.bar.material.color.setHex(hover==='grab'?0xffdfa1:0xf2f5f8);
   if(hover!==this.hover||stamp-this.lastDraw>250){this.hover=hover;this.draw();this.lastDraw=stamp;}
  }
@@ -179,13 +173,14 @@ export class MRPanel{
  draw(){
   const s=this.read(),c=this.ctx;this.controls=[];c.clearRect(0,0,W,H);c.fillStyle='#0d1722';c.fillRect(0,0,W,H);
   c.strokeStyle='#587084';c.lineWidth=3;c.strokeRect(1.5,1.5,W-3,H-3);
-  this.text('花火街  ·  操作パネル',32,44,34,'#f3dfb5');
+  this.text('花火街  ·  サイドパネル',32,44,34,'#f3dfb5');
   this.button('recenter','位置を戻す',608,24,164,46,()=>this.openAt(this.lastTransform));
-  this.text('左Xで開閉 · 左手のひらを上にして視点を選択',32,88,23,'#acbdc9');
+  this.text('右A：サイドパネル · 左X：クルッとパネル',32,88,23,'#acbdc9');
   this.text(s.chapter,32,130,42,'#dde8ef',736);
   this.text(s.last,32,182,42,'#ffe0a3',736);
   c.save();c.translate(0,HEADER_GROWTH);
-  ['大会','試し打ち','街・音'].forEach((label,i)=>this.button('page'+i,label,28+i*254,160,236,54,()=>{if(this.page!==i){this.page=i;this.pageChanged(i);}},{selected:this.page===i}));
+  c.fillStyle='#132536';c.beginPath();c.roundRect(20,152,760,76,14);c.fill();
+  ['花火大会','試し打ち','街・音'].forEach((label,i)=>{this.button('page'+i,label,28+i*254,160,236,54,()=>{if(this.page!==i){this.page=i;this.pageChanged(i);}},{selected:this.page===i});if(this.page===i){c.fillStyle='#ffe0a3';c.fillRect(48+i*254,211,196,4);}});
   if(this.page===0){
    this.button('play',s.running?'ひと休み':'花火大会を始める',28,238,744,64,()=>this.click('play'));
    this.button('stop','大会を止める',28,318,360,60,()=>this.click('stop'));
@@ -193,19 +188,24 @@ export class MRPanel{
    this.selector('program','大会プログラム',409,s.program);
    this.selector('mood','大会の雰囲気',525,s.mood);
    this.selector('ending','大会の終わり',641,s.ending);
-   this.wrap(s.status,32,770,736,3);
+   this.wrap('トリガーで仕込んだ一玉を追加できます。右Bで一時停止・再開。',32,770,736,2);
+   this.text('左：'+s.loadedLeft+' ／ 右：'+s.loadedRight,32,836,20,'#ffe0a3',736);
    this.button('reset','設定と視点を初期状態に戻す',28,860,744,42,()=>this.click('reset'));
   }else if(this.page===1){
    this.selector('type','花火の種類',247,s.type);
    this.selector('size','玉の大きさ',344,s.size);
    if(s.palette)this.selector('palette','配色：外星 × 芯星／菊の色',441,s.palette);
-   this.button('sample','選んだ一玉を上げる',28,539,744,64,()=>this.click('sample'));
-   this.button('fans','足元の扇・クロス',28,621,360,60,()=>this.click('fans'));
-   this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',412,621,360,60,()=>this.click('starmine'));
-   this.button('big','二尺玉の三重芯',28,699,360,60,()=>this.click('big'));
-   this.button('finale','銀かむろの締め',412,699,360,60,()=>this.click('finale'));
-   this.button('wideFinale','空いっぱいのかむろを見る',28,777,744,64,()=>this.click('wideFinale'));
-   this.wrap(s.status,32,862,736,2);
+   this.button('sample','この一発を試す',28,539,444,64,()=>this.click('sample'));
+   this.text('トリガーでも発射',490,571,23,'#ffe0a3');
+   this.button('loadLeft','左に仕込む',28,617,360,48,()=>this.click('loadLeft'));
+   this.button('loadRight','右に仕込む',412,617,360,48,()=>this.click('loadRight'));
+   this.text('左：'+s.loadedLeft,32,686,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,716,20,'#b8c9d4',736);
+   this.button('fans','足元の扇・クロス',28,755,360,48,()=>this.click('fans'));
+   this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',412,755,360,48,()=>this.click('starmine'));
+   this.button('big','二尺玉の三重芯',28,816,360,48,()=>this.click('big'));
+   this.button('finale','銀かむろの締め',412,816,360,48,()=>this.click('finale'));
+   this.button('wideFinale','空いっぱいのかむろを見る',28,877,744,48,()=>this.click('wideFinale'));
+   this.text('空へ向けてトリガーで一発 · グリップで掴む',32,950,21,'#aebfc9');
   }else{
    if(s.bridge){this.text('手前の橋に座って鑑賞中',32,280,34,'#ffe0a3');this.wrap('花火は頭上に、川面は眼下に。座ったまま、顔を向けて街を見回せます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
@@ -217,12 +217,12 @@ export class MRPanel{
    if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
    this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));}
   }
-  if(this.page!==2)this.text(s.metric,32,921,21,'#8caabb',736);
+  if(this.page===0)this.text(s.metric,32,921,21,'#8caabb',736);
   if(s.bridge)this.wrap('橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});
   this.button('bridge',s.bridge?'ミニチュアに戻る':'街に入る · 手前の橋',28,1116,744,44,()=>this.click('bridge'),{selected:s.bridge});
   this.button('close','パネルを閉じて鑑賞',28,1170,360,62,()=>this.close());
   this.button('exit','鑑賞を終了してページへ',412,1170,360,62,()=>this.exit(),{danger:true});
-  this.text(this.grab?'移動中 · トリガーを離すと、ここに置けます':'下の白いバーをビームで掴み、トリガーを押したまま移動',32,1255,20,'#b8c9d4',736);
+  this.text(this.controllerGrabbed?'移動中 · グリップを離すと、ここに置けます':'白い棒へビーム＋グリップ · スティックで角度と奥行き',32,1255,20,'#b8c9d4',736);
   c.restore();
   for(const control of this.controls)if(control.id!=='recenter')control.y+=HEADER_GROWTH;
   this.texture.needsUpdate=true;

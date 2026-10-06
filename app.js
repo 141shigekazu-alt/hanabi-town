@@ -1,16 +1,17 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.21';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.22';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.21';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.21';
-import {FireworkAudio} from './audio.js?v=beta.1.0.21';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.21';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.21';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.21';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.21';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.21';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.21';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.21';
-const BUILD_VERSION='beta.1.0.21';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.22';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.22';
+import {FireworkAudio} from './audio.js?v=beta.1.0.22';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.22';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.22';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.22';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.22';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.22';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.22';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.22';
+import {XRControls} from './xr-controls.js?v=beta.1.0.22';
+const BUILD_VERSION='beta.1.0.22';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -86,7 +87,7 @@ $('towerColor').onchange=setTowerColor;
 
 const palette=[0xffc878,0xff647d,0x9fd9ff,0xbba0ff,0x94edb1];
 
-let running=false,previewing=false,time=0,nextLaunch=.8,cueIndex=0,burstQueue=[],burstSlots=new Set(),fireworks=[],audio=null,soundEngine=null,yaw=0,pitch=0,drag=null;
+let running=false,previewing=false,previewPaused=false,time=0,nextLaunch=.8,cueIndex=0,burstQueue=[],burstSlots=new Set(),fireworks=[],audio=null,soundEngine=null,yaw=0,pitch=0,drag=null;
 const spriteCanvas=document.createElement('canvas');spriteCanvas.width=spriteCanvas.height=32;const ctx=spriteCanvas.getContext('2d'),grad=ctx.createRadialGradient(16,16,0,16,16,16);grad.addColorStop(0,'rgba(255,255,255,1)');grad.addColorStop(.2,'rgba(255,255,255,.9)');grad.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=grad;ctx.fillRect(0,0,32,32);const sprite=new T.CanvasTexture(spriteCanvas);
 // Keep tiny miniature stars bright while giving their cores a clearer edge.
 // Town warning lights and ground effects retain the original soft image.
@@ -332,7 +333,7 @@ function stopShow(){
  $('play').textContent='花火大会を始める';$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';
 }
 function resetAll(){
- if(bridgeView.active)leaveBridge();stopShow();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
+ controls?.release();if(bridgeView.active)leaveBridge();stopShow();loadedShells.left=loadedShells.right=null;$('loadedLeft').textContent=$('loadedRight').textContent='選択中の一玉';if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one'};
  for(const [id,value] of Object.entries(defaults))$(id).value=value;
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
@@ -341,7 +342,7 @@ function resetAll(){
 }
 function restart(){previewing=false;showPlan=null;fanQueue=[];clearFans();clearFireworks();burstQueue=[];burstSlots.clear();time=0;nextLaunch=.8;cueIndex=0;$('last').textContent='次の一玉を待つ';if(!running)toggle();else prepareProgram();}
 function beginPreview(){
- running=false;previewing=true;showPlan=null;time=0;cueIndex=0;nextLaunch=.8;
+ running=false;previewing=true;previewPaused=false;showPlan=null;time=0;cueIndex=0;nextLaunch=.8;
  clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();
  $('play').textContent='花火大会を始める';$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
  $('status').textContent='試し打ち中。選んだ花火だけを上げます。';ensureAudio();
@@ -400,7 +401,7 @@ function adjustTownDistance(){
 $('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();};$('distance').oninput=adjustTownDistance;
 function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();return mrPanel.previewPointer((e.clientX-r.left)/r.width*2-1,1-(e.clientY-r.top)/r.height*2,camera,activate);}
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
-const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);let handedness='',handInput=false;c.addEventListener('connected',e=>{handedness=e.data.handedness;handInput=!!e.data.hand;});c.addEventListener('selectstart',()=>{if(!renderer.xr.isPresenting)return;if(wristMenu.select(c)||showInfo.select(c)||mrPanel.select(c)||handInput)return;if(handedness==='left')placeTown();else if(previewing)return;else if(time>=300)restart();else toggle();});c.addEventListener('selectend',()=>showInfo.release(c));c.addEventListener('disconnected',()=>showInfo.release(c));scene.add(c);xrControllers.push(c);}
+const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
 function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=kind==='kiku'?o.value!=='3':kind==='triple'?o.value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(o.value):kind==='double'?o.value!=='10':o.value==='20';if(kind==='kiku')$('size').value='3';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if($('size').value==='20')$('size').value='5';}
 function syncPalette(){
@@ -433,7 +434,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={running,bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={running,loadedLeft:shellName(loadedShells.left),loadedRight:shellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
@@ -459,11 +460,43 @@ async function exitMRToPage(){
  if(!mrSession)return;
  try{await mrSession.end();}catch(e){$('status').textContent='MRを終了できませんでした：'+e.message;}
 }
-const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>{if(page===1)beginPreview();}});
+const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page)});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
-const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,choose:mode=>{if(mode==='show-info')toggleShowInfo();else if((mode==='bridge')!==bridgeView.active)$('bridge').click();},beforeOpen:()=>mrPanel.close()});
+const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,choose:mode=>{if(mode==='show-info')toggleShowInfo();else if((mode==='bridge')!==bridgeView.active)$('bridge').click();}});
 function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
 $('showInfo').onclick=toggleShowInfo;
+// Each hand keeps a snapshot of the chosen shell; changing the picker later
+// does not silently replace a prepared shell during the automatic show.
+const loadedShells={left:null,right:null};
+function chosenShell(){syncSize();return {kind:$('type').value,size:Number($('size').value),palette:$('palette').value};}
+function shellName(shell){return shell?SIZES[shell.size].label+' · '+TYPES[shell.kind].label.replace('（軽量テスト）',''):'選択中の一玉';}
+function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=shellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
+$('loadLeft').onclick=()=>loadShell('left');$('loadRight').onclick=()=>loadShell('right');
+function firePrepared(hand){
+ if(hand!=='left'&&hand!=='right')return;
+ if(previewing&&previewPaused){$('status').textContent='試し打ちを一時停止中です。右Bで再開できます。';return;}
+ // Trial shots start a trial only when the user actually fires on that tab.
+ // Show-tab shots append to the existing show, including its pending cues.
+ if(mrPanel.page===1){if(!previewing)beginPreview();}
+ else if(!running){$('status').textContent='大会を開始・再開すると、仕込んだ一玉を追加できます。';return;}
+ ensureAudio();const shell=mrPanel.page===1?chosenShell():loadedShells[hand]??chosenShell();
+ const ok=launch(shell.kind,shell.size,{x:hand==='left'?-.35:.35,z:.05,palette:shell.palette});
+ $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を打ち上げました。':'いまは打ち上げが混み合っています。少し間を置いてもう一度どうぞ。';
+}
+function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
+function setPanelTab(page){
+ mrPanel.page=page;
+ for(let i=0;i<3;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
+ mrPanel.draw();
+}
+for(let i=0;i<3;i++){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
+const townGrabTarget=new T.Mesh(new T.BoxGeometry(3.2,.10,2.1),new T.MeshBasicMaterial({side:T.DoubleSide}));townGrabTarget.position.y=ground.position.y;townGrabTarget.visible=false;town.add(townGrabTarget);
+const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
+ $('scale').value=String(town.scale.x);$('height').value=String(Math.max(0,town.position.y+groundBottomY*town.scale.y));
+ if(latestViewerTransform){const p=latestViewerTransform.position;$('distance').value=String(Math.hypot(town.position.x-p.x,town.position.z-p.z));}
+ if(commit)for(const id of ['scale','height','distance'])$(id).dispatchEvent(new Event('change'));
+}});
+
 for(let i=0;i<2;i++){const hand=renderer.xr.getHand(i);scene.add(hand);wristMenu.attachHand(hand);}
 if(panelPreview){
  const previewStyle=document.createElement('style');previewStyle.textContent='body.mr-panel-preview header,body.mr-panel-preview aside,body.mr-panel-preview footer{display:none}';document.head.append(previewStyle);document.body.classList.add('mr-panel-preview');
@@ -484,27 +517,27 @@ function applyViewBackground(){
  renderer.setClearColor(miniAR?0x000000:0x050a16,miniAR?0:1);applyRoomBrightness();
 }
 function enterBridge(transform=null){
- if(bridgeView.active)return;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
+ if(bridgeView.active)return;controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();miniAngles={yaw,pitch};pendingPlace=false;
  bridgeView.enter(transform);yaw=0;pitch=.95;applyViewBackground();syncViewControls();
  showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'bridge'});
  $('status').textContent='手前の橋に座りました。パネルを閉じて、花火を見上げてください。';
 }
 function leaveBridge(){
- if(!bridgeView.active)return;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
+ if(!bridgeView.active)return;controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
  applyViewBackground();syncViewControls();showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'miniature'});
  $('status').textContent='ミニチュアの街へ戻りました。花火大会は続いています。';
 }
 async function checkMR(){
  if(!isSecureContext){$('mr').textContent='MRにはHTTPSかQuestのlocalhostが必要';$('mrInfo').textContent='LANの通常HTTPではMRを開始できません。';return;}
- if(!navigator.xr){$('mr').textContent='QuestでMRを体験';$('mrInfo').textContent='WebXRがありません。Quest Browserで開いてください。';return;}
- try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'自分の部屋で見る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
+ if(!navigator.xr){$('mr').textContent='部屋で観る · Quest対応';$('mrInfo').textContent='WebXRがありません。Quest Browserで開いてください。';return;}
+ try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'部屋で観る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
- cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
+ controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
  if(running){running=false;$('play').textContent='花火大会を始める';}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
- lastMRReport=mrReport();$('mr').disabled=false;$('mr').textContent='自分の部屋で見る';$('bridge').disabled=false;
+ lastMRReport=mrReport();$('mr').disabled=false;$('mr').textContent='部屋で観る';$('bridge').disabled=false;
  const rows=mrMetrics?.samples??[];$('mrInfo').textContent=rows.length?'鑑賞終了。'+rows.length+'区間を計測、花火の最大粒子数 '+mrMetrics.peakParticles.toLocaleString()+'点。計測結果を保存できます。':'鑑賞終了。計測できた区間はありません。';$('mrExport').disabled=!mrMetrics;
 }
 async function startXR(mode,bridge=false){
@@ -514,7 +547,7 @@ async function startXR(mode,bridge=false){
   ensureAudio();if(bridgeView.active)leaveBridge();desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
-  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
+  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
@@ -542,12 +575,12 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
   mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
   if(pendingBridge){enterBridge(pose.transform);pendingBridge=false;}
  }
- if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);pendingPanelOpen=false;}
+ if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);pendingPanelOpen=false;}
  const updateStart=performance.now();
- if((running||previewing)&&xrVisible)advance(dt);
+ if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt);
  if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*1.2,.55+pitch,0);camera.lookAt(target);}
  bridgeView.listener(audio,pose?.transform);
- if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr'});if(mrPanel.visible&&wristMenu.visible)wristMenu.close();showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(!wristMenu.visible&&!mrPanel.visible&&xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();const renderStart=performance.now();renderer.render(scene,camera);
+ if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
