@@ -71,7 +71,7 @@ export class XRControls{
      this.town.rotation.y-=x*dt*1.2;this.town.scale.setScalar(T.MathUtils.clamp(this.town.scale.x*Math.exp(-y*dt*.8),.25,1.35));this.town.position.y=g.floor-this.groundBottomY*this.town.scale.y;this.changed(false);
     }else{
      const p=g.panel;if(!p.mesh.visible){this.release(e.controller);continue;}
-     p.yawOffset=(p.yawOffset??0)-x*dt*1.2;g.distance=T.MathUtils.clamp(g.distance+y*dt*.65,.20,3);
+     p.yawOffset=(p.yawOffset??0)-x*dt*1.2;g.distance=T.MathUtils.clamp(g.distance-y*dt*.65,.20,3);
      this.cast(e.controller);this.target.copy(this.ray.ray.direction).multiplyScalar(g.distance).add(this.ray.ray.origin);
      this.facing.position.copy(this.target);this.facing.lookAt(viewer.position.x,p===this.sidebar?this.target.y:viewer.position.y,viewer.position.z);
      this.rotation.setFromAxisAngle(this.up,p.yawOffset);p.mesh.quaternion.copy(this.facing.quaternion).premultiply(this.rotation);

@@ -20,8 +20,8 @@ export class EntryTip{
  }
  update(stamp,visible=true){
   if(this.started===null)return;const age=(stamp-this.started)/1000;
-  if(age>=10){this.end();return;}
-  this.mesh.material.opacity=.96*Math.max(0,Math.min(1,age/.45,(10-age)/1.5));this.mesh.visible=visible&&this.mesh.material.opacity>0;
+  if(age>=15){this.end();return;}
+  this.mesh.material.opacity=.96*Math.max(0,Math.min(1,age/.45,(15-age)/1.5));this.mesh.visible=visible&&this.mesh.material.opacity>0;
  }
  end(){this.started=null;this.mesh.visible=false;this.mesh.material.opacity=0;}
 }
