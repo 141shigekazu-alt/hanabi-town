@@ -1,17 +1,17 @@
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.22';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine} from './programs.js?v=beta.1.0.23';
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.22';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.22';
-import {FireworkAudio} from './audio.js?v=beta.1.0.22';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.22';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.22';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.22';
-import {TowerLighting} from './tower-lighting.js?v=beta.1.0.22';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.22';
-import {ShowInfoPanel} from './show-info.js?v=beta.1.0.22';
-import {WristMenu} from './wrist-menu.js?v=beta.1.0.22';
-import {XRControls} from './xr-controls.js?v=beta.1.0.22';
-const BUILD_VERSION='beta.1.0.22';
+import {SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=beta.1.0.23';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=beta.1.0.23';
+import {FireworkAudio} from './audio.js?v=beta.1.0.23';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=beta.1.0.23';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=beta.1.0.23';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=beta.1.0.23';
+import {TowerLighting} from './tower-lighting.js?v=beta.1.0.23';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=beta.1.0.23';
+import {ShowInfoPanel} from './show-info.js?v=beta.1.0.23';
+import {WristMenu} from './wrist-menu.js?v=beta.1.0.23';
+import {XRControls} from './xr-controls.js?v=beta.1.0.23';
+const BUILD_VERSION='beta.1.0.23';
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -44,11 +44,20 @@ for(const side of [-1,1]){
  const bank=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),64,.011,4,false),new T.MeshStandardMaterial({color:0x45505a,roughness:.9}));town.add(bank);
 }
 const windows=[], lamps=[],rooftops=[];
+// Additional facades have independent occupancy, without changing the town,
+// front windows, boats or any fireworks which share the original random stream.
+let windowSeed=0x141723;
+function windowRand(){windowSeed=(windowSeed*1664525+1013904223)>>>0;return windowSeed/4294967296;}
 for(let side of [-1,1])for(let row=0;row<7;row++)for(let col=0;col<5;col++){
  const z=-.86+row*.27+(rand()-.5)*.04,x=riverCenter(z)+side*(riverWidth(z)/2+.12+col*.205),w=.105+rand()*.055,d=.12+rand()*.06,h=.10+rand()*.31;
  cube(x,h/2,z,w,h,d,mats[Math.floor(rand()*mats.length)]);
  if(h>.32)rooftops.push({x,y:h,z,w,d});
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++)if(rand()>.38)windows.push(x+k*w*.25,level,z+d/2+.001);
+ for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++){
+  if(windowRand()>.38)windows.push(x+k*w*.25,level,z-d/2-.001);
+  if(windowRand()>.38)windows.push(x-w/2-.001,level,z+k*d*.25);
+  if(windowRand()>.38)windows.push(x+w/2+.001,level,z+k*d*.25);
+ }
 }
 function pointCloud(coords,color,size){const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(coords,3));const m=new T.PointsMaterial({color,size,sizeAttenuation:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m);const p=new T.Points(g,m);town.add(p);return p;}
 const win=pointCloud(windows,0xffdba0,.008);
