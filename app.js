@@ -1,24 +1,26 @@
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.14';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.14';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.14';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.14';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.15';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.15';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.15';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.15';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.15';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.15';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.14';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.15';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.14';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.14';
-import {FireworkAudio} from './audio.js?v=1.1.14';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.14';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.14';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.14';
-import {TowerLighting} from './tower-lighting.js?v=1.1.14';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.14';
-import {ShowInfoPanel} from './show-info.js?v=1.1.14';
-import {WristMenu} from './wrist-menu.js?v=1.1.14';
-import {XRControls} from './xr-controls.js?v=1.1.14';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.14';
-import {EntryTip} from './entry-tip.js?v=1.1.14';
-const BUILD_VERSION='1.1.14';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.15';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.15';
+import {FireworkAudio} from './audio.js?v=1.1.15';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.15';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.15';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.15';
+import {TowerLighting} from './tower-lighting.js?v=1.1.15';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.15';
+import {ShowInfoPanel} from './show-info.js?v=1.1.15';
+import {WristMenu} from './wrist-menu.js?v=1.1.15';
+import {XRControls} from './xr-controls.js?v=1.1.15';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.15';
+import {EntryTip} from './entry-tip.js?v=1.1.15';
+const BUILD_VERSION='1.1.15';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -52,7 +54,7 @@ for(const side of [-1,1]){
  const points=Array.from({length:65},(_,i)=>{const z=-1.04+i*2.08/64;return new T.Vector3(riverCenter(z)+side*(riverWidth(z)/2+.012),.009,z);});
  const bank=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),64,.011,4,false),new T.MeshStandardMaterial({color:0x45505a,roughness:.9}));town.add(bank);
 }
-const windows=[], windowRanges=[], lamps=[],rooftops=[];
+const windows=[], windowRanges=[], lamps=[],rooftops=[],buildingRoofs=[];
 // Additional facades have independent occupancy, without changing the town,
 // front windows, boats or any fireworks which share the original random stream.
 let windowSeed=0x141723;
@@ -61,6 +63,7 @@ for(let side of [-1,1])for(let row=0;row<7;row++)for(let col=0;col<5;col++){
  const firstWindow=windows.length/3;
  const z=-.86+row*.27+(rand()-.5)*.04,x=riverCenter(z)+side*(riverWidth(z)/2+.12+col*.205),w=.105+rand()*.055,d=.12+rand()*.06,h=.10+rand()*.31;
  cube(x,h/2,z,w,h,d,mats[Math.floor(rand()*mats.length)]);
+ buildingRoofs.push({x,y:h,z,w,d,side,row,col});
  if(h>.32)rooftops.push({x,y:h,z,w,d});
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++)if(rand()>.38)windows.push(x+k*w*.25,level,z+d/2+.001);
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++){
@@ -88,20 +91,11 @@ for(const range of windowRanges){
 }
 win.geometry.setAttribute('color',new T.BufferAttribute(windowColors,3));win.material.color.setHex(0xffffff);win.material.vertexColors=true;
 const roadmat=new T.MeshStandardMaterial({color:0x3c464c});
-for(const z of [-.58,.05,.67]){
- const firstChild=town.children.length;
- cube(0,.09,z,.7,.025,.085,roadmat);
- for(const x of [-.23,.23])cube(x,.045,z,.018,.09,.06,mats[1]);
- const curve=new T.CatmullRomCurve3(Array.from({length:17},(_,i)=>new T.Vector3(-.34+i*.0425,.11+Math.sin(i/16*Math.PI)*.065,z-.035)));
- town.add(new T.Mesh(new T.TubeGeometry(curve,24,.003,4,false),new T.MeshBasicMaterial({color:0x7ea898})));
- const bridge=new T.Group();for(const child of town.children.slice(firstChild))bridge.add(child);bridge.position.set(riverCenter(z),0,z);bridge.rotation.y=Math.atan(riverSlope(z));town.add(bridge);
- for(const child of bridge.children)child.position.z-=z;
- for(let x=-.33;x<=.33;x+=.025){const p=new T.Vector3(x,.106,.038).applyAxisAngle(new T.Vector3(0,1,0),bridge.rotation.y).add(bridge.position);lamps.push(p.x,p.y,p.z);}
-}
 for(let z=-.98;z<1;z+=.055)for(let side of [-1,1])lamps.push(riverCenter(z)+side*(riverWidth(z)/2+.027),.018,z);
 pointCloud(lamps,0xffe1a5,.009);
-// Small boats and a landmark: shared geometry keeps the town inexpensive.
-for(let i=0;i<9;i++){const z=rand()*1.8-.9,x=riverCenter(z)+(rand()-.5)*.28;cube(x,.015,z,.035,.025,.07,roadmat);cube(x,.033,z,.023,.015,.038,new T.MeshBasicMaterial({color:0xc8ae77}));}
+// Preserve old town random consumption without keeping the placeholder boats.
+for(let i=0;i<9;i++){rand();rand();}
+const riverNight=new RiverNight({town,riverGeometry:riverRibbon(-1.04,1.04,1,.005),riverCenter,riverSlope});
 const tower=new T.Group();tower.position.set(1.1,0,-.7);town.add(tower);
 // A tall, dotted lattice of violet and pearl lights, inspired by the supplied night photograph.
 const towerMesh=new T.Mesh(new T.CylinderGeometry(.013,.065,1.18,12),new T.MeshStandardMaterial({color:0x141925,roughness:.9}));towerMesh.position.y=.59;tower.add(towerMesh);
@@ -144,10 +138,14 @@ for(const roof of rooftops.toSorted((a,b)=>b.y-a.y)){
  if(roofSites.length>=8)break;
  if(roofSites.every(other=>Math.hypot(other.x-roof.x,other.z-roof.z)>.38))roofSites.push(roof);
 }
+// The front right bank, second building from the river, also carries warning lights.
+const frontRightRoof=buildingRoofs.find(r=>r.side===1&&r.row===6&&r.col===1);
+if(frontRightRoof&&!roofSites.some(r=>r.x===frontRightRoof.x&&r.z===frontRightRoof.z))roofSites.push(frontRightRoof);
 const roofPositions=[],roofColors=[];
 roofSites.forEach(roof=>{for(const sx of [-1,1])for(const sz of [-1,1]){const x=roof.x+sx*(roof.w/2-.008),z=roof.z+sz*(roof.d/2-.008);cube(x,roof.y+.006,z,.004,.012,.004,mats[0]);roofPositions.push(x,roof.y+.015,z);roofColors.push(1,.012,.003);}});
 const roofGeometry=new T.BufferGeometry();roofGeometry.setAttribute('position',new T.Float32BufferAttribute(roofPositions,3));roofGeometry.setAttribute('color',new T.Float32BufferAttribute(roofColors,3));
 const roofLights=new T.Points(roofGeometry,new T.PointsMaterial({size:.020,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending}));town.add(roofLights);
+const rooftopCranes=new RooftopCranes({town,rooftops,riverCenter,pointMap:sprite});bridgeView.point(rooftopCranes.lights.material);
 function updateRoofLights(seconds){
  const colors=roofGeometry.attributes.color;
  for(let i=0;i<roofSites.length;i++){
@@ -211,7 +209,7 @@ function launch(kind='core',size=5,position=null){
  if(kind==='kiku'&&size!==3)return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
  if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
- const spec=TYPES[kind],scale=SIZES[size];if(!spec||!scale)return false;
+ let spec=TYPES[kind];const scale=SIZES[size];if(!spec||!scale)return false;
  const z=position?.z??(rand()*1.6-.85),x=position?.x??(riverCenter(z)+(rand()>.5?1:-1)*(.12+rand()*.7));
  const y=scale.height+(position?.heightOffset??0),r=scale.radius*(kind==='candyburst'?1.22:1),trailCount=kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?rand()*1000:0;
@@ -272,6 +270,15 @@ function launch(kind='core',size=5,position=null){
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
+ // Let the preceding flower fade gently before a planned ground-only scene.
+ if((kind==='sunflower'||kind==='spiral')&&showPlan?.music&&!position?.manual){
+  const opening=(position?.startAt??time)+ascent;
+  const nextQuiet=(MUSIC_PLAN.groundOnlyWindows??[]).find(w=>w.start>opening)?.start??Infinity;
+  // Keep the existing show's shell budget when the next volley arrives.
+  const nextVolley=MUSIC_PLAN.shots.find(s=>s.kind!=='ear'&&s.at>=opening+(kind==='spiral'?4.1:2.85))?.at??Infinity;
+  const life=Math.min(spec.life,nextQuiet-opening-.05,nextVolley-opening-.05);
+  if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
+ }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
  fireworks.push({x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,bigStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false});sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
@@ -291,7 +298,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
- const fade=f.kind==='ear'||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
+ const fade=f.kind==='ear'||f.kind==='sunflower'||f.kind==='spiral'||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
  let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
  const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
  const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
@@ -316,6 +323,10 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const k=j*4,c=f.candyTrailCache,dir=f.directions[i],travel=f.r*f.shells[i]*c[k];
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+c[k+1]-c[k+2];z=f.z+dir.z*travel;
  brightness=c[k+3]*(f.starLayers[i]===0?(j===0?3.2:1.05):(j===0?1.2:.35));
+ }
+ else if(f.kind==='sunflower'||f.kind==='spiral'){
+ const point=f.kind==='spiral'?spiralPoint:sunflowerPoint;
+ const v=point(f.directions[i],f.r,f.shells[i],t,j,f.trailCount,f.spec.life);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
  }
  else if(f.kind==='ear'){
  const v=earPoint(f.earStars[i],f.r,t,j);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
@@ -827,14 +838,14 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
  if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*1.2,.55+pitch,0);camera.lookAt(target);}
  bridgeView.listener(audio,pose?.transform);
- if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible)towerLighting.update(dt);updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('candyCard')||new URLSearchParams(location.search).has('candyShow'))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('candyCard')||new URLSearchParams(location.search).has('candyShow'))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
  }else if(frame&&mrMetrics)mrMetrics.breakWindow();
 });
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-window.__hanabi={get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?'bridge':'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
+window.__hanabi={riverNight,towerLighting,get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?'bridge':'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
 
 $('build').textContent=BUILD_VERSION;
 $('cometPattern').onchange();

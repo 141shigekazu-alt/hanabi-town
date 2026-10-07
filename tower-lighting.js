@@ -25,6 +25,7 @@ export function towerPalette(dots,style){
 
 export class TowerLighting{
  constructor(dots,attribute,random=Math.random){
+  this.chaseTime=0;this.ringDots=[];for(let i=0;i<dots.length/3;i++){const y=dots[i*3+1];if(Math.abs(y-.842)<.001||Math.abs(y-1.022)<.001)this.ringDots.push({index:i,angle:Math.atan2(dots[i*3+2],dots[i*3])});}
   this.attribute=attribute;this.random=random;this.palettes=Object.fromEntries(TOWER_STYLES.map(style=>[style,towerPalette(dots,style)]));
   this.mode=null;this.current='blue';this.from='blue';this.elapsed=0;this.transition=false;this.queue=[];
  }
@@ -50,10 +51,15 @@ export class TowerLighting{
   return this.queue.shift();
  }
  update(seconds){
-  if(this.mode!=='random'||seconds<=0)return;
+  if(seconds<=0)return;this.chaseTime+=seconds;
+  if(this.mode==='random'){
   this.elapsed+=seconds;
   if(this.transition){
    const t=Math.min(1,this.elapsed/4);this.apply(t*t*(3-2*t));if(t===1)this.hold();
   }else if(this.elapsed>=this.holdSeconds){this.from=this.current;this.current=this.next();this.elapsed=0;this.transition=true;}
+  }
+  const blend=this.transition?Math.min(1,this.elapsed/4):1,smooth=blend*blend*(3-2*blend),a=this.palettes[this.from],b=this.palettes[this.current],colors=this.attribute.array;
+  for(const dot of this.ringDots){const i=dot.index*3,phase=dot.angle-this.chaseTime*Math.PI*2/2.5;const wrap=Math.atan2(Math.sin(phase),Math.cos(phase)),beam=Math.exp(-Math.pow(wrap/.40,2));for(let k=0;k<3;k++)colors[i+k]=(a[i+k]+(b[i+k]-a[i+k])*smooth)*.40+beam*(k===0?.9:1.2);}
+  this.attribute.needsUpdate=true;
  }
 }
