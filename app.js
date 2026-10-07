@@ -1,26 +1,26 @@
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.16';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.16';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.16';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.16';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.16';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.16';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.17';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.17';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.17';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.17';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.17';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.17';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.16';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.17';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.16';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.16';
-import {FireworkAudio} from './audio.js?v=1.1.16';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.16';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.16';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.16';
-import {TowerLighting} from './tower-lighting.js?v=1.1.16';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.16';
-import {ShowInfoPanel} from './show-info.js?v=1.1.16';
-import {WristMenu} from './wrist-menu.js?v=1.1.16';
-import {XRControls} from './xr-controls.js?v=1.1.16';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.16';
-import {EntryTip} from './entry-tip.js?v=1.1.16';
-const BUILD_VERSION='1.1.16';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.17';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.17';
+import {FireworkAudio} from './audio.js?v=1.1.17';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.17';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.17';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.17';
+import {TowerLighting} from './tower-lighting.js?v=1.1.17';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.17';
+import {ShowInfoPanel} from './show-info.js?v=1.1.17';
+import {WristMenu} from './wrist-menu.js?v=1.1.17';
+import {XRControls} from './xr-controls.js?v=1.1.17';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.17';
+import {EntryTip} from './entry-tip.js?v=1.1.17';
+const BUILD_VERSION='1.1.17';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -34,6 +34,7 @@ const camera=new T.PerspectiveCamera(55,innerWidth/innerHeight,.03,40);camera.po
 const mrDimming=new MRDimming(scene);
 const town=new T.Group();scene.add(town);const light=new T.AmbientLight(0x8da9d9,1.1);scene.add(light);const moon=new T.DirectionalLight(0x9ec4ff,1.3);moon.position.set(-2,5,3);scene.add(moon);
 const bridgeView=new BridgeView(town,camera);
+let dioramaSaved=null;
 const showInfo=new ShowInfoPanel({scene,timer:$('infoTime'),names:$('infoNames'),overlay:$('showInfoPanel')});
 let seed=141;function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
 const box=new T.BoxGeometry(1,1,1), mats=[0x172431,0x24303d,0x1b2934,0x303540].map(c=>new T.MeshStandardMaterial({color:c,roughness:.9}));
@@ -491,7 +492,7 @@ function stopShow(){
  syncShowButtons();$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';drawMusicTimeline();
 }
 function resetAll(){
- cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();stopShow();restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one',musicVolume:'0.65'};
+ cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();stopShow();restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one',musicVolume:'0.65'};
  for(const [id,value] of Object.entries(defaults))$(id).value=value;music.setVolume(.65);
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
@@ -593,9 +594,9 @@ function adjustTownDistance(){
  const p=latestViewerTransform.position,d=Number($('distance').value);
  town.position.x=p.x-Math.sin(town.rotation.y)*d;town.position.z=p.z-Math.cos(town.rotation.y)*d;
 }
-$('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();};$('distance').oninput=adjustTownDistance;
+$('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}};$('distance').oninput=adjustTownDistance;
 function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();return mrPanel.previewPointer((e.clientX-r.left)/r.width*2-1,1-(e.clientY-r.top)/r.height*2,camera,activate);}
-canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(1.6,Math.min(5,camera.position.z+e.deltaY*.002));};
+canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
 function allowedSize(kind,value){if(kind==='candysenrin')return value==='10';if(kind==='candyburst')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
@@ -609,8 +610,8 @@ $('type').addEventListener('change',()=>{syncSize();syncPalette();});
 const settingsIds=['program','mood','ending','volume','scale','distance','height','roomBrightness','type','size','palette','towerColor','audioMode','musicVolume'];
 try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');for(const id of settingsIds){if(id==='palette')syncPalette();const el=$(id);if(saved[id]!==undefined){const old=el.value;el.value=saved[id];if(el.value==='')el.value=old;}}town.scale.setScalar(Number($('scale').value));}catch{}
 setTowerColor();syncSize();syncPalette();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
-for(const id of settingsIds)$(id).addEventListener('change',()=>{try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
-let pendingPlace=false,mrStarting=false,mrSession=null,mrMetrics=null,mrMeta=null,lastMRReport=null,latestViewerTransform=null,pendingPanelOpen=false,pendingBridge=false,vrSupported=false;
+for(const id of settingsIds)$(id).addEventListener('change',()=>{if(dioramaSaved)return;try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
+let pendingDiorama=false,pendingPlace=false,mrStarting=false,mrSession=null,mrMetrics=null,mrMeta=null,lastMRReport=null,latestViewerTransform=null,pendingPanelOpen=false,pendingBridge=false,vrSupported=false;
 let miniAngles=null;
 const desktopCamera={position:new T.Vector3(),quaternion:new T.Quaternion(),fov:55};
 $('height').oninput=applyTownHeight;
@@ -619,7 +620,7 @@ function applyRoomBrightness(){
  mrDimming.set(bridgeView.active?0:$('roomBrightness').value,mrSession?.environmentBlendMode);
 }
 $('roomBrightness').oninput=applyRoomBrightness;applyRoomBrightness();
-$('mrPreset').onclick=()=>{if(bridgeView.active)return;
+$('mrPreset').onclick=()=>{if(bridgeView.active)return;if(dioramaSaved)toggleDiorama();
  for(const [id,value] of Object.entries({scale:'0.35',distance:'1.8',height:'0'})){$(id).value=value;$(id).dispatchEvent(new Event('change'));}
  town.scale.setScalar(.35);applyTownHeight();adjustTownDistance();$('status').textContent='小さな街：幅1.12m・奥行き0.74m、前方1.8m、街の土台の底面を床に合わせます。';
 };
@@ -630,7 +631,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
@@ -659,7 +660,7 @@ async function exitMRToPage(){
 const entryTip=new EntryTip(scene);
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
-const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,choose:mode=>{if(mode==='show-info')toggleShowInfo();else if((mode==='bridge')!==bridgeView.active)$('bridge').click();}});
+const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,choose:mode=>{if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'){if(!bridgeView.active)$('bridge').click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
 function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
 $('showInfo').onclick=toggleShowInfo;
 // Each hand keeps a snapshot of the chosen shell; changing the picker later
@@ -740,8 +741,29 @@ const townGrabTarget=new T.Mesh(new T.BoxGeometry(3.2,.10,2.1),new T.MeshBasicMa
 const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
  $('scale').value=String(town.scale.x);$('height').value=String(Math.max(0,town.position.y+groundBottomY*town.scale.y));
  if(latestViewerTransform){const p=latestViewerTransform.position;$('distance').value=String(Math.hypot(town.position.x-p.x,town.position.z-p.z));}
- if(commit)for(const id of ['scale','height','distance'])$(id).dispatchEvent(new Event('change'));
+ if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}
+ if(commit&&!dioramaSaved)for(const id of ['scale','height','distance'])$(id).dispatchEvent(new Event('change'));
 }});
+
+function toggleDiorama(){
+ if(bridgeView.active)return;
+ controls.release();
+ if(dioramaSaved){
+  const saved=dioramaSaved;dioramaSaved=null;controls.diorama=false;
+  town.position.copy(saved.position);town.quaternion.copy(saved.quaternion);town.scale.copy(saved.scale);
+  camera.position.copy(saved.camera);for(const [id,v] of Object.entries(saved.settings)){$(id).min=v.min;$(id).max=v.max;$(id).step=v.step;$(id).value=v.value;}
+  bridgeView.miniaturePointScale=1;bridgeView.syncPoints();$('diorama').textContent='ジオラマサイズで観る';$('status').textContent='元の街の大きさと位置に戻りました。';
+ }else{
+  dioramaSaved={position:town.position.clone(),quaternion:town.quaternion.clone(),scale:town.scale.clone(),camera:camera.position.clone(),settings:Object.fromEntries(['scale','height','distance'].map(id=>{const e=$(id);return [id,{value:e.value,min:e.min,max:e.max,step:e.step}];}))};
+  controls.diorama=true;$('scale').min='.10';$('scale').max='.30';$('scale').step='.01';$('scale').value='.18';$('height').max='1.5';$('height').value='.75';$('distance').value='.65';$('distance').min='.35';
+  town.scale.setScalar(.18);
+  if(latestViewerTransform){const p=latestViewerTransform.position,m=latestViewerTransform.matrix;let x=-m[8],z=-m[10],l=Math.hypot(x,z);if(l<.001){x=0;z=-1;l=1;}town.position.set(p.x+x/l*.65,.75-groundBottomY*.18,p.z+z/l*.65);}
+  else{town.position.set(0,.75-groundBottomY*.18,0);camera.position.set(0,1.15,.95);}
+  bridgeView.miniaturePointScale=.18;bridgeView.syncPoints();$('diorama').textContent='通常サイズに戻る';$('status').textContent='机の上の花火大会：幅約58cm・奥行き約38cm。グリップで掴んで上下にも動かせます。';
+ }
+ mrPanel.draw();wristMenu.draw();
+}
+$('diorama').onclick=toggleDiorama;
 
 for(let i=0;i<2;i++){const hand=renderer.xr.getHand(i);scene.add(hand);wristMenu.attachHand(hand);}
 if(panelPreview){
@@ -753,7 +775,7 @@ if(panelPreview){
 function syncViewControls(){
  $('bridge').textContent=bridgeView.active?'ミニチュアに戻る':'街に入る · 手前の橋';
  $('viewHint').textContent=bridgeView.active?'手前の橋に座っています。顔を上げて花火を、下を向いて川面を。':'街全体を眺める／橋の上から見上げる。どちらも同じ花火大会です。';
- for(const id of ['scale','distance','height','roomBrightness','mrPreset'])$(id).disabled=bridgeView.active;
+ for(const id of ['scale','distance','height','roomBrightness','mrPreset','diorama'])$(id).disabled=bridgeView.active;
  document.body.classList.toggle('bridge-view',bridgeView.active);
 }
 function applyViewBackground(){
@@ -782,7 +804,7 @@ function finishMR(){
  cancelMusicRequest();
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();}
  entryTip.end();cancelPreparation();
- triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
+ triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();pendingDiorama=false;pendingPlace=false;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
  if(running){if(showPlan?.music)time=music.pause();running=false;syncShowButtons();}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
@@ -793,7 +815,7 @@ async function startXR(mode,bridge=false){
  if(mrStarting||mrSession)return;mrStarting=true;$('mr').disabled=true;$('bridge').disabled=true;
  let session;
  try{
-  ensureAudio();if(bridgeView.active)leaveBridge();desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
+  ensureAudio();if(bridgeView.active)leaveBridge();if(dioramaSaved){toggleDiorama();pendingDiorama=true;}desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
   session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
@@ -802,7 +824,7 @@ async function startXR(mode,bridge=false){
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
   // Enter the room with an unlit sky; only the explicit show button starts it.
   if(!bridge){stopShow();$('chapter').textContent='開演前 · 街を眺める';$('last').textContent='好きな位置に街を置いてください';$('status').textContent='まずは街をじっくりどうぞ。台座へビームを合わせ、グリップで掴めます。サイドパネルの「花火大会を観る」で開演します。';}
- }catch(e){if(session)await session.end().catch(()=>{});mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
+ }catch(e){if(session)await session.end().catch(()=>{});if(pendingDiorama&&!dioramaSaved){pendingDiorama=false;toggleDiorama();}mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
 }
 $('mr').onclick=()=>startXR('immersive-ar');
 $('bridge').onclick=()=>{
@@ -824,7 +846,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
   const placement=placementFromPose(pose.transform,Number($('distance').value),Number($('height').value),town.rotation.y,-groundBottomY*town.scale.y);
   town.position.set(placement.x,placement.y,placement.z);town.rotation.y=placement.yaw;town.visible=true;pendingPlace=false;
   mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
-  if(pendingBridge){enterBridge(pose.transform);pendingBridge=false;}
+  if(pendingDiorama){pendingDiorama=false;toggleDiorama();}if(pendingBridge){enterBridge(pose.transform);pendingBridge=false;}
  }
  if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);pendingPanelOpen=false;}
  entryTip.update(stamp,!!session&&xrVisible&&!bridgeView.active);
@@ -836,7 +858,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if(candyPeakAt!==null&&running&&time>=candyPeakAt){candyPeakAt=null;time=music.pause();running=false;cancelFutureSounds();syncShowButtons();$('status').textContent=candyPeakLabel+'「再開」で続きも観られます。';}
  if($('candyCard')&&candyFreezeAt!==null&&$('candyFreeze').checked&&time>=candyFreezeAt){previewPaused=true;candyFreezeAt=null;cancelFutureSounds();$('candyPause').textContent='再開';}
  if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
- if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*1.2,.55+pitch,0);camera.lookAt(target);}
+ if(!renderer.xr.isPresenting){const target=bridgeView.active?new T.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*(dioramaSaved?.25:1.2),(dioramaSaved?.88:.55)+pitch,0);camera.lookAt(target);}
  bridgeView.listener(audio,pose?.transform);
  if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('candyCard')||new URLSearchParams(location.search).has('candyShow'))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){

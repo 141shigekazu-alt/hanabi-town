@@ -7,7 +7,7 @@ export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(valu
 export class XRControls{
  constructor({entries,town,townTarget,groundBottomY,panels,sidebar,wrist,bridge,fire,pause,changed=()=>{}}){
   Object.assign(this,{entries,town,townTarget,groundBottomY,panels,sidebar,wrist,bridge,fire,pause,changed});
-  this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.grabs=new Map();this.triggerDown=new Set();this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.target=new T.Vector3();this.facing=new T.Object3D();this.rotation=new T.Quaternion();this.up=new T.Vector3(0,1,0);
+  this.diorama=false;this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.grabs=new Map();this.triggerDown=new Set();this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.target=new T.Vector3();this.facing=new T.Object3D();this.rotation=new T.Quaternion();this.up=new T.Vector3(0,1,0);
   for(const e of entries){
    e.controller.addEventListener('selectstart',()=>this.select(e));
    e.controller.addEventListener('selectend',()=>{this.triggerDown.delete(e.controller);this.sidebar.release(e.controller);});
@@ -67,8 +67,8 @@ export class XRControls{
     const x=stickValue(gp?.axes[2]),y=stickValue(gp?.axes[3]);
     if(g.town){
      if(this.bridge.active||!this.town.visible){this.release(e.controller);continue;}
-     e.controller.getWorldPosition(this.target);this.town.position.x+=this.target.x-g.lastPosition.x;this.town.position.z+=this.target.z-g.lastPosition.z;g.lastPosition.copy(this.target);
-     this.town.rotation.y-=x*dt*1.2;this.town.scale.setScalar(T.MathUtils.clamp(this.town.scale.x*Math.exp(-y*dt*.8),.25,1.35));this.town.position.y=g.floor-this.groundBottomY*this.town.scale.y;this.changed(false);
+     e.controller.getWorldPosition(this.target);if(this.diorama)g.floor+=this.target.y-g.lastPosition.y;this.town.position.x+=this.target.x-g.lastPosition.x;this.town.position.z+=this.target.z-g.lastPosition.z;g.lastPosition.copy(this.target);
+     this.town.rotation.y-=x*dt*1.2;this.town.scale.setScalar(T.MathUtils.clamp(this.town.scale.x*Math.exp(-y*dt*.8),this.diorama?.10:.25,this.diorama?.30:1.35));this.town.position.y=g.floor-this.groundBottomY*this.town.scale.y;this.changed(false);
     }else{
      const p=g.panel;if(!p.mesh.visible){this.release(e.controller);continue;}
      p.yawOffset=(p.yawOffset??0)-x*dt*1.2;g.distance=T.MathUtils.clamp(g.distance-y*dt*.65,.20,3);
