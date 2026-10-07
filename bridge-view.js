@@ -3,9 +3,9 @@ import * as T from './vendor/three.module.js';
 // Town units are authored for the miniature. XR cameras, controllers and UI
 // always stay in physical metres; only the town is enlarged around the viewer.
 export const BRIDGE_SCALE=100,SEATED_EYE_HEIGHT=1.2;
-// Sit a little upstream of the deck centre, with the arch above the view.
+// Move the seated viewpoint 2.125 metres left along the deck, midway between adjacent hangers.
 const bridgeAngle=Math.atan(.594*Math.cos(.67*2.7+.35));
-export const FRONT_BRIDGE=new T.Vector3(0,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
+export const FRONT_BRIDGE=new T.Vector3(-.02125,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
 export class BridgeView{
  constructor(town,camera){this.town=town;this.camera=camera;this.active=false;this.saved=null;this.pointSizes=new WeakMap();this.pointMaps=new WeakMap();this.eye=new T.Vector3();this.forward=new T.Vector3();this.up=new T.Vector3();}
  point(material,maps=null,baseSize=null){

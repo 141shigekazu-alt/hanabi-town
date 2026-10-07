@@ -1,4 +1,4 @@
-import {candyColor} from './candy-colors.js?v=1.1.15';
+import {candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
