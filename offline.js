@@ -1,7 +1,7 @@
-const VERSION='1.1.18';
+const VERSION='1.1.19';
 const button=document.getElementById('offlineSave'),status=document.getElementById('offlineStatus'),progress=document.getElementById('offlineProgress');
 let worker,busy=false;
-function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{const channel=new MessageChannel();channel.port1.onmessage=e=>{const m=e.data;if(m.type==='PROGRESS'){onProgress(m);return;}channel.port1.close();m.error?reject(new Error(m.error)):resolve(m);};worker.postMessage({type},[channel.port2]);});}
+function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{const channel=new MessageChannel();channel.port1.onmessage=e=>{const m=e.data;if(m.type==='PROGRESS'){onProgress(m);return;}channel.port1.close();m.error?reject(new Error(m.error)):resolve(m);};(navigator.serviceWorker.controller??worker).postMessage({type},[channel.port2]);});}
 function showState(s){button.disabled=false;button.textContent=s.complete?'オフライン保存を確認・更新':'オフライン用に保存';status.textContent=s.complete?`保存済み ${s.version} · 街・花火・３曲をWi-Fiなしで開けます。ブラウザの保存データを消すと再保存が必要です。`:'家など通信できる場所で保存してください。街・花火・３曲、約89MBです。';}
 async function setup(){
  if(!isSecureContext||!('serviceWorker' in navigator)){button.textContent='このブラウザでは保存できません';status.textContent='Quest BrowserでHTTPSの花火街を開いてください。';return;}

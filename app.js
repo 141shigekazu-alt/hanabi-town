@@ -1,26 +1,26 @@
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.18';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.18';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.18';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.18';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.18';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.18';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.19';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.19';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.19';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.19';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.19';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.19';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.18';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.19';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.18';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.18';
-import {FireworkAudio} from './audio.js?v=1.1.18';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.18';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.18';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.18';
-import {TowerLighting} from './tower-lighting.js?v=1.1.18';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.18';
-import {ShowInfoPanel} from './show-info.js?v=1.1.18';
-import {WristMenu} from './wrist-menu.js?v=1.1.18';
-import {XRControls} from './xr-controls.js?v=1.1.18';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.18';
-import {EntryTip} from './entry-tip.js?v=1.1.18';
-const BUILD_VERSION='1.1.18';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.19';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.19';
+import {FireworkAudio} from './audio.js?v=1.1.19';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.19';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.19';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.19';
+import {TowerLighting} from './tower-lighting.js?v=1.1.19';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.19';
+import {ShowInfoPanel} from './show-info.js?v=1.1.19';
+import {WristMenu} from './wrist-menu.js?v=1.1.19';
+import {XRControls} from './xr-controls.js?v=1.1.19';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.19';
+import {EntryTip} from './entry-tip.js?v=1.1.19';
+const BUILD_VERSION='1.1.19';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -183,7 +183,7 @@ function syncShowButtons(){
 }
 async function beginMusicShow(){
  if(musicBusy)return;
- if(showPlan?.music&&time<MUSIC_PLAN.showDuration-.01){toggle();return;}
+ if(showPlan?.music&&!musicCanFinish()){toggle();return;}
  const request=++musicRequest;musicBusy=true;syncShowButtons();ensureAudio();
  $('musicState').textContent='曲を準備中…';
  try{await music.load();}catch(e){if(request!==musicRequest)return;musicBusy=false;music.ready=null;syncShowButtons();$('musicState').textContent='曲を読み込めませんでした。もう一度お試しください。';return;}
@@ -558,7 +558,7 @@ function ensureAudio(){
 function toggle(){
  if(showPlan?.music){
   if(!running){
-   if(time>=MUSIC_PLAN.showDuration-.01){clearFireworks();clearFans();time=0;prepareMusicProgram();}
+   if(musicCanFinish()){clearFireworks();clearFans();time=0;prepareMusicProgram();}
    ensureAudio();music.play(audio,time);running=true;
   }else{time=music.pause();running=false;cancelFutureSounds();}
   syncShowButtons();$('status').textContent=running?'音楽と花火を鑑賞中です。':'音楽と花火を一時停止しました。';return;
@@ -900,6 +900,8 @@ function pauseMusicForVisibility(){
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();triggerEmbers.clear();$('status').textContent='鑑賞を離れたので、試し打ちを一時停止しました。「試し打ちを再開」で戻れます。';}
  if(running&&showPlan?.music){time=music.pause();running=false;cancelFutureSounds();triggerEmbers.clear();syncShowButtons();$('status').textContent='鑑賞を離れたので、曲と花火を一時停止しました。';}
 }
+// A scheduled duration is a lower bound. User-launched shells may outlive the programme.
+function musicCanFinish(){return time>=MUSIC_PLAN.showDuration&&!fireworks.length&&!triggerEmbers.count&&!comets.groups&&!burstQueue.length&&!fanQueue.length;}
 function advanceMusic(dt){
  time=music.currentTime;
  advanceEmbers(dt);updateFireworkEvents();
@@ -913,8 +915,8 @@ function advanceMusic(dt){
  if(Math.floor(time*8)!==musicLastUI){musicLastUI=Math.floor(time*8);drawMusicTimeline();}
  const section=MUSIC_PLAN.sections.filter(s=>s.at<=time).at(-1);
  $('chapter').textContent=(section?.label??selectedMusic.title)+' · '+Math.floor(time/60)+':'+String(Math.floor(time%60)).padStart(2,'0');
- if(time>=MUSIC_PLAN.duration&&time<MUSIC_PLAN.showDuration)$('status').textContent='曲が終わりました。残る光と花火の音の余韻をお楽しみください。';
- if(time>=MUSIC_PLAN.showDuration){music.pause();running=false;cancelFutureSounds();drawMusicTimeline();syncShowButtons();$('musicShow').textContent=selectedMusic.title+'をもう一度';$('status').textContent='花火の余韻とともに、大会が終わりました。';}
+ if(time>=MUSIC_PLAN.duration&&!musicCanFinish())$('status').textContent='曲が終わりました。残る光と花火の音の余韻をお楽しみください。';
+ if(musicCanFinish()){music.pause();running=false;cancelFutureSounds();drawMusicTimeline();syncShowButtons();$('musicShow').textContent=selectedMusic.title+'をもう一度';$('status').textContent='花火の余韻とともに、大会が終わりました。';}
 }
 function drawMusicTimeline(){
  const c=$('musicTimeline'),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);
