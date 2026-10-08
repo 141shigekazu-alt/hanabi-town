@@ -1,4 +1,5 @@
 import * as T from './vendor/three.module.js';
+import {BOAT_ORIGIN} from './bridge-view.js';
 
 // Author geometry once, merging details by material instead of one draw per rail.
 class Pieces{
@@ -69,7 +70,7 @@ function boatGeometry(tint){
  lights.box(0,.030,-.0725,.021,.012,.0008,0xffcd88);
  lights.box(0,.030,.0545,.021,.012,.0008,0xffcd88);
  for(const side of [-1,1]){
-  for(let i=0;i<7;i++){
+  for(let i=0;i<8;i++){
    const z=-.06+i*.017;
    lights.box(side*.0212,.029,z,.0007,.014,.012,0xffcd88);
    body.box(side*.0218,.029,z+.007,.001,.024,.002,0x362925);
@@ -99,13 +100,26 @@ export class RiverNight{
   this.boats=[];this.boatColors=[0xffb044,0xffd98a,0xff599f,0xff8254];
   const template=boatGeometry(0xffffff),body=template.body.mesh(this.bodyMaterial),lit=template.lights.mesh(this.lightMaterial);
   for(let i=0;i<4;i++){const g=new T.Group();g.name='yakatabune-'+i;g.scale.setScalar(.8);const boatBody=this.bodyMaterial.clone();boatBody.transparent=true;boatBody.depthWrite=true;boatBody.emissive.setHex(0x45372a);boatBody.emissiveIntensity=.12;g.add(new T.Mesh(body.geometry,boatBody),new T.Mesh(lit.geometry,new T.MeshBasicMaterial({color:this.boatColors[i],vertexColors:true,toneMapped:false,transparent:true,depthWrite:false})));g.children[0].renderOrder=1;g.children[1].renderOrder=2;this.root.add(g);this.boats.push(g);}
-  this.reflections=new T.Mesh(riverGeometry,new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,uniforms:{uTime:{value:0},uWorldToTown:{value:new T.Matrix4()},uLights:{value:Array.from({length:7},()=>new T.Vector4())},uColors:{value:[0xc5f4da,0x70a9d7,0x00bfff,...this.boatColors].map(c=>new T.Color(c))}},vertexShader:'varying vec3 vLocal; void main(){vLocal=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:`precision highp float;
-   varying vec3 vLocal;uniform float uTime;uniform mat4 uWorldToTown;uniform vec4 uLights[7];uniform vec3 uColors[7];
+  this.viewingBoat=new T.Group();this.viewingBoat.name='viewing-yakatabune';this.viewingBoat.position.copy(BOAT_ORIGIN);
+  const viewing=boatGeometry(0xffa548),deck=new Pieces(),lamps=new Pieces();
+  deck.box(0,.058,-.009,.047,.006,.12,0x9a8064);
+  for(const side of [-1,1]){
+   deck.beam([side*.023,.071,-.068],[side*.023,.071,.050],.00055,0x77634b);
+   for(const z of [-.061,-.028,.005,.038])deck.beam([side*.023,.060,z],[side*.023,.071,z],.00045,0x77634b);
+   for(const z of [-.095,-.028,.005,.038]){deck.beam([side*.024,.060,z],[side*.024,.089,z],.0005,0x68533d);lamps.add(new T.CylinderGeometry(.0018,.0018,.0045,16),0xffb45c,new T.Vector3(side*.023,.086,z));
+    for(const y of [.0849,.086,.0871])deck.add(new T.CylinderGeometry(.00182,.00182,.00008,16),0xba894c,new T.Vector3(side*.023,y,z));
+    for(const y of [.0836,.0884])deck.add(new T.CylinderGeometry(.00165,.00165,.0003,12),0x403125,new T.Vector3(side*.023,y,z));
+    deck.beam([side*.023,.0884,z],[side*.024,.090,z],.00015,0x403125);}
+   deck.beam([side*.024,.090,-.100],[side*.024,.090,.050],.0004,0x5b4937);
+  }
+  this.viewingBoat.add(viewing.body.mesh(this.bodyMaterial),viewing.lights.mesh(this.lightMaterial),deck.mesh(this.bodyMaterial),lamps.mesh(this.lightMaterial));this.root.add(this.viewingBoat);
+  this.reflections=new T.Mesh(riverGeometry,new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,uniforms:{uTime:{value:0},uDetail:{value:1},uWorldToTown:{value:new T.Matrix4()},uLights:{value:Array.from({length:8},()=>new T.Vector4())},uColors:{value:[0xc5f4da,0x70a9d7,0x00bfff,...this.boatColors,0xffb45c].map(c=>new T.Color(c))}},vertexShader:'varying vec3 vLocal; void main(){vLocal=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:`precision highp float;
+   varying vec3 vLocal;uniform float uTime;uniform float uDetail;uniform mat4 uWorldToTown;uniform vec4 uLights[8];uniform vec3 uColors[8];
    void main(){
     vec3 eye=(uWorldToTown*vec4(cameraPosition,1.0)).xyz;vec3 ray=normalize(vLocal-eye),glow=vec3(0.0);
-    float ripple=pow(.5+.5*sin(vLocal.z*260.0+uTime*1.35+sin(vLocal.x*110.0-uTime*.65)*1.8),5.0);
-    float grain=.58+.42*sin(vLocal.x*390.0+sin(vLocal.z*150.0));
-    for(int i=0;i<7;i++){
+    float ripple=pow(.5+.5*sin(vLocal.z*260.0*uDetail+uTime*1.35+sin(vLocal.x*110.0*uDetail-uTime*.65)*1.8),5.0);
+    float grain=.58+.42*sin(vLocal.x*390.0*uDetail+sin(vLocal.z*150.0));
+    for(int i=0;i<8;i++){
      vec3 source=uLights[i].xyz;vec3 mirror=vec3(source.x,2.0*vLocal.y-source.y,source.z);
      float mixToPlane=(eye.y-vLocal.y)/max(eye.y-mirror.y,.0001);vec2 centre=mix(eye,mirror,mixToPlane).xz;
      vec2 delta=vLocal.xz-centre;float wave=.004*sin(vLocal.z*135.0+uTime*1.1);
@@ -120,6 +134,7 @@ export class RiverNight{
   this.clock=seconds;
   for(let i=0;i<4;i++){const p=boatPose(i,seconds,this.riverCenter,this.riverSlope),g=this.boats[i];g.position.set(p.x,p.y,p.z);g.rotation.y=p.angle;g.visible=p.visible;for(const mesh of g.children)mesh.material.opacity=p.opacity;this.reflections.material.uniforms.uLights.value[i+3].set(p.x,.032,p.z,.36*p.opacity*.8);}
   for(let i=0;i<3;i++){const g=this.bridges[i];this.reflections.material.uniforms.uLights.value[i].set(g.position.x,.16,g.position.z,i===2?.65:i===0?.40:.28);}
+  this.reflections.material.uniforms.uLights.value[7].set(BOAT_ORIGIN.x,.086,BOAT_ORIGIN.z,.22);
   this.reflections.material.uniforms.uTime.value=seconds;
   this.town.updateWorldMatrix(true,false);this.reflections.material.uniforms.uWorldToTown.value.copy(this.town.matrixWorld).invert();
  }

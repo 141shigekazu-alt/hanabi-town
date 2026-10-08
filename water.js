@@ -5,14 +5,14 @@ export function reflectionAppearance(radiusFraction){const x=Math.max(0,Math.min
 // Not a second rendered camera: stays stereo-aware through cameraPosition in each eye pass.
 export function reflectionMaterial(color,inner,layers=null){const material=new T.ShaderMaterial({
  transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,
- uniforms:{uCenter:{value:new T.Vector3()},uRadius:{value:.3},uWaterY:{value:.005},uGain:{value:0},uTime:{value:0},uWorldScale:{value:1},uColor:{value:color.clone()},uInner:{value:inner.clone()}},
+ uniforms:{uCenter:{value:new T.Vector3()},uRadius:{value:.3},uWaterY:{value:.005},uGain:{value:0},uTime:{value:0},uWorldScale:{value:1},uDetail:{value:1},uColor:{value:color.clone()},uInner:{value:inner.clone()}},
  vertexShader:`varying vec3 vWorld; void main(){vec4 world=modelMatrix*vec4(position,1.0);vWorld=world.xyz;gl_Position=projectionMatrix*viewMatrix*world;}`,
  fragmentShader:`precision highp float;
- varying vec3 vWorld;
+ varying vec3 vWorld; uniform float uDetail;
  uniform vec3 uCenter,uColor,uInner;
  uniform float uRadius,uWaterY,uGain,uTime; uniform float uWorldScale;
  void main(){
- vec3 wavePoint=vWorld/uWorldScale;
+ vec3 wavePoint=vWorld/uWorldScale*uDetail;
  vec3 virtualCenter=uCenter;virtualCenter.y=2.0*uWaterY-uCenter.y;
  vec3 ray=normalize(vWorld-cameraPosition);
  // Small moving distortions break the circular image into ripples.
