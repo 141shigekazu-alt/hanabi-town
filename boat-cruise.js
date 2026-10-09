@@ -1,6 +1,6 @@
 // Follow the river in normal-offset lanes; turn in world space without river shear.
 // Ease heading rotation at both ends. The hull always faces its travel direction.
-const RADIUS=.08,BACK=-.235,TURN_SECONDS=160,MAX_SPEED=.0054,STEPS=1024;
+const RADIUS=.08,BACK=-.235,TURN_SECONDS=120,MAX_SPEED=.0054,STEPS=1024;
 const centre=z=>.22*Math.sin(z*2.7+.35),slope=z=>.594*Math.cos(z*2.7+.35);
 const curvature=z=>-1.6038*Math.sin(z*2.7+.35);
 const ease=u=>u*u*(3-2*u);
@@ -67,7 +67,7 @@ export function viewBoatPose(seconds,out={}){
 export function cruiseTurnWindow(seconds){
  const cycle=Math.floor(seconds/CRUISE_PERIOD),t=seconds-cycle*CRUISE_PERIOD;
  for(const start of [-TURN_SECONDS,...CRUISE_TURNS.map(turn=>turn.start)]){
-  if(t>=start-35&&t<start+TURN_SECONDS+30)return {key:cycle*CRUISE_PERIOD+start,until:cycle*CRUISE_PERIOD+start+TURN_SECONDS+30,duration:TURN_SECONDS,z:start===outLeg.duration?BACK:FRONT};
+  if(t>=start-35&&t<start+TURN_SECONDS)return {key:cycle*CRUISE_PERIOD+start,until:cycle*CRUISE_PERIOD+start+TURN_SECONDS,duration:TURN_SECONDS,z:start===outLeg.duration?BACK:FRONT};
  }
  return null;
 }

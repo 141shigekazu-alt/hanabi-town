@@ -169,8 +169,9 @@ export class RiverNight{
   }
   const inTurn=p=>this.turnEnvelope?.poses.some(own=>boatsOverlap(own,p,.012));
   const turnOccupied=turn&&traffic.some(p=>p.visible&&inTurn(p));
-  if(moving&&turn&&!this.turnReservation&&!turnOccupied)this.turnReservation=turn;
-  const turnYield=!!turn&&!this.turnReservation;
+  // Claim the approach first: boats already inside clear it; later boats wait outside.
+  if(moving&&turn&&!this.turnReservation)this.turnReservation=turn;
+  const turnYield=!!turn&&(!this.turnReservation||turnOccupied);
   const held=[];
   // A following boat must also stop rather than pass through a stopped passenger boat.
   for(let i=0;i<4;i++){
@@ -183,7 +184,7 @@ export class RiverNight{
    }
    const next=boatPose(i,this.trafficClocks[i]+dt*pace,this.riverCenter,this.riverSlope);
    held[i]=next.visible&&boatsOverlap(own,next);
-   if(this.turnReservation&&next.visible&&inTurn(next))held[i]=true;
+   if(this.turnReservation&&next.visible&&inTurn(next)&&!inTurn(here))held[i]=true;
    for(let j=0;j<4;j++)if(j!==i&&next.visible&&traffic[j].visible){
     if(boatsOverlap(next,traffic[j]))held[i]=true;
     // Delay entry from the river edge as well; a fading-in boat must not join a tight queue.

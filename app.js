@@ -1,28 +1,28 @@
-import {EITAI_ANGLE,EITAI_Z,eitaiCenterX,AVENUE_WIDTH,SIDEWALK_WIDTH,arrangeCity} from './city-layout.js?v=1.1.36';
-import {viewBoatPose} from './boat-cruise.js?v=1.1.36';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.36';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.36';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.36';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.36';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.36';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.36';
+import {EITAI_ANGLE,EITAI_Z,eitaiCenterX,AVENUE_WIDTH,SIDEWALK_WIDTH,arrangeCity} from './city-layout.js?v=1.1.37';
+import {viewBoatPose} from './boat-cruise.js?v=1.1.37';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.37';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.37';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.37';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.37';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.37';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.37';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.36';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.37';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.36';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.36';
-import {FireworkAudio} from './audio.js?v=1.1.36';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.36';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.36';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.36';
-import {TowerLighting} from './tower-lighting.js?v=1.1.36';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.36';
-import {ShowInfoPanel} from './show-info.js?v=1.1.36';
-import {WristMenu} from './wrist-menu.js?v=1.1.36';
-import {XRControls} from './xr-controls.js?v=1.1.36';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.36';
-import {EntryTip} from './entry-tip.js?v=1.1.36';
-const BUILD_VERSION='1.1.36';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.37';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.37';
+import {FireworkAudio} from './audio.js?v=1.1.37';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.37';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.37';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.37';
+import {TowerLighting} from './tower-lighting.js?v=1.1.37';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.37';
+import {ShowInfoPanel} from './show-info.js?v=1.1.37';
+import {WristMenu} from './wrist-menu.js?v=1.1.37';
+import {XRControls} from './xr-controls.js?v=1.1.37';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.37';
+import {EntryTip} from './entry-tip.js?v=1.1.37';
+const BUILD_VERSION='1.1.37';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -698,7 +698,7 @@ $('mrPreset').onclick=()=>{if(bridgeView.active)return;if(dioramaSaved)toggleDio
  town.scale.setScalar(.35);applyTownHeight();adjustTownDistance();$('status').textContent='小さな街：幅1.12m・奥行き0.74m、前方1.8m、街の土台の底面を床に合わせます。';
 };
 function mrSettings(){return {scale:Number($('scale').value),distance:Number($('distance').value),height:Number($('height').value),roomBrightness:Number($('roomBrightness').value),audioMode:$('audioMode').value,volume:Number($('volume').value),program:$('program').value};}
-function mrReport(){return mrMetrics?{...mrMeta,ended:!mrSession,environmentBlendMode:mrMeta.environmentBlendMode,settings:mrSettings(),peakFireworkParticles:mrMetrics.peakParticles,peakDrawCalls:mrMetrics.peakCalls,samples:[...mrMetrics.samples]}:lastMRReport;}
+function mrReport(){return mrMetrics?{...mrMeta,ended:!mrSession,environmentBlendMode:mrMeta.environmentBlendMode,settings:mrSettings(),cruise:{seconds:boatSeconds,started:boatStarted,pose:{...boatPose},rate:riverNight.cruiseRate,waiting:riverNight.cruiseWaiting,reservation:riverNight.turnReservation?{...riverNight.turnReservation}:null,trafficClocks:[...riverNight.trafficClocks],showRunning:running,showCompleted,previewing,previewPaused,documentHidden:document.hidden,xrVisibility:mrSession?.visibilityState??null},peakFireworkParticles:mrMetrics.peakParticles,peakDrawCalls:mrMetrics.peakCalls,samples:[...mrMetrics.samples]}:lastMRReport;}
 $('mrExport').onclick=()=>{
  const report=mrReport();if(!report){$('mrInfo').textContent='MR実機の計測はまだありません。';return;}
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -944,7 +944,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  const boatPaused=(previewing&&previewPaused)||!!showPlan&&!running&&!showCompleted;
  if(xrVisible)boatSeconds=riverNight.advanceCruise(boatSeconds,dt,boatStarted&&!boatPaused);
  viewBoatPose(boatSeconds,boatPose);bridgeView.cruise(boatPose);riverNight.setViewingPose(boatPose);
- if(bridgeView.active&&bridgeView.mode==='boat'){if(boatWaitingShown!==riverNight.cruiseWaiting){boatWaitingShown=riverNight.cruiseWaiting;$('viewHint').textContent=boatWaitingShown?'前の船が通るのを待っています。空いたら、ゆっくり進みます。':'永代橋と清澄橋をくぐる屋形船。デッキ内は自分の足／左スティックで移動。MacはWASD。';}}else boatWaitingShown=null;
+ if(bridgeView.active&&bridgeView.mode==='boat'){if(boatWaitingShown!==riverNight.cruiseWaiting){boatWaitingShown=riverNight.cruiseWaiting;$('viewHint').textContent=boatWaitingShown?'ほかの船が通るのを待っています。空いたら、ゆっくり進みます。':'永代橋と清澄橋をくぐる屋形船。デッキ内は自分の足／左スティックで移動。MacはWASD。';}}else boatWaitingShown=null;
  entryTip.update(stamp,!!session&&xrVisible&&!bridgeView.active);
  $('cometTime').textContent=previewing?'試し打ち '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':''):cometCompleted?'試し打ちが終了しました':showPlan?.music?'曲つき演出':'開演前';
  $('cometPause').textContent=previewPaused?'試し打ちを再開':'試し打ちを一時停止';$('cometPause').disabled=!previewing;
