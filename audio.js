@@ -1,4 +1,4 @@
-import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,recordedLaunchSamples,recordedReverbBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.47';
+import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.48';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
  if(data.length<2){if(data.length)data[0]=0;return data;}
@@ -166,6 +166,7 @@ export class FireworkAudio{
  for(const key of [...new Set(Object.values(OPENING_VARIANTS).flat()),'Crack_B_01','Crack_B_02','Crack_A_01','Crack_A_03']){
   const {data,rate,onset}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);if(key.startsWith('Crack_'))fadeTail(data,rate,.15);buffer.copyToChannel(data,0);this.cache.set('recorded-opening-'+key,buffer);
   const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
+  if(OPENING_VARIANTS[5].includes(key))buffer.copyToChannel(fiveGoOpeningDecay(data,rate,onset),0);
  }
  this.openingLevels=new Map();
  for(const [size,keys] of Object.entries(OPENING_VARIANTS)){
@@ -174,7 +175,7 @@ export class FireworkAudio{
  this.openingBags=new Map();this.openingSeed=0x141740;
  this.crackleSerial=0;this.variationSeed=(Date.now()^0x141142)>>>0;this.textureBuffers=new Map();this.whistleBag=[];this.lastWhistle=null;this.whistles=new Map();this.whistleLevels=new Map();
  for(const key of WHISTLE_VARIANTS){const {data,rate}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set("recorded-whistle-"+key,buffer);let sum=0;for(const v of data)sum+=v*v;this.whistleLevels.set(key,Math.min(1.3,Math.max(.85,.048/Math.sqrt(sum/data.length))));}
- for(const key of Object.values(OPENING_VARIANTS).flat()){const {data,rate}=recordedLaunchSamples(key,fadeTail),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set('recorded-launch-'+key,buffer);}
+ for(const key of Object.values(OPENING_VARIANTS).flat()){const {data,rate}=recordedLaunchSamples(key,fadeTail,OPENING_VARIANTS[5].includes(key)?5:3),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set('recorded-launch-'+key,buffer);}
  }
  startSource(source,when,offset=0){
  const at=Math.max(this.context.currentTime,when??this.context.currentTime),entry={source,at},onended=source.onended;
@@ -250,7 +251,7 @@ export class FireworkAudio{
  const children=role==='senrin-children',tail=role.endsWith('-crackle'),opening=role==='opening',launch=role==='launch';
  const index=children||tail?this.chooseVariant('texture-'+(children?'children':'tail'),[0,1,2,3,4,5]):null;
  const cents=(children&&size===20?-240:tail&&size===20?-40:0)+(random()*2-1)*(opening?32:launch?50:children?55:tail?95:role==='whistle'?70:60);
- return Object.freeze({index,rate:Math.pow(2,cents/1200),gain:1+(random()*2-1)*(opening?.04:role==='whistle'?.08:.06),shade:(random()*2-1)*(opening?1:1.5),bass:children&&size===20?6:size===20&&opening?5:size===20&&launch?6:tail&&size===20?1.5:0,bassHz:size===20&&(opening||launch)?140:220,send:children?(size===20?.18:.025):tail?(size===20?.045:.02):0});
+ return Object.freeze({index,rate:Math.pow(2,cents/1200),gain:1+(random()*2-1)*(opening?.04:role==='whistle'?.08:.06),shade:(random()*2-1)*(opening?1:1.5),bass:children&&size===20?6:size===20&&opening?5:size===20&&launch?6:tail&&size===20?1.5:0,bassHz:size===20&&(opening||launch)?140:220,send:children?(size===20?.018:.025):tail?(size===20?.008:.004):0});
  }
  varyVoice(source,pan,variation){
  source.playbackRate.value=variation.rate;
@@ -293,9 +294,8 @@ export class FireworkAudio{
  source.buffer=this.cache.get((explosion?'recorded-opening-':'recorded-launch-')+key);
  const level=explosion?({3:.40,5:.50,10:.65,20:.80})[size]*(this.openingLevels.get(key)??1):({2:.375,3:.75,5:1,10:1.15,20:1.65})[size];dry.gain.value=level*variation.gain;
  source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
- let send=null;
- if(explosion&&size>=10){send=this.context.createGain();send.gain.value=.65*(this.openingLevels.get(key)??1)*variation.gain;color.node.connect(send).connect(this.recordedReverb);}
- source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ // Reports retain the recorded outdoor decay. No added B convolution on large shells.
+ source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when);return source;
  }
  playComet(x,when,position=null,mode='recorded',small=false){
  if(mode==='recorded'){

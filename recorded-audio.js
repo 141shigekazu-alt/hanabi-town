@@ -1,4 +1,4 @@
-import {samples} from './firework-samples.js?v=1.1.47';
+import {samples} from './firework-samples.js?v=1.1.48';
 
 export const WHISTLE_VARIANTS=['Whistle_01','Whistle_02','Whistle_03','Whistle_04','Whistle_05','Whistle_06'];
 export const OPENING_SAMPLES={3:'Shoot_A_01',5:'Shoot_A_03',10:'Shoot_A_10',20:'Shoot_B_05'};
@@ -13,18 +13,29 @@ export function lowpassSamples(data,hz,rate=48000){
  for(let i=0;i<data.length;i++){y+=a*(data[i]-y);out[i]=y;}return out;
 }
 // The exact short recording component of audition D, including its fade.
-export function shortRecordedLaunch(key,fadeTail){
- const {data,rate,onset}=recordedSamples(key),start=Math.floor(onset*rate),out=lowpassSamples(data.slice(start,start+Math.round(.32*rate)),1300,rate);let peak=0;
- for(let i=0;i<out.length;i++){out[i]*=Math.exp(-i/rate/.105)*Math.min(1,i/(rate*.0015));peak=Math.max(peak,Math.abs(out[i]));}
+export function shortRecordedLaunch(key,fadeTail,size=3){
+ const {data,rate,onset}=recordedSamples(key),start=Math.floor(onset*rate),five=size===5,duration=five?.70:.32,out=lowpassSamples(data.slice(start,start+Math.round(duration*rate)),1300,rate);let peak=0;
+ for(let i=0;i<out.length;i++){
+  const t=i/rate,attack=Math.min(1,i/(rate*.0015)),original=Math.fround(out[i]*(Math.exp(-t/.105)*attack));
+  if(i<Math.round(.32*rate))peak=Math.max(peak,Math.abs(original));
+  if(five){const u=Math.max(0,Math.min(1,(t-.12)/.12)),mix=u*u*(3-2*u),longer=Math.exp(-.12/.105-(t-.12)/.20);out[i]=out[i]*attack*(Math.exp(-t/.105)*(1-mix)+longer*mix);}else out[i]=original;
+ }
  const gain=peak?.75/peak:0;for(let i=0;i<out.length;i++)out[i]*=gain;
- return fadeTail(out,rate,.075);
+ return fadeTail(out,rate,five?.18:.075);
 }
 // A launch uses only a short, filtered recording. No synthesized pressure layer.
-export function recordedLaunchSamples(key,fadeTail){
- const rate=48000,data=shortRecordedLaunch(key,fadeTail);for(let i=0;i<data.length;i++)data[i]*=.22;
+export function recordedLaunchSamples(key,fadeTail,size=3){
+ const rate=48000,data=shortRecordedLaunch(key,fadeTail,size);for(let i=0;i<data.length;i++)data[i]*=.22;
  return {data,rate};
 }
-// Audition B: delayed, dark, quiet reflections, with the direct recording intact.
+// Lift the existing five-go decay gently; keep its attack, full length and phase.
+// This adds no echoes, copied fragments or invented sound after the recording.
+export function fiveGoOpeningDecay(data,rate,onset){
+ const out=data.slice();
+ for(let i=0;i<out.length;i++){const u=Math.max(0,Math.min(1,(i/rate-onset-.20)/.35));out[i]*=1+.45*u*u*(3-2*u);}
+ return out;
+}
+// Legacy B space retained only as a very quiet feed for spark textures.
 export function recordedReverbBuffer(context,fadeTail){
  const rate=context.sampleRate,n=Math.ceil(rate*4.8),buffer=context.createBuffer(2,n,rate),a=rate===48000?.065:1-Math.pow(1-.065,48000/rate);let seed=1411138;
  for(let c=0;c<2;c++){
