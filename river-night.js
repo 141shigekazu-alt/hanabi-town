@@ -1,5 +1,6 @@
 import * as T from './vendor/three.module.js';
 import {BOAT_ORIGIN} from './bridge-view.js';
+import {viewBoatPose} from './boat-cruise.js';
 
 // Author geometry once, merging details by material instead of one draw per rail.
 class Pieces{
@@ -19,7 +20,8 @@ class Pieces{
 export const BRIDGE_DESIGNS=Object.freeze([{id:'three-arches',z:-.58},{id:'suspension',z:.05},{id:'blue-arch',z:.67}]);
 function bridgeGeometry(id){
  const body=new Pieces(),lights=new Pieces(),deck=.1025,width=.7;
- body.box(0,.09,0,width,.025,.085,0x323d49);
+ // Keep the deck top and skyline, but give the steel suspension deck a thinner underside.
+ const thickness=id==='suspension'?.010:.025;body.box(0,deck-thickness/2,0,width,thickness,.085,0x323d49);
  for(const z of [-.043,.043]){
   body.beam([-.35,.116,z],[.35,.116,z],.0014,0x7d939f);
   lights.beam([-.35,.109,z],[.35,.109,z],.00065,0xffd298);
@@ -85,13 +87,24 @@ function boatGeometry(tint){
 export function boatPose(index,seconds,riverCenter,riverSlope){
  const direction=index%2===0?1:-1,period=155+index*23;
  const phase=((seconds/period+index*.249)%1+1)%1;
- const z=-1.18+2.36*(direction===1?phase:1-phase),lane=-direction*.085;
+ const z=-1.18+2.36*(direction===1?phase:1-phase),lane=-direction*Math.min(.195,(.49+.075*Math.cos(z*2.5-.5))/2-.045);
  const edge=Math.max(0,Math.min(1,(Math.abs(z)-.94)/.135)),opacity=1-edge*edge*(3-2*edge);
- return {x:riverCenter(z)+lane,z,y:Math.sin(seconds*.8+index*1.6)*.0006,angle:Math.atan(riverSlope(z))+ (direction===1?0:Math.PI),opacity,visible:opacity>0};
+ return {x:riverCenter(z)+lane,z,y:Math.sin(seconds*.8+index*1.6)*.0006,angle:Math.atan(riverSlope(z))+ (direction===1?Math.PI:0),opacity,visible:opacity>0};
+}
+// Conservative oriented hull footprints, in town units. The viewing boat includes its deck.
+export function boatsOverlap(a,b,padding=.004){
+ const aForward=[-Math.sin(a.angle),-Math.cos(a.angle)],aRight=[Math.cos(a.angle),-Math.sin(a.angle)];
+ const bForward=[-Math.sin(b.angle),-Math.cos(b.angle)],bRight=[Math.cos(b.angle),-Math.sin(b.angle)];
+ const dx=b.x-a.x,dz=b.z-a.z,al=a.viewing?.108:.082,aw=a.viewing?.036:.029,bl=b.viewing?.108:.082,bw=b.viewing?.036:.029;
+ for(const axis of [aForward,aRight,bForward,bRight]){
+  const dot=v=>Math.abs(axis[0]*v[0]+axis[1]*v[1]);
+  if(Math.abs(dx*axis[0]+dz*axis[1])>al*dot(aForward)+aw*dot(aRight)+bl*dot(bForward)+bw*dot(bRight)+padding)return false;
+ }
+ return true;
 }
 export class RiverNight{
  constructor({town,riverGeometry,riverCenter,riverSlope}){
-  this.town=town;this.riverCenter=riverCenter;this.riverSlope=riverSlope;this.clock=0;
+  this.town=town;this.riverCenter=riverCenter;this.riverSlope=riverSlope;this.clock=0;this.trafficClocks=[0,0,0,0];this.cruiseRate=1;this.cruiseWaiting=false;this.viewingPose=viewBoatPose(0);
   this.root=new T.Group();this.root.name='river-night';town.add(this.root);
   this.bodyMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:.8});
   this.lightMaterial=new T.MeshBasicMaterial({vertexColors:true,toneMapped:false});
@@ -100,18 +113,22 @@ export class RiverNight{
   this.boats=[];this.boatColors=[0xffb044,0xffd98a,0xff599f,0xff8254];
   const template=boatGeometry(0xffffff),body=template.body.mesh(this.bodyMaterial),lit=template.lights.mesh(this.lightMaterial);
   for(let i=0;i<4;i++){const g=new T.Group();g.name='yakatabune-'+i;g.scale.setScalar(.8);const boatBody=this.bodyMaterial.clone();boatBody.transparent=true;boatBody.depthWrite=true;boatBody.emissive.setHex(0x45372a);boatBody.emissiveIntensity=.12;g.add(new T.Mesh(body.geometry,boatBody),new T.Mesh(lit.geometry,new T.MeshBasicMaterial({color:this.boatColors[i],vertexColors:true,toneMapped:false,transparent:true,depthWrite:false})));g.children[0].renderOrder=1;g.children[1].renderOrder=2;this.root.add(g);this.boats.push(g);}
-  this.viewingBoat=new T.Group();this.viewingBoat.name='viewing-yakatabune';this.viewingBoat.position.copy(BOAT_ORIGIN);
+  this.viewingBoat=new T.Group();this.viewingBoat.name='viewing-yakatabune';this.viewingBoat.position.copy(BOAT_ORIGIN);this.viewingBoat.rotation.y=this.viewingPose.angle;
   const viewing=boatGeometry(0xffa548),deck=new Pieces(),lamps=new Pieces();
-  deck.box(0,.058,-.009,.047,.006,.12,0x9a8064);
+  deck.box(0,.058,-.027,.047,.006,.156,0x9a8064);
   for(const side of [-1,1]){
-   deck.beam([side*.023,.071,-.068],[side*.023,.071,.050],.00055,0x77634b);
-   for(const z of [-.061,-.028,.005,.038])deck.beam([side*.023,.060,z],[side*.023,.071,z],.00045,0x77634b);
+   deck.beam([side*.023,.071,-.104],[side*.023,.071,.050],.00055,0x77634b);
+   for(const z of [-.098,-.061,-.028,.005,.038])deck.beam([side*.023,.060,z],[side*.023,.071,z],.00045,0x77634b);
    for(const z of [-.095,-.028,.005,.038]){deck.beam([side*.024,.060,z],[side*.024,.089,z],.0005,0x68533d);lamps.add(new T.CylinderGeometry(.0018,.0018,.0045,16),0xffb45c,new T.Vector3(side*.023,.086,z));
     for(const y of [.0849,.086,.0871])deck.add(new T.CylinderGeometry(.00182,.00182,.00008,16),0xba894c,new T.Vector3(side*.023,y,z));
     for(const y of [.0836,.0884])deck.add(new T.CylinderGeometry(.00165,.00165,.0003,12),0x403125,new T.Vector3(side*.023,y,z));
     deck.beam([side*.023,.0884,z],[side*.024,.090,z],.00015,0x403125);}
    deck.beam([side*.024,.090,-.100],[side*.024,.090,.050],.0004,0x5b4937);
   }
+  deck.beam([-.023,.071,-.104],[.023,.071,-.104],.00055,0x77634b);
+  for(const x of [-.023,0,.023])deck.beam([x,.061,-.104],[x,.071,-.104],.00045,0x77634b);
+  deck.beam([-.023,.071,.050],[.023,.071,.050],.00055,0x77634b);
+  for(const x of [-.023,0,.023])deck.beam([x,.061,.050],[x,.071,.050],.00045,0x77634b);
   this.viewingBoat.add(viewing.body.mesh(this.bodyMaterial),viewing.lights.mesh(this.lightMaterial),deck.mesh(this.bodyMaterial),lamps.mesh(this.lightMaterial));this.root.add(this.viewingBoat);
   this.reflections=new T.Mesh(riverGeometry,new T.ShaderMaterial({transparent:true,depthWrite:false,side:T.DoubleSide,blending:T.AdditiveBlending,uniforms:{uTime:{value:0},uDetail:{value:1},uWorldToTown:{value:new T.Matrix4()},uLights:{value:Array.from({length:8},()=>new T.Vector4())},uColors:{value:[0xc5f4da,0x70a9d7,0x00bfff,...this.boatColors,0xffb45c].map(c=>new T.Color(c))}},vertexShader:'varying vec3 vLocal; void main(){vLocal=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:`precision highp float;
    varying vec3 vLocal;uniform float uTime;uniform float uDetail;uniform mat4 uWorldToTown;uniform vec4 uLights[8];uniform vec3 uColors[8];
@@ -130,11 +147,54 @@ export class RiverNight{
     gl_FragColor=vec4(glow,1.0);
    }` }));this.reflections.name='city-water-light';this.root.add(this.reflections);this.update(0);
  }
+ advanceCruise(seconds,dt,moving){
+  if(!dt)return seconds;
+  const own=Object.assign(viewBoatPose(seconds),{viewing:true}),traffic=this.trafficClocks.map((t,i)=>boatPose(i,t,this.riverCenter,this.riverSlope));
+  const held=[];
+  // A following boat must also stop rather than pass through a stopped passenger boat.
+  for(let i=0;i<4;i++){
+   // Match a leading boat's pace before reaching it, leaving about ten metres
+   // of open water between hulls rather than a nearly touching queue.
+   let pace=1;const here=traffic[i],fx=-Math.sin(here.angle),fz=-Math.cos(here.angle);
+   for(let j=0;j<4;j++)if(j!==i&&i%2===j%2&&here.visible&&traffic[j].visible){
+    const dx=traffic[j].x-here.x,dz=traffic[j].z-here.z,ahead=dx*fx+dz*fz,lateral=Math.abs(dx*fz-dz*fx);
+    if(ahead>0&&lateral<.09){const gap=Math.hypot(dx,dz)-.164;pace=Math.min(pace,Math.max(0,Math.min(1,(gap-.10)/.05)));}
+   }
+   const next=boatPose(i,this.trafficClocks[i]+dt*pace,this.riverCenter,this.riverSlope);
+   held[i]=next.visible&&boatsOverlap(own,next);
+   for(let j=0;j<4;j++)if(j!==i&&next.visible&&traffic[j].visible){
+    if(boatsOverlap(next,traffic[j]))held[i]=true;
+    // Delay entry from the river edge as well; a fading-in boat must not join a tight queue.
+    if(i%2===j%2&&Math.hypot(next.x-traffic[j].x,next.z-traffic[j].z)<.264)held[i]=true;
+   }
+   if(!held[i])this.trafficClocks[i]+=dt*pace;
+   traffic[i]=boatPose(i,this.trafficClocks[i],this.riverCenter,this.riverSlope);
+  }
+  let waiting=false;
+  if(moving){
+   // Let oncoming boats clear the approach before entering their swept path.
+   for(let i=0;i<4;i++)if(traffic[i].visible){
+    for(const ahead of [0,2,4,6]){
+     const candidate=Object.assign(viewBoatPose(seconds+ahead),{viewing:true});
+     const other=held[i]?traffic[i]:boatPose(i,this.trafficClocks[i]+ahead*.5,this.riverCenter,this.riverSlope);
+     if(other.visible&&boatsOverlap(candidate,other)){waiting=true;break;}
+    }
+    if(waiting)break;
+   }
+  }
+  const target=moving&&!waiting?1:0;
+  this.cruiseRate=Math.max(0,Math.min(1,this.cruiseRate+Math.sign(target-this.cruiseRate)*dt*.7));
+  let nextSeconds=seconds+(moving?dt*this.cruiseRate:0);
+  const next=Object.assign(viewBoatPose(nextSeconds),{viewing:true});
+  if(traffic.some(p=>p.visible&&boatsOverlap(next,p))){nextSeconds=seconds;this.cruiseRate=0;waiting=true;}
+  this.cruiseWaiting=moving&&waiting;return nextSeconds;
+ }
+ setViewingPose(pose){Object.assign(this.viewingPose,pose);this.viewingBoat.position.set(pose.x,pose.y,pose.z);this.viewingBoat.rotation.y=pose.angle;}
  update(seconds){
   this.clock=seconds;
-  for(let i=0;i<4;i++){const p=boatPose(i,seconds,this.riverCenter,this.riverSlope),g=this.boats[i];g.position.set(p.x,p.y,p.z);g.rotation.y=p.angle;g.visible=p.visible;for(const mesh of g.children)mesh.material.opacity=p.opacity;this.reflections.material.uniforms.uLights.value[i+3].set(p.x,.032,p.z,.36*p.opacity*.8);}
+  for(let i=0;i<4;i++){const p=boatPose(i,this.trafficClocks[i],this.riverCenter,this.riverSlope),g=this.boats[i];g.position.set(p.x,p.y,p.z);g.rotation.y=p.angle;g.visible=p.visible;for(const mesh of g.children)mesh.material.opacity=p.opacity;this.reflections.material.uniforms.uLights.value[i+3].set(p.x,.032,p.z,.36*p.opacity*.8);}
   for(let i=0;i<3;i++){const g=this.bridges[i];this.reflections.material.uniforms.uLights.value[i].set(g.position.x,.16,g.position.z,i===2?.65:i===0?.40:.28);}
-  this.reflections.material.uniforms.uLights.value[7].set(BOAT_ORIGIN.x,.086,BOAT_ORIGIN.z,.22);
+  this.reflections.material.uniforms.uLights.value[7].set(this.viewingPose.x,.086,this.viewingPose.z,.22);
   this.reflections.material.uniforms.uTime.value=seconds;
   this.town.updateWorldMatrix(true,false);this.reflections.material.uniforms.uWorldToTown.value.copy(this.town.matrixWorld).invert();
  }

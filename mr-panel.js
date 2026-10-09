@@ -244,7 +244,7 @@ export class MRPanel{
     this.button('wideFinale','空いっぱいのかむろを見る',28,938,744,36,()=>this.click('wideFinale'));
    }
   }else if(this.page===2){
-   if(s.bridge){this.text('手前の橋に座って鑑賞中',32,280,34,'#ffe0a3');this.wrap('花火は頭上に、川面は眼下に。座ったまま、顔を向けて街を見回せます。',32,350,736,3);}else{
+   if(s.bridge){this.text(s.boat?(s.boatWaiting?'屋形船 · 前の船を待っています':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,'#ffe0a3');this.wrap(s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
    this.range('height','街の底面の高さ（床から）',458,s.height,' m');}
@@ -266,8 +266,8 @@ export class MRPanel{
   }
 
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,'#8caabb',736);
-  if(!s.preparing&&s.bridge)this.wrap('橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else if(!s.preparing)this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});
-  this.button('bridge',s.bridge?'ミニチュアに戻る':'街に入る · 手前の橋',28,1116,744,44,()=>this.click('bridge'),{selected:s.bridge});
+  if(!s.preparing&&s.bridge)this.wrap(s.boat?'視点の切り替えは左Xのクルッとパネルから。街のミニチュアや橋の上へ戻れます。':'橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else if(!s.preparing)this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});
+  this.button('bridge',s.boat?'橋の上へ移る':s.bridge?'ミニチュアに戻る':'街に入る · 手前の橋',28,1116,744,44,()=>this.click('bridge'),{selected:s.bridge});
   this.button('close','パネルを閉じて鑑賞',28,1170,360,62,()=>this.close());
   this.button('exit','鑑賞を終了してページへ',412,1170,360,62,()=>this.exit(),{danger:true});
   this.text(this.controllerGrabbed?'移動中 · グリップを離すと、ここに置けます':'白い棒へビーム＋グリップ · スティックで角度と奥行き',32,1255,20,'#b8c9d4',736);
