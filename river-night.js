@@ -59,15 +59,15 @@ function boatGeometry(tint){
  const body=new Pieces(),lights=new Pieces();
  // The pointed bow faces local -Z, matching navigation, the camera and deck.
  // A long, low hull with a raised pointed bow, cabin and continuous roof.
- const outline=new T.Shape();outline.moveTo(-.026,-.085);outline.lineTo(.026,-.085);outline.lineTo(.027,.062);outline.lineTo(0,.096);outline.lineTo(-.027,.062);outline.closePath();
+ const outline=new T.Shape();outline.moveTo(-.026,-.085);outline.lineTo(.026,-.085);outline.lineTo(.027,.062);outline.lineTo(0,.111);outline.lineTo(-.027,.062);outline.closePath();
  const hull=new T.ExtrudeGeometry(outline,{depth:.013,bevelEnabled:false});hull.rotateX(-Math.PI/2);
- // Keep the upper pointed outline; tuck only the lower bow back toward the cabin.
+ // Keep the extended upper tip; cut the waterline back beneath the cabin front.
  // The raked face cuts into the water without adding vertices or drawing objects.
  const hp=hull.attributes.position;
  for(let i=0;i<hp.count;i++){
-  const bow=Math.max(0,Math.min(1,(-hp.getZ(i)-.062)/.034));
+  const bow=Math.max(0,Math.min(1,(-hp.getZ(i)-.062)/.049));
   const lower=Math.max(0,Math.min(1,1-hp.getY(i)/.013));
-  hp.setZ(i,hp.getZ(i)+.018*bow*lower);
+  hp.setZ(i,hp.getZ(i)+.039*bow*lower);
  }
  hp.needsUpdate=true;hull.computeVertexNormals();
  body.add(hull,0xd4c59a,new T.Vector3(0,.006,0));
@@ -106,7 +106,7 @@ export function boatPose(index,seconds,riverCenter,riverSlope){
 export function boatsOverlap(a,b,padding=.004){
  const aForward=[-Math.sin(a.angle),-Math.cos(a.angle)],aRight=[Math.cos(a.angle),-Math.sin(a.angle)];
  const bForward=[-Math.sin(b.angle),-Math.cos(b.angle)],bRight=[Math.cos(b.angle),-Math.sin(b.angle)];
- const dx=b.x-a.x,dz=b.z-a.z,al=a.viewing?.108:.082,aw=a.viewing?.036:.029,bl=b.viewing?.108:.082,bw=b.viewing?.036:.029;
+ const dx=b.x-a.x,dz=b.z-a.z,al=a.viewing?.123:.094,aw=a.viewing?.036:.029,bl=b.viewing?.123:.094,bw=b.viewing?.036:.029;
  for(const axis of [aForward,aRight,bForward,bRight]){
   const dot=v=>Math.abs(axis[0]*v[0]+axis[1]*v[1]);
   if(Math.abs(dx*axis[0]+dz*axis[1])>al*dot(aForward)+aw*dot(aRight)+bl*dot(bForward)+bw*dot(bRight)+padding)return false;
@@ -169,14 +169,14 @@ export class RiverNight{
    let pace=1;const here=traffic[i],fx=-Math.sin(here.angle),fz=-Math.cos(here.angle);
    for(let j=0;j<4;j++)if(j!==i&&i%2===j%2&&here.visible&&traffic[j].visible){
     const dx=traffic[j].x-here.x,dz=traffic[j].z-here.z,ahead=dx*fx+dz*fz,lateral=Math.abs(dx*fz-dz*fx);
-    if(ahead>0&&lateral<.09){const gap=Math.hypot(dx,dz)-.164;pace=Math.min(pace,Math.max(0,Math.min(1,(gap-.10)/.05)));}
+    if(ahead>0&&lateral<.09){const gap=Math.hypot(dx,dz)-.188;pace=Math.min(pace,Math.max(0,Math.min(1,(gap-.10)/.05)));}
    }
    const next=boatPose(i,this.trafficClocks[i]+dt*pace,this.riverCenter,this.riverSlope);
    held[i]=next.visible&&boatsOverlap(own,next);
    for(let j=0;j<4;j++)if(j!==i&&next.visible&&traffic[j].visible){
     if(boatsOverlap(next,traffic[j]))held[i]=true;
     // Delay entry from the river edge as well; a fading-in boat must not join a tight queue.
-    if(i%2===j%2&&Math.hypot(next.x-traffic[j].x,next.z-traffic[j].z)<.264)held[i]=true;
+    if(i%2===j%2&&Math.hypot(next.x-traffic[j].x,next.z-traffic[j].z)<.288)held[i]=true;
    }
    if(!held[i])this.trafficClocks[i]+=dt*pace;
    traffic[i]=boatPose(i,this.trafficClocks[i],this.riverCenter,this.riverSlope);

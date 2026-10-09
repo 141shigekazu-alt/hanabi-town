@@ -1,4 +1,4 @@
-const VERSION='1.1.27';
+const VERSION='1.1.29';
 const button=document.getElementById('offlineSave'),status=document.getElementById('offlineStatus'),progress=document.getElementById('offlineProgress');
 let worker,busy=false;
 function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{const channel=new MessageChannel();channel.port1.onmessage=e=>{const m=e.data;if(m.type==='PROGRESS'){onProgress(m);return;}channel.port1.close();m.error?reject(new Error(m.error)):resolve(m);};(navigator.serviceWorker.controller??worker).postMessage({type},[channel.port2]);});}
