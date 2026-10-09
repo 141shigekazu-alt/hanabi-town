@@ -1,27 +1,28 @@
-import {viewBoatPose} from './boat-cruise.js?v=1.1.29';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.29';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.29';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.29';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.29';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.29';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.29';
+import {EITAI_ANGLE,EITAI_Z,eitaiCenterX,AVENUE_WIDTH,SIDEWALK_WIDTH,arrangeCity} from './city-layout.js?v=1.1.35';
+import {viewBoatPose} from './boat-cruise.js?v=1.1.35';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.35';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.35';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.35';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.35';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.35';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.35';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.29';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.35';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.29';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.29';
-import {FireworkAudio} from './audio.js?v=1.1.29';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.29';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.29';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.29';
-import {TowerLighting} from './tower-lighting.js?v=1.1.29';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.29';
-import {ShowInfoPanel} from './show-info.js?v=1.1.29';
-import {WristMenu} from './wrist-menu.js?v=1.1.29';
-import {XRControls} from './xr-controls.js?v=1.1.29';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.29';
-import {EntryTip} from './entry-tip.js?v=1.1.29';
-const BUILD_VERSION='1.1.29';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.35';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.35';
+import {FireworkAudio} from './audio.js?v=1.1.35';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.35';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.35';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.35';
+import {TowerLighting} from './tower-lighting.js?v=1.1.35';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.35';
+import {ShowInfoPanel} from './show-info.js?v=1.1.35';
+import {WristMenu} from './wrist-menu.js?v=1.1.35';
+import {XRControls} from './xr-controls.js?v=1.1.35';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.35';
+import {EntryTip} from './entry-tip.js?v=1.1.35';
+const BUILD_VERSION='1.1.35';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -40,23 +41,23 @@ const showInfo=new ShowInfoPanel({scene,timer:$('infoTime'),names:$('infoNames')
 let seed=141;function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
 const box=new T.BoxGeometry(1,1,1), mats=[0x172431,0x24303d,0x1b2934,0x303540].map(c=>new T.MeshStandardMaterial({color:c,roughness:.9}));
 function cube(x,y,z,w,h,d,mat){const m=new T.Mesh(box,mat);m.position.set(x,y,z);m.scale.set(w,h,d);town.add(m);return m;}
-const groundmat=new T.MeshStandardMaterial({color:0x10191f,roughness:.95});const ground=cube(0,-.025,0,3.2,.045,2.1,groundmat);
+const groundmat=new T.MeshStandardMaterial({color:0x10191f,roughness:.95});const ground=cube(0,-.025,.16,3.2,.045,2.42,groundmat);
 const groundBottomY=ground.position.y-ground.scale.y/2;
 // Shared river coordinates keep banks, buildings, boats and reflections aligned.
 function riverCenter(z){return .22*Math.sin(z*2.7+.35);}
 function riverWidth(z){return .49+.075*Math.cos(z*2.5-.5);}
 function riverSlope(z){return .594*Math.cos(z*2.7+.35);}
 function riverRibbon(z0,z1,widthFactor=1,y=.003){
- const vertices=[],indices=[],segments=64;
+ const vertices=[],indices=[],segments=74;
  for(let i=0;i<=segments;i++){const z=z0+(z1-z0)*i/segments,c=riverCenter(z),w=riverWidth(z)*widthFactor/2;vertices.push(c-w,y,z,c+w,y,z);if(i<segments){let a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}
  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(vertices,3));g.setIndex(indices);g.computeVertexNormals();return g;
 }
-const river=new T.Mesh(riverRibbon(-1.04,1.04),new T.MeshStandardMaterial({color:0x123446,metalness:.45,roughness:.32,side:T.DoubleSide}));town.add(river);
+const river=new T.Mesh(riverRibbon(-1.04,1.36),new T.MeshStandardMaterial({color:0x123446,metalness:.45,roughness:.32,side:T.DoubleSide}));town.add(river);
 for(const side of [-1,1]){
- const points=Array.from({length:65},(_,i)=>{const z=-1.04+i*2.08/64;return new T.Vector3(riverCenter(z)+side*(riverWidth(z)/2+.012),.009,z);});
- const bank=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),64,.011,4,false),new T.MeshStandardMaterial({color:0x45505a,roughness:.9}));town.add(bank);
+ const points=Array.from({length:75},(_,i)=>{const z=-1.04+i*2.4/74;return new T.Vector3(riverCenter(z)+side*(riverWidth(z)/2+.012),.009,z);});
+ const bank=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),74,.011,4,false),new T.MeshStandardMaterial({color:0x45505a,roughness:.9}));town.add(bank);
 }
-const windowNormals=[], windows=[], windowRanges=[], lamps=[],rooftops=[],buildingRoofs=[];
+const windowNormals=[], windows=[], windowRanges=[], lamps=[],rooftops=[],buildingRoofs=[],cityBuildingMeshes=[];
 // Additional facades have independent occupancy, without changing the town,
 // front windows, boats or any fireworks which share the original random stream.
 function addWindow(x,y,z,nx,nz){windows.push(x,y,z);windowNormals.push(nx,0,nz);}
@@ -65,7 +66,7 @@ function windowRand(){windowSeed=(windowSeed*1664525+1013904223)>>>0;return wind
 for(let side of [-1,1])for(let row=0;row<7;row++)for(let col=0;col<5;col++){
  const firstWindow=windows.length/3;
  const z=-.86+row*.27+(rand()-.5)*.04,x=riverCenter(z)+side*(riverWidth(z)/2+.12+col*.205),w=.105+rand()*.055,d=.12+rand()*.06,h=.10+rand()*.31;
- cube(x,h/2,z,w,h,d,mats[Math.floor(rand()*mats.length)]);
+ const building=cube(x,h/2,z,w,h,d,mats[Math.floor(rand()*mats.length)]);building.name='city-building-'+side+'-'+row+'-'+col;cityBuildingMeshes.push(building);
  buildingRoofs.push({x,y:h,z,w,d,side,row,col});
  if(h>.32)rooftops.push({x,y:h,z,w,d});
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++)if(rand()>.38)addWindow(x+k*w*.25,level,z+d/2+.001,0,1);
@@ -73,6 +74,29 @@ for(let side of [-1,1])for(let row=0;row<7;row++)for(let col=0;col<5;col++){
   if(windowRand()>.38)addWindow(x+k*w*.25,level,z-d/2-.001,0,-1);
   if(windowRand()>.38)addWindow(x-w/2-.001,level,z+k*d*.25,-1,0);
   if(windowRand()>.38)addWindow(x+w/2+.001,level,z+k*d*.25,1,0);
+ }
+ windowRanges.push({first:firstWindow,last:windows.length/3});
+}
+// Keep each facade and its roof details attached while redistributing the blocks.
+const avenueLayout=arrangeCity(buildingRoofs,riverCenter,riverWidth);
+for(let i=0;i<buildingRoofs.length;i++){
+ const roof=buildingRoofs[i],next=avenueLayout[i],dx=next.x-roof.x,dz=next.z-roof.z;
+ Object.assign(roof,next);cityBuildingMeshes[i].position.x+=dx;cityBuildingMeshes[i].position.z+=dz;
+ for(let w=windowRanges[i].first;w<windowRanges[i].last;w++){windows[w*3]+=dx;windows[w*3+2]+=dz;}
+}
+// A low near-edge row continues both banks around the extended cruise turn.
+// Its own stream preserves every existing building and firework random choice.
+let nearRowSeed=0x141730;
+function nearRowRand(){nearRowSeed=(nearRowSeed*1664525+1013904223)>>>0;return nearRowSeed/4294967296;}
+for(const side of [-1,1])for(let col=0;col<5;col++){
+ const firstWindow=windows.length/3,z=1.25+(nearRowRand()-.5)*.012;
+ const x=riverCenter(z)+side*(riverWidth(z)/2+.14+col*.205),w=.105+nearRowRand()*.035,d=.085+nearRowRand()*.012,h=.12+nearRowRand()*.09;
+ const building=cube(x,h/2,z,w,h,d,mats[Math.floor(nearRowRand()*mats.length)]);building.name='near-edge-building-'+side+'-'+col;
+ for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++){
+  if(nearRowRand()>.38)addWindow(x+k*w*.25,level,z+d/2+.001,0,1);
+  if(nearRowRand()>.38)addWindow(x+k*w*.25,level,z-d/2-.001,0,-1);
+  if(nearRowRand()>.38)addWindow(x-w/2-.001,level,z+k*d*.25,-1,0);
+  if(nearRowRand()>.38)addWindow(x+w/2+.001,level,z+k*d*.25,1,0);
  }
  windowRanges.push({first:firstWindow,last:windows.length/3});
 }
@@ -94,13 +118,24 @@ for(const range of windowRanges){
 }
 const windowPose=new T.Object3D(),windowColor=new T.Color();
 for(let i=0;i<windows.length/3;i++){windowPose.position.fromArray(windows,i*3);windowPose.rotation.y=Math.atan2(windowNormals[i*3],windowNormals[i*3+2]);windowPose.updateMatrix();win.setMatrixAt(i,windowPose.matrix);win.setColorAt(i,windowColor.fromArray(windowColors,i*3));}win.instanceMatrix.needsUpdate=true;win.instanceColor.needsUpdate=true;
-const roadmat=new T.MeshStandardMaterial({color:0x3c464c});
-for(let z=-.98;z<1;z+=.055)for(let side of [-1,1])lamps.push(riverCenter(z)+side*(riverWidth(z)/2+.027),.018,z);
+const roadmat=new T.MeshStandardMaterial({color:0x252f37,roughness:.95}),sidewalkmat=new T.MeshStandardMaterial({color:0x48545d,roughness:.9});
+// The bridge deck slopes down on land, then its avenue continues to the town edge.
+const avenue=new T.Group();avenue.name='eitai-avenue';avenue.position.set(eitaiCenterX,0,EITAI_Z);avenue.rotation.y=EITAI_ANGLE;town.add(avenue);
+function avenueStrip(side,v0,v1,material,name){
+ const end=(side*1.58-eitaiCenterX)/Math.cos(EITAI_ANGLE),sections=[side*.35,side*1.35,end],vertices=[],indices=[];
+ for(let i=0;i<sections.length;i++){const u=sections[i],y=i===0?.1025:.004;vertices.push(u,y,v0,u,y,v1);if(i<sections.length-1){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}
+ if(side===-1)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
+ const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();
+ const mesh=new T.Mesh(geometry,material);mesh.name=name+'-'+side;avenue.add(mesh);
+}
+for(const side of [-1,1]){avenueStrip(side,-AVENUE_WIDTH/2,AVENUE_WIDTH/2,roadmat,'road');for(const edge of [-1,1]){const a=edge*AVENUE_WIDTH/2,b=edge*(AVENUE_WIDTH/2+SIDEWALK_WIDTH);avenueStrip(side,Math.min(a,b),Math.max(a,b),sidewalkmat,'sidewalk');}}
+
+for(let z=-.98;z<1.32;z+=.055)for(let side of [-1,1])lamps.push(riverCenter(z)+side*(riverWidth(z)/2+.027),.018,z);
 pointCloud(lamps,0xffe1a5,.009);
 // Preserve old town random consumption without keeping the placeholder boats.
 for(let i=0;i<9;i++){rand();rand();}
 let boatSeconds=0,boatWaitingShown=null;const boatPose=viewBoatPose(0);
-const riverNight=new RiverNight({town,riverGeometry:riverRibbon(-1.04,1.04,1,.005),riverCenter,riverSlope});
+const riverNight=new RiverNight({town,riverGeometry:riverRibbon(-1.04,1.36,1,.005),riverCenter,riverSlope});
 const tower=new T.Group();tower.position.set(1.1,0,-.7);town.add(tower);
 // A tall, dotted lattice of violet and pearl lights, inspired by the supplied night photograph.
 const towerMesh=new T.Mesh(new T.CylinderGeometry(.013,.065,1.18,12),new T.MeshStandardMaterial({color:0x141925,roughness:.9}));towerMesh.position.y=.59;tower.add(towerMesh);
@@ -141,7 +176,7 @@ const bridgeStarSprite=new T.CanvasTexture(bridgeStarCanvas),fireworkMaps={minia
 const roofSites=[];
 for(const roof of rooftops.toSorted((a,b)=>b.y-a.y)){
  if(roofSites.length>=8)break;
- if(roofSites.every(other=>Math.hypot(other.x-roof.x,other.z-roof.z)>.38))roofSites.push(roof);
+ if(roofSites.every(other=>Math.hypot((other.originalX??other.x)-(roof.originalX??roof.x),(other.originalZ??other.z)-(roof.originalZ??roof.z))>.38))roofSites.push(roof);
 }
 // The front right bank, second building from the river, also carries warning lights.
 const frontRightRoof=buildingRoofs.find(r=>r.side===1&&r.row===6&&r.col===1);
@@ -159,7 +194,7 @@ function updateRoofLights(seconds){
  for(let corner=0;corner<4;corner++)colors.setXYZ(i*4+corner,brightness,brightness*.012,brightness*.003);
  }colors.needsUpdate=true;
 }
-let showPlan=null,showNumber=0;
+let showPlan=null,showNumber=0,showCompleted=false;
 let selectedMusic=MUSIC_SHOWS[0],MUSIC_PLAN=selectedMusic.plan;
 let music=new MusicTransport(selectedMusic.src,{autoload:false});
 $('musicTrack').replaceChildren(...MUSIC_SHOWS.map(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.title;return option;}));$('musicTrack').value=selectedMusic.id;
@@ -167,11 +202,13 @@ function syncMusicScenes(){
  $('musicScene').replaceChildren(...MUSIC_PLAN.sections.filter(q=>q.at<MUSIC_PLAN.duration).map(q=>{const option=document.createElement('option');option.value=q.previewStart??Math.max(0,q.at-5);option.textContent=Math.floor(q.at/60)+':'+String(Math.floor(q.at%60)).padStart(2,'0')+' · '+q.label;return option;}));
 }
 syncMusicScenes();
+let musicSequence=null;
 let musicRequest=0,musicBusy=false,candyPeakAt=null,candyPeakLabel='キャンディー全開の瞬間です。';
 let musicLog=[],musicLastUI=-1;
 
-function prepareProgram(){const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalEarSequence(seed,.8,3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,intro.finishAt);$('programInfo').textContent=showPlan.name; }
+function prepareProgram(){showCompleted=false;const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalEarSequence(seed,.8,3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,intro.finishAt);$('programInfo').textContent=showPlan.name; }
 function prepareMusicProgram(){
+ showCompleted=false;
  showPlan={name:'音楽付き · '+selectedMusic.title,music:true};
  const shift=Number($('musicOffset').value)/1000;
  burstQueue=MUSIC_PLAN.shots.map(s=>({...s,at:s.at+shift,opening:s.opening+shift,position:{...s.position,startAt:s.at+shift}}));
@@ -182,8 +219,8 @@ function cancelMusicRequest(){candyPeakAt=null;musicRequest++;musicBusy=false;sy
 function syncShowButtons(){
  for(const id of ['candyPeak','candyQuiet','candySenrin'])if($(id))$(id).hidden=selectedMusic.id!=='pastel-parasite';
  $('play').textContent=showPlan?.music?'曲なしの大会へ':running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';
- $('musicShow').disabled=musicBusy;
- $('musicShow').textContent=musicBusy?'曲を準備中…':showPlan?.music?(running?'音楽付き · ひと休み':'音楽付き · 再開'):selectedMusic.title+'を観る';
+ $('musicShow').disabled=musicBusy;$('musicAll').disabled=musicBusy;
+ $('musicShow').textContent=musicBusy?'曲を準備中…':showPlan?.music?(showCompleted?selectedMusic.title+'をもう一度':running?'音楽付き · ひと休み':'音楽付き · 再開'):selectedMusic.title+'を観る';
 }
 async function beginMusicShow(){
  if(musicBusy)return;
@@ -192,8 +229,38 @@ async function beginMusicShow(){
  $('musicState').textContent='曲を準備中…';
  try{await music.load();}catch(e){if(request!==musicRequest)return;musicBusy=false;music.ready=null;syncShowButtons();$('musicState').textContent='曲を読み込めませんでした。もう一度お試しください。';return;}
  if(request!==musicRequest)return;
- musicBusy=false;music.stop();clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();previewing=false;previewPaused=false;time=0;cueIndex=0;prepareMusicProgram();ensureAudio();music.play(audio,0);running=true;
- $('musicState').textContent=selectedMusic.title+' · '+MUSIC_PLAN.duration.toFixed(1)+'秒';$('status').textContent=selectedMusic.description;syncShowButtons();mrPanel.draw();
+ musicBusy=false;startLoadedMusicShow();
+}
+function clearMusicSequence(){
+ musicSequence=null;$('musicSequenceState').textContent='花火の夜 → 夏の名残 → パステル・パラサイト。余韻まで観て、次の曲へ。';
+}
+function selectMusic(chosen,transport=new MusicTransport(chosen.src,{autoload:false})){
+ music.stop();selectedMusic=chosen;MUSIC_PLAN=chosen.plan;music=transport;
+ music.setVolume(Number($('musicVolume').value));music.clickEnabled=$('musicClick').checked;
+ $('musicTrack').value=chosen.id;$('musicState').textContent=chosen.description;musicLastUI=-1;syncMusicScenes();
+}
+function startLoadedMusicShow(){
+ music.stop();clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();previewing=false;previewPaused=false;time=0;cueIndex=0;musicLastUI=-1;
+ prepareMusicProgram();ensureAudio();music.play(audio,0);running=true;
+ $('status').textContent=selectedMusic.description;
+ if(musicSequence)$('musicSequenceState').textContent='連続鑑賞 · '+(musicSequence.index+1)+' / '+musicSequence.tracks.length+'曲目 · '+selectedMusic.title;
+ syncShowButtons();drawMusicTimeline();mrPanel.draw();
+}
+async function beginMusicSequence(){
+ if(musicBusy)return;
+ stopShow();ensureAudio();
+ const request=++musicRequest;musicBusy=true;syncShowButtons();
+ $('musicSequenceState').textContent='３曲を準備中…';
+ // Prepare all tracks under the user's start action so each change is immediate.
+ const tracks=['hanabi-no-yoru','natsu-no-nagori','pastel-parasite'].map(id=>MUSIC_SHOWS.find(item=>item.id===id)).map(item=>({item,transport:item.id===selectedMusic.id?music:new MusicTransport(item.src,{autoload:false})}));
+ try{await Promise.all(tracks.map(({transport})=>transport.load()));}
+ catch(e){if(request!==musicRequest)return;musicBusy=false;for(const {transport} of tracks)if(!transport.loaded)transport.ready=null;clearMusicSequence();syncShowButtons();$('musicSequenceState').textContent='曲を読み込めませんでした。「全てを続けて見る」でお試しください。';return;}
+ if(request!==musicRequest)return;
+ musicBusy=false;musicSequence={tracks,index:0};selectMusic(tracks[0].item,tracks[0].transport);startLoadedMusicShow();
+}
+function advanceMusicSequence(){
+ if(!musicSequence||musicSequence.index+1>=musicSequence.tracks.length)return false;
+ const next=musicSequence.tracks[++musicSequence.index];selectMusic(next.item,next.transport);startLoadedMusicShow();return true;
 }
 function beginNormalShow(){stopShow();prepareProgram();running=true;ensureAudio();syncShowButtons();$('status').textContent='稲穂の横一列から、曲なしの花火大会を始めます。';}
 
@@ -272,7 +339,7 @@ function launch(kind='core',size=5,position=null){
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
  const m=new T.PointsMaterial({size:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
- const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.04,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
+ const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.36,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
  // Let the preceding flower fade gently before a planned ground-only scene.
@@ -490,6 +557,7 @@ function advanceStarmine(){
  }
 }
 function stopShow(){
+ clearMusicSequence();showCompleted=false;
  cancelMusicRequest();music.stop();
  running=false;previewing=false;showPlan=null;clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();time=0;cueIndex=0;nextLaunch=.8;
  if(audio){audio.close();audio=null;soundEngine=null;}
@@ -509,7 +577,7 @@ function restart(){
 }
 
 function beginPreview(){
- cancelMusicRequest();music.stop();
+ clearMusicSequence();cancelMusicRequest();music.stop();
  running=false;previewing=true;previewPaused=false;showPlan=null;time=0;cueIndex=0;nextLaunch=.8;
  clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();
  syncShowButtons();$('chapter').textContent='試し打ち';$('last').textContent='次の一玉を待つ';
@@ -548,7 +616,7 @@ function advance(dt){
  if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern&&!awaitingEar){const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}
  updateFireworks();
  const elapsed=Math.min(300,Math.floor(time));$('chapter').textContent=chapter(Math.min(time,299))+' · '+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
- if(time>=300){if($('ending').value==='loop'){clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();time=0;nextLaunch=2;cueIndex=0;prepareProgram();}else{running=false;$('play').textContent='花火大会を観る';$('status').textContent='大会が終わりました。街の灯りをお楽しみください。';}}
+ if(time>=300){if($('ending').value==='loop'){clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();time=0;nextLaunch=2;cueIndex=0;prepareProgram();}else{showCompleted=true;running=false;$('play').textContent='花火大会を観る';$('status').textContent='大会が終わりました。街の灯りをお楽しみください。';}}
 }
 function updateReflections(){
  town.updateWorldMatrix(true,false);
@@ -560,6 +628,7 @@ function ensureAudio(){
  audio.resume().catch(e=>{$('status').textContent='音声を開始できませんでした：'+e.message;});
 }
 function toggle(){
+ showCompleted=false;
  if(showPlan?.music){
   if(!running){
    if(musicCanFinish()){clearFireworks();clearFans();time=0;prepareMusicProgram();}
@@ -574,7 +643,7 @@ function toggle(){
 }
 $('play').disabled=false;$('play').textContent='花火大会を観る';
 $('play').onclick=()=>{if(showPlan?.music)beginNormalShow();else if(time>=300)restart();else toggle();};
-$('musicShow').onclick=beginMusicShow;$('musicStop').onclick=stopShow;$('musicRestart').onclick=()=>{if(showPlan?.music)restart();else beginMusicShow();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
+$('musicAll').onclick=beginMusicSequence;$('musicShow').onclick=beginMusicShow;$('musicStop').onclick=stopShow;$('musicRestart').onclick=()=>{if(showPlan?.music)restart();else beginMusicShow();};$('restart').onclick=restart;$('stop').onclick=stopShow;$('reset').onclick=resetAll;
 $('musicFinale').onclick=()=>beginMusicExcerpt(MUSIC_PLAN.finalPreviewStart??MUSIC_PLAN.duration-12,'最後の大輪と、曲後の余韻を観ます。');
 $('musicPyramid').onclick=()=>beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');
 $('cometShow').onclick=()=>beginCometStudy();
@@ -635,7 +704,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
@@ -793,7 +862,7 @@ function enterBridge(transform=null,mode='bridge'){
  if(bridgeView.active&&bridgeView.mode===mode)return;entryTip.end();triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();if(!bridgeView.active)miniAngles={yaw,pitch};pendingPlace=false;
  bridgeView.enter(transform,mode);yaw=0;pitch=mode==='boat'?.15:.95;applyViewBackground();syncViewControls();
  showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode});
- $('status').textContent=mode==='boat'?'屋形船の上のデッキです。永代橋から清澄橋の下をくぐり、奥の橋の手前で折り返します。花火の一時停止中は船も停まります。':'橋の上：左スティックでゆっくり移動。サイドパネルを出したままでも歩けます。';
+ $('status').textContent=mode==='boat'?'屋形船の上のデッキです。街の手前から永代橋と清澄橋をくぐり、奥の橋の手前で折り返して戻ります。大会終了後も船は周回します。一時停止中は船も停まります。':'橋の上：左スティックでゆっくり移動。サイドパネルを出したままでも歩けます。';
 }
 function leaveBridge(){
  if(!bridgeView.active)return;pendingViewMode=null;triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
@@ -858,10 +927,11 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
   if(pendingDiorama){pendingDiorama=false;toggleDiorama();}if(pendingBridge){enterBridge(pose.transform,pendingBridge===true?'bridge':pendingBridge);pendingBridge=false;}
  }
  if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);pendingPanelOpen=false;}
- const boatPaused=(previewing&&previewPaused)||!!showPlan&&!running;
+ // A completed show leaves the river cruise running; a user pause still holds it.
+ const boatPaused=(previewing&&previewPaused)||!!showPlan&&!running&&!showCompleted;
  if(xrVisible)boatSeconds=riverNight.advanceCruise(boatSeconds,dt,bridgeView.active&&bridgeView.mode==='boat'&&!boatPaused);
  viewBoatPose(boatSeconds,boatPose);bridgeView.cruise(boatPose);riverNight.setViewingPose(boatPose);
- if(bridgeView.active&&bridgeView.mode==='boat'){if(boatWaitingShown!==riverNight.cruiseWaiting){boatWaitingShown=riverNight.cruiseWaiting;$('viewHint').textContent=boatWaitingShown?'前の船が通るのを待っています。空いたら、ゆっくり進みます。':'清澄橋をくぐる屋形船。デッキ内は自分の足／左スティックで移動。MacはWASD。';}}else boatWaitingShown=null;
+ if(bridgeView.active&&bridgeView.mode==='boat'){if(boatWaitingShown!==riverNight.cruiseWaiting){boatWaitingShown=riverNight.cruiseWaiting;$('viewHint').textContent=boatWaitingShown?'前の船が通るのを待っています。空いたら、ゆっくり進みます。':'永代橋と清澄橋をくぐる屋形船。デッキ内は自分の足／左スティックで移動。MacはWASD。';}}else boatWaitingShown=null;
  entryTip.update(stamp,!!session&&xrVisible&&!bridgeView.active);
  $('cometTime').textContent=previewing?'試し打ち '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':''):cometCompleted?'試し打ちが終了しました':showPlan?.music?'曲つき演出':'開演前';
  $('cometPause').textContent=previewPaused?'試し打ちを再開':'試し打ちを一時停止';$('cometPause').disabled=!previewing;
@@ -890,7 +960,7 @@ music.setVolume(Number($('musicVolume').value));
 $('musicState').textContent=selectedMusic.description;
 $('musicTrack').onchange=()=>{
  const chosen=MUSIC_SHOWS.find(item=>item.id===$('musicTrack').value);if(!chosen||chosen===selectedMusic)return;
- if(showPlan?.music)stopShow();else cancelMusicRequest();music.stop();selectedMusic=chosen;MUSIC_PLAN=chosen.plan;music=new MusicTransport(chosen.src,{autoload:false});music.setVolume(Number($('musicVolume').value));
+ clearMusicSequence();if(showPlan?.music)stopShow();else cancelMusicRequest();selectMusic(chosen);
  $('musicState').textContent=chosen.description;musicLastUI=-1;syncMusicScenes();syncShowButtons();drawMusicTimeline();mrPanel.draw();
 };
 
@@ -900,6 +970,7 @@ $('musicClick').onchange=()=>music.clickEnabled=$('musicClick').checked;
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseMusicForVisibility();});
 
 async function beginMusicExcerpt(start,label){
+ clearMusicSequence();if(musicBusy)cancelMusicRequest();
  if(!music.loaded){await beginMusicShow();if(!showPlan?.music)return;}
  cancelMusicRequest();music.stop();clearFireworks();clearFans();fanQueue=[];previewing=false;time=Math.max(0,start);prepareMusicProgram();
  burstQueue=burstQueue.filter(s=>s.at>=time-.02);fanQueue=fanQueue.filter(s=>s.at>=time-.02);ensureAudio();music.play(audio,time);running=true;syncShowButtons();$('status').textContent=label;
@@ -909,7 +980,7 @@ function beginMusicFinale(){return beginMusicExcerpt(MUSIC_PLAN.finalPreviewStar
 function musicMiddleStart(){return MUSIC_PLAN.middlePreviewStart??MUSIC_PLAN.pyramidAt-5;}
 function beginMusicPyramid(){return beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');}
 function pauseMusicForVisibility(){
- if(musicBusy)cancelMusicRequest();
+ if(musicBusy){clearMusicSequence();cancelMusicRequest();}
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();triggerEmbers.clear();$('status').textContent='鑑賞を離れたので、試し打ちを一時停止しました。「試し打ちを再開」で戻れます。';}
  if(running&&showPlan?.music){time=music.pause();running=false;cancelFutureSounds();triggerEmbers.clear();syncShowButtons();$('status').textContent='鑑賞を離れたので、曲と花火を一時停止しました。';}
 }
@@ -929,7 +1000,13 @@ function advanceMusic(dt){
  const section=MUSIC_PLAN.sections.filter(s=>s.at<=time).at(-1);
  $('chapter').textContent=(section?.label??selectedMusic.title)+' · '+Math.floor(time/60)+':'+String(Math.floor(time%60)).padStart(2,'0');
  if(time>=MUSIC_PLAN.duration&&!musicCanFinish())$('status').textContent='曲が終わりました。残る光と花火の音の余韻をお楽しみください。';
- if(musicCanFinish()){music.pause();running=false;cancelFutureSounds();drawMusicTimeline();syncShowButtons();$('musicShow').textContent=selectedMusic.title+'をもう一度';$('status').textContent='花火の余韻とともに、大会が終わりました。';}
+ if(musicCanFinish()){
+  music.pause();cancelFutureSounds();
+  if(advanceMusicSequence())return;
+  const allFinished=!!musicSequence;showCompleted=true;running=false;musicSequence=null;
+  if(allFinished)$('musicSequenceState').textContent='３曲の連続鑑賞が終わりました。';
+  drawMusicTimeline();syncShowButtons();mrPanel.draw();$('status').textContent=(allFinished?'３曲の花火大会が終わりました。':'花火の余韻とともに、大会が終わりました。')+(bridgeView.active&&bridgeView.mode==='boat'?'屋形船は周回を続けます。':'');
+ }
 }
 function drawMusicTimeline(){
  const c=$('musicTimeline'),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);

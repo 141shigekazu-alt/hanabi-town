@@ -212,12 +212,14 @@ export class MRPanel{
   }else if(this.page===4){
    this.selector('musicTrack','曲を選ぶ',247,s.musicTrack);
    this.button('musicShow',s.musicLabel??'花火の夜を観る',28,360,744,64,()=>this.click('musicShow'),{selected:s.musicShow&&!s.running});
-   this.button('musicStop','大会を止める',28,438,360,54,()=>this.click('musicStop'));
-   this.button('musicRestart','最初から観る',412,438,360,54,()=>this.click('musicRestart'));
-   this.wrap(s.musicState??'花火の夜 · 約２分',32,534,736,2);
-   this.range('musicVolume','音楽の音量',622,s.musicVolume);
-   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,757,736,3);
-   this.text('右B：いま観ている大会を一時停止・再開',32,912,21,'#aebfc9');
+   this.button('musicAll','全てを続けて見る',28,438,744,54,()=>this.click('musicAll'),{selected:s.musicSequence});
+   this.button('musicStop','大会を止める',28,516,360,54,()=>this.click('musicStop'));
+   this.button('musicRestart','最初から観る',412,516,360,54,()=>this.click('musicRestart'));
+   this.wrap(s.musicSequenceState,32,610,736,2);
+   this.wrap(s.musicState??'花火の夜 · 約２分',32,700,736,2);
+   this.range('musicVolume','音楽の音量',788,s.musicVolume);
+   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,923,736,3);
+   this.text('右B：いま観ている大会を一時停止・再開',32,1078,21,'#aebfc9');
   }else if(this.page===1){
    this.button('upperStudy','上空の花火',28,238,360,54,()=>{this.groundStudy=false;},{selected:!this.groundStudy});
    this.button('groundStudy','大トラ・子トラ',412,238,360,54,()=>{this.groundStudy=true;},{selected:this.groundStudy});

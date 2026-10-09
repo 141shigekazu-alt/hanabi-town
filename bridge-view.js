@@ -1,11 +1,12 @@
 import * as T from './vendor/three.module.js';
 import {viewBoatPose} from './boat-cruise.js';
+import {EITAI_ANGLE} from './city-layout.js';
 
 // Town units are authored for the miniature. XR cameras, controllers and UI
 // always stay in physical metres; only the town is enlarged around the viewer.
 export const BRIDGE_SCALE=100,SEATED_EYE_HEIGHT=1.2;
 // Move the seated viewpoint 2.125 metres left along the deck, midway between adjacent hangers.
-const bridgeAngle=Math.atan(.594*Math.cos(.67*2.7+.35));
+const bridgeAngle=EITAI_ANGLE;
 export const FRONT_BRIDGE=new T.Vector3(-.02125,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
 const initialBoat=viewBoatPose(0);
 export const BOAT_ORIGIN=new T.Vector3(initialBoat.x,0,initialBoat.z);

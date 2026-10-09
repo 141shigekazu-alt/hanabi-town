@@ -1,6 +1,7 @@
 import * as T from './vendor/three.module.js';
 import {BOAT_ORIGIN} from './bridge-view.js';
-import {viewBoatPose} from './boat-cruise.js';
+import {viewBoatPose,cruiseTurnWindow} from './boat-cruise.js';
+import {EITAI_ANGLE} from './city-layout.js';
 
 // Author geometry once, merging details by material instead of one draw per rail.
 class Pieces{
@@ -20,8 +21,8 @@ class Pieces{
 export const BRIDGE_DESIGNS=Object.freeze([{id:'three-arches',z:-.58},{id:'suspension',z:.05},{id:'blue-arch',z:.67}]);
 function bridgeGeometry(id){
  const body=new Pieces(),lights=new Pieces(),deck=.1025,width=.7;
- // Keep the deck top and skyline, but give the steel suspension deck a thinner underside.
- const thickness=id==='suspension'?.010:.025;body.box(0,deck-thickness/2,0,width,thickness,.085,0x323d49);
+ // Keep both navigated bridge tops and skylines; thin their deck undersides for clearance.
+ const thickness=id==='suspension'||id==='blue-arch'?.010:.025;body.box(0,deck-thickness/2,0,width,thickness,.085,0x323d49);
  for(const z of [-.043,.043]){
   body.beam([-.35,.116,z],[.35,.116,z],.0014,0x7d939f);
   lights.beam([-.35,.109,z],[.35,.109,z],.00065,0xffd298);
@@ -115,12 +116,12 @@ export function boatsOverlap(a,b,padding=.004){
 }
 export class RiverNight{
  constructor({town,riverGeometry,riverCenter,riverSlope}){
-  this.town=town;this.riverCenter=riverCenter;this.riverSlope=riverSlope;this.clock=0;this.trafficClocks=[0,0,0,0];this.cruiseRate=1;this.cruiseWaiting=false;this.viewingPose=viewBoatPose(0);
+  this.town=town;this.riverCenter=riverCenter;this.riverSlope=riverSlope;this.clock=0;this.trafficClocks=[0,0,0,0];this.cruiseRate=1;this.cruiseWaiting=false;this.turnReservation=null;this.turnEnvelope=null;this.viewingPose=viewBoatPose(0);
   this.root=new T.Group();this.root.name='river-night';town.add(this.root);
   this.bodyMaterial=new T.MeshStandardMaterial({vertexColors:true,roughness:.8});
   this.lightMaterial=new T.MeshBasicMaterial({vertexColors:true,toneMapped:false});
   this.bridges=[];
-  for(const design of BRIDGE_DESIGNS){const g=new T.Group();g.name=design.id;const parts=bridgeGeometry(design.id);g.add(parts.body.mesh(this.bodyMaterial),parts.lights.mesh(this.lightMaterial));g.position.set(riverCenter(design.z),0,design.z);g.rotation.y=Math.atan(riverSlope(design.z));this.root.add(g);this.bridges.push(g);}
+  for(const design of BRIDGE_DESIGNS){const g=new T.Group();g.name=design.id;const parts=bridgeGeometry(design.id);g.add(parts.body.mesh(this.bodyMaterial),parts.lights.mesh(this.lightMaterial));g.position.set(riverCenter(design.z),0,design.z);g.rotation.y=design.id==='blue-arch'?EITAI_ANGLE:Math.atan(riverSlope(design.z));this.root.add(g);this.bridges.push(g);}
   this.boats=[];this.boatColors=[0xffb044,0xffd98a,0xff599f,0xff8254];
   const template=boatGeometry(0xffffff),body=template.body.mesh(this.bodyMaterial),lit=template.lights.mesh(this.lightMaterial);
   for(let i=0;i<4;i++){const g=new T.Group();g.name='yakatabune-'+i;g.scale.setScalar(.8);const boatBody=this.bodyMaterial.clone();boatBody.transparent=true;boatBody.depthWrite=true;boatBody.emissive.setHex(0x45372a);boatBody.emissiveIntensity=.12;g.add(new T.Mesh(body.geometry,boatBody),new T.Mesh(lit.geometry,new T.MeshBasicMaterial({color:this.boatColors[i],vertexColors:true,toneMapped:false,transparent:true,depthWrite:false})));g.children[0].renderOrder=1;g.children[1].renderOrder=2;this.root.add(g);this.boats.push(g);}
@@ -161,6 +162,15 @@ export class RiverNight{
  advanceCruise(seconds,dt,moving){
   if(!dt)return seconds;
   const own=Object.assign(viewBoatPose(seconds),{viewing:true}),traffic=this.trafficClocks.map((t,i)=>boatPose(i,t,this.riverCenter,this.riverSlope));
+  const turn=cruiseTurnWindow(seconds);
+  if(!turn||this.turnEnvelope?.key!==turn.key){
+   this.turnReservation=null;
+   this.turnEnvelope=turn?{key:turn.key,poses:Array.from({length:Math.ceil(turn.duration/2)+1},(_,i)=>Object.assign(viewBoatPose(turn.key+Math.min(turn.duration,i*2)),{viewing:true}))}:null;
+  }
+  const inTurn=p=>this.turnEnvelope?.poses.some(own=>boatsOverlap(own,p,.012));
+  const turnOccupied=turn&&traffic.some(p=>p.visible&&inTurn(p));
+  if(moving&&turn&&!this.turnReservation&&!turnOccupied)this.turnReservation=turn;
+  const turnYield=!!turn&&!this.turnReservation;
   const held=[];
   // A following boat must also stop rather than pass through a stopped passenger boat.
   for(let i=0;i<4;i++){
@@ -173,6 +183,7 @@ export class RiverNight{
    }
    const next=boatPose(i,this.trafficClocks[i]+dt*pace,this.riverCenter,this.riverSlope);
    held[i]=next.visible&&boatsOverlap(own,next);
+   if(this.turnReservation&&next.visible&&inTurn(next))held[i]=true;
    for(let j=0;j<4;j++)if(j!==i&&next.visible&&traffic[j].visible){
     if(boatsOverlap(next,traffic[j]))held[i]=true;
     // Delay entry from the river edge as well; a fading-in boat must not join a tight queue.
@@ -181,7 +192,7 @@ export class RiverNight{
    if(!held[i])this.trafficClocks[i]+=dt*pace;
    traffic[i]=boatPose(i,this.trafficClocks[i],this.riverCenter,this.riverSlope);
   }
-  let waiting=false;
+  let waiting=moving&&turnYield;
   if(moving){
    // Let oncoming boats clear the approach before entering their swept path.
    for(let i=0;i<4;i++)if(traffic[i].visible){
@@ -195,7 +206,7 @@ export class RiverNight{
   }
   const target=moving&&!waiting?1:0;
   this.cruiseRate=Math.max(0,Math.min(1,this.cruiseRate+Math.sign(target-this.cruiseRate)*dt*.7));
-  let nextSeconds=seconds+(moving?dt*this.cruiseRate:0);
+  let nextSeconds=seconds+(moving&&!turnYield?dt*this.cruiseRate:0);
   const next=Object.assign(viewBoatPose(nextSeconds),{viewing:true});
   if(traffic.some(p=>p.visible&&boatsOverlap(next,p))){nextSeconds=seconds;this.cruiseRate=0;waiting=true;}
   this.cruiseWaiting=moving&&waiting;return nextSeconds;
@@ -218,7 +229,7 @@ export class RooftopCranes{
   const frame=new Pieces(),positions=[],colors=[];
   for(const [index,side] of [-1,-1,1].entries()){
    const target=[-.45,.82,.05][index];
-   const roof=rooftops.filter(r=>(r.x-riverCenter(r.z))*side>0&&!this.sites.some(s=>s.roof===r)).toSorted((a,b)=>(Math.abs(a.z-target)+Math.abs(a.x-riverCenter(a.z))*.3)-(Math.abs(b.z-target)+Math.abs(b.x-riverCenter(b.z))*.3))[0];
+   const roof=rooftops.filter(r=>(r.x-riverCenter(r.z))*side>0&&!this.sites.some(s=>s.roof===r)).toSorted((a,b)=>(Math.abs((a.originalZ??a.z)-target)+Math.abs((a.originalX??a.x)-riverCenter(a.originalZ??a.z))*.3)-(Math.abs((b.originalZ??b.z)-target)+Math.abs((b.originalX??b.x)-riverCenter(b.originalZ??b.z))*.3))[0];
    if(!roof)continue;
    const h=[.17,.135,.15][index],jib=[.19,.16,.175][index],back=.062,turn=[-.55,.65,-.9][index],c=new Pieces(),tint=0x887b60;
    for(const x of [-.012,.012])for(const z of [-.012,.012])c.beam([x,0,z],[x,h,z],.0014,tint);
