@@ -57,9 +57,10 @@ function bridgeGeometry(id){
 }
 function boatGeometry(tint){
  const body=new Pieces(),lights=new Pieces();
+ // The pointed bow faces local -Z, matching navigation, the camera and deck.
  // A long, low hull with a raised pointed bow, cabin and continuous roof.
  const outline=new T.Shape();outline.moveTo(-.026,-.085);outline.lineTo(.026,-.085);outline.lineTo(.027,.062);outline.lineTo(0,.096);outline.lineTo(-.027,.062);outline.closePath();
- const hull=new T.ExtrudeGeometry(outline,{depth:.013,bevelEnabled:false});hull.rotateX(-Math.PI/2);hull.rotateY(Math.PI);body.add(hull,0xd4c59a,new T.Vector3(0,.006,0));
+ const hull=new T.ExtrudeGeometry(outline,{depth:.013,bevelEnabled:false});hull.rotateX(-Math.PI/2);body.add(hull,0xd4c59a,new T.Vector3(0,.006,0));
  body.box(0,.028,-.009,.041,.025,.126,0x634635);
  // A closed roof with a raised crown and visible eaves, rather than a dark flat deck.
  const roof=new T.Shape();roof.moveTo(-.028,.043);roof.lineTo(-.028,.049);roof.lineTo(-.012,.055);roof.lineTo(.012,.055);roof.lineTo(.028,.049);roof.lineTo(.028,.043);roof.closePath();
