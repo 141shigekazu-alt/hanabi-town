@@ -1,28 +1,28 @@
-import {EITAI_ANGLE,EITAI_Z,eitaiCenterX,AVENUE_WIDTH,SIDEWALK_WIDTH,arrangeCity} from './city-layout.js?v=1.1.35';
-import {viewBoatPose} from './boat-cruise.js?v=1.1.35';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.35';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.35';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.35';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.35';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.35';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.35';
+import {EITAI_ANGLE,EITAI_Z,eitaiCenterX,AVENUE_WIDTH,SIDEWALK_WIDTH,arrangeCity} from './city-layout.js?v=1.1.36';
+import {viewBoatPose} from './boat-cruise.js?v=1.1.36';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.36';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.36';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.36';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.36';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.36';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.36';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.35';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.36';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.35';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.35';
-import {FireworkAudio} from './audio.js?v=1.1.35';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.35';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.35';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.35';
-import {TowerLighting} from './tower-lighting.js?v=1.1.35';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.35';
-import {ShowInfoPanel} from './show-info.js?v=1.1.35';
-import {WristMenu} from './wrist-menu.js?v=1.1.35';
-import {XRControls} from './xr-controls.js?v=1.1.35';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.35';
-import {EntryTip} from './entry-tip.js?v=1.1.35';
-const BUILD_VERSION='1.1.35';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.36';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.36';
+import {FireworkAudio} from './audio.js?v=1.1.36';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.36';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.36';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.36';
+import {TowerLighting} from './tower-lighting.js?v=1.1.36';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.36';
+import {ShowInfoPanel} from './show-info.js?v=1.1.36';
+import {WristMenu} from './wrist-menu.js?v=1.1.36';
+import {XRControls} from './xr-controls.js?v=1.1.36';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.36';
+import {EntryTip} from './entry-tip.js?v=1.1.36';
+const BUILD_VERSION='1.1.36';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -134,7 +134,7 @@ for(let z=-.98;z<1.32;z+=.055)for(let side of [-1,1])lamps.push(riverCenter(z)+s
 pointCloud(lamps,0xffe1a5,.009);
 // Preserve old town random consumption without keeping the placeholder boats.
 for(let i=0;i<9;i++){rand();rand();}
-let boatSeconds=0,boatWaitingShown=null;const boatPose=viewBoatPose(0);
+let boatSeconds=0,boatWaitingShown=null,boatStarted=false;const boatPose=viewBoatPose(0);
 const riverNight=new RiverNight({town,riverGeometry:riverRibbon(-1.04,1.36,1,.005),riverCenter,riverSlope});
 const tower=new T.Group();tower.position.set(1.1,0,-.7);town.add(tower);
 // A tall, dotted lattice of violet and pearl lights, inspired by the supplied night photograph.
@@ -564,7 +564,7 @@ function stopShow(){
  syncShowButtons();$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';drawMusicTimeline();
 }
 function resetAll(){
- cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();stopShow();restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one',musicVolume:'0.65'};
+ cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();stopShow();resetBoatCruise(false);restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'original',program:'one',musicVolume:'0.65'};
  for(const [id,value] of Object.entries(defaults))$(id).value=value;music.setVolume(.65);
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
@@ -733,7 +733,7 @@ async function exitMRToPage(){
 const entryTip=new EntryTip(scene);
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
-const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',choose:mode=>{if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
+const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',readCruiseStarted:()=>boatStarted,choose:mode=>{if(mode==='boat-start'){$('boatStart').click();return;}if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
 function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
 $('showInfo').onclick=toggleShowInfo;
 // Each hand keeps a snapshot of the chosen shell; changing the picker later
@@ -847,8 +847,8 @@ if(panelPreview){
 }
 function syncViewControls(){
  $('bridge').textContent=bridgeView.active&&bridgeView.mode==='bridge'?'ミニチュアに戻る':'街に入る · 手前の橋';
- $('boat').textContent=bridgeView.active&&bridgeView.mode==='boat'?'屋形船を降りる':'屋形船から観る';
- $('viewHint').textContent=bridgeView.active?(bridgeView.mode==='boat'?'屋形船のデッキ：自分の足／左スティックで歩けます。MacはWASDで移動。':'橋の上：左スティックで約３m×1.5mの範囲を移動。サイドパネルを出したままでも歩けます。'):'街全体を眺める／橋の上から見上げる。どちらも同じ花火大会です。';
+ $('boat').textContent=bridgeView.active&&bridgeView.mode==='boat'?'屋形船を降りる':'屋形船から観る';$('boatStart').hidden=!boatStarted;
+ $('viewHint').textContent=bridgeView.active?(bridgeView.mode==='boat'?'屋形船のデッキ：自分の足／左スティックで歩けます。MacはWASDで移動。':'橋の上：左スティックで約３m×1.5mの範囲を移動。サイドパネルを出したままでも歩けます。'):boatStarted?'降りた屋形船も航行を続けます。乗り直すと、その時の船へ戻れます。':'街を見下ろす／橋の上から見上げる／屋形船から眺める。同じ花火大会を楽しめます。';
  for(const id of ['scale','distance','height','roomBrightness','mrPreset','diorama'])$(id).disabled=bridgeView.active;
  document.body.classList.toggle('bridge-view',bridgeView.active);
 }
@@ -860,14 +860,14 @@ function applyViewBackground(){
 }
 function enterBridge(transform=null,mode='bridge'){
  if(bridgeView.active&&bridgeView.mode===mode)return;entryTip.end();triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();if(!bridgeView.active)miniAngles={yaw,pitch};pendingPlace=false;
- bridgeView.enter(transform,mode);yaw=0;pitch=mode==='boat'?.15:.95;applyViewBackground();syncViewControls();
+ if(mode==='boat')boatStarted=true;bridgeView.enter(transform,mode);yaw=0;pitch=mode==='boat'?.15:.95;applyViewBackground();syncViewControls();
  showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode});
- $('status').textContent=mode==='boat'?'屋形船の上のデッキです。街の手前から永代橋と清澄橋をくぐり、奥の橋の手前で折り返して戻ります。大会終了後も船は周回します。一時停止中は船も停まります。':'橋の上：左スティックでゆっくり移動。サイドパネルを出したままでも歩けます。';
+ $('status').textContent=mode==='boat'?'屋形船の上のデッキです。街の手前から永代橋と清澄橋をくぐり、奥の橋の手前で折り返して戻ります。降りたあとも船は航行し、乗り直すとその時の位置へ戻れます。「出航位置に戻る」で最初から乗れます。一時停止中は船も停まります。':'橋の上：左スティックでゆっくり移動。サイドパネルを出したままでも歩けます。';
 }
 function leaveBridge(){
  if(!bridgeView.active)return;pendingViewMode=null;triggerEmbers.clear();controls.release();wristMenu.close();wristMenu.moved=false;cancelFutureSounds();bridgeView.leave();yaw=miniAngles?.yaw??0;pitch=miniAngles?.pitch??0;miniAngles=null;
  applyViewBackground();syncViewControls();showInfo.reanchor();mrMeta?.viewChanges.push({showTime:time,mode:'miniature'});
- $('status').textContent='ミニチュアの街へ戻りました。花火大会は続いています。';
+ $('status').textContent='街を見下ろす視点へ戻りました。花火大会は続いています。';
 }
 async function checkMR(){
  if(!isSecureContext){$('mr').textContent='MRにはHTTPSかQuestのlocalhostが必要';$('mrInfo').textContent='LANの通常HTTPではMRを開始できません。';return;}
@@ -909,6 +909,19 @@ $('bridge').onclick=()=>{
  // Desktop preview and browsers without immersive VR share the same bridge.
  ensureAudio();enterBridge();if(panelPreview)mrPanel.draw();
 };
+// Returning to departure resets only the cruise, preserving the current show.
+function resetBoatCruise(start=true){
+ boatSeconds=0;boatStarted=start;boatWaitingShown=null;
+ riverNight.turnReservation=null;riverNight.turnEnvelope=null;riverNight.cruiseRate=1;riverNight.cruiseWaiting=false;
+ bridgeView.boatWalk.set(0,0,0);viewBoatPose(0,boatPose);bridgeView.cruise(boatPose);riverNight.setViewingPose(boatPose);
+ syncViewControls();
+}
+$('boatStart').onclick=()=>{
+ if(mrStarting)return;
+ resetBoatCruise();
+ if(!bridgeView.active||bridgeView.mode!=='boat')$('boat').click();
+ else{$('status').textContent='出航位置へ戻りました。永代橋を前に見ながら、もう一度出発します。';}
+};
 $('boat').onclick=()=>{if(mrStarting)return;if(bridgeView.active&&bridgeView.mode==='boat'){leaveBridge();return;}if(mrSession){pendingViewMode='boat';return;}if(vrSupported&&!panelPreview){startXR('immersive-vr','boat');return;}ensureAudio();enterBridge(null,'boat');};
 syncViewControls();checkMR();if(new URLSearchParams(location.search).has('boatView'))$('boat').click();
 const walkKeys=new Set();addEventListener('keydown',e=>{if(!/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName??''))walkKeys.add(e.code);});addEventListener('keyup',e=>walkKeys.delete(e.code));addEventListener('blur',()=>walkKeys.clear());
@@ -927,9 +940,9 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
   if(pendingDiorama){pendingDiorama=false;toggleDiorama();}if(pendingBridge){enterBridge(pose.transform,pendingBridge===true?'bridge':pendingBridge);pendingBridge=false;}
  }
  if(pendingPanelOpen&&pose){mrPanel.begin(pose.transform);setPanelTab(0);controls.begin(pose.transform);if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);pendingPanelOpen=false;}
- // A completed show leaves the river cruise running; a user pause still holds it.
+ // Once boarded, the boat keeps cruising through view changes. A user pause still holds it.
  const boatPaused=(previewing&&previewPaused)||!!showPlan&&!running&&!showCompleted;
- if(xrVisible)boatSeconds=riverNight.advanceCruise(boatSeconds,dt,bridgeView.active&&bridgeView.mode==='boat'&&!boatPaused);
+ if(xrVisible)boatSeconds=riverNight.advanceCruise(boatSeconds,dt,boatStarted&&!boatPaused);
  viewBoatPose(boatSeconds,boatPose);bridgeView.cruise(boatPose);riverNight.setViewingPose(boatPose);
  if(bridgeView.active&&bridgeView.mode==='boat'){if(boatWaitingShown!==riverNight.cruiseWaiting){boatWaitingShown=riverNight.cruiseWaiting;$('viewHint').textContent=boatWaitingShown?'前の船が通るのを待っています。空いたら、ゆっくり進みます。':'永代橋と清澄橋をくぐる屋形船。デッキ内は自分の足／左スティックで移動。MacはWASD。';}}else boatWaitingShown=null;
  entryTip.update(stamp,!!session&&xrVisible&&!bridgeView.active);

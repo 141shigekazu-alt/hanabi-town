@@ -1,6 +1,6 @@
 // Follow the river in normal-offset lanes; turn in world space without river shear.
 // Ease heading rotation at both ends. The hull always faces its travel direction.
-const RADIUS=.08,BACK=-.235,TURN_SECONDS=160,MAX_SPEED=.0045,STEPS=1024;
+const RADIUS=.08,BACK=-.235,TURN_SECONDS=160,MAX_SPEED=.0054,STEPS=1024;
 const centre=z=>.22*Math.sin(z*2.7+.35),slope=z=>.594*Math.cos(z*2.7+.35);
 const curvature=z=>-1.6038*Math.sin(z*2.7+.35);
 const ease=u=>u*u*(3-2*u);
