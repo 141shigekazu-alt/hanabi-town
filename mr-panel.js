@@ -152,7 +152,7 @@ export class MRPanel{
  range(id,label,y,state,unit=''){
   this.text(label,32,y,23,'#aabecb');
   this.button(id+'-','−',28,y+24,92,60,()=>this.adjust(id,-1));
-  const value=id==='volume'?Math.round(state.value*100)+'%':state.value.toFixed(2)+unit;
+  const value=['volume','musicVolume'].includes(id)?Math.round(state.value*100)+'%':state.value.toFixed(2)+unit;
   this.text(value,350,y+54,30,'#ffe0a3');
   this.button(id+'+','＋',680,y+24,92,60,()=>this.adjust(id,1));
  }
@@ -217,8 +217,9 @@ export class MRPanel{
    this.button('musicRestart','最初から観る',412,516,360,54,()=>this.click('musicRestart'));
    this.wrap(s.musicSequenceState,32,610,736,2);
    this.wrap(s.musicState??'花火の夜 · 約２分',32,700,736,2);
-   this.range('musicVolume','音楽の音量',788,s.musicVolume);
-   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,923,736,3);
+   this.range('musicVolume','音楽と花火のバランス · 音楽の音量',788,s.musicVolume);
+   for(const [id,label,amount,x] of [['musicMixFireworks','花火を聴く',.20,28],['musicMixDefault','標準',.35,280],['musicMixMusic','音楽を聴く',.55,532]])this.button(id,label,x,900,240,54,()=>this.click(id),{selected:Math.abs(s.musicVolume.value-amount)<.001});
+   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,1000,736,2);
    this.text('右B：いま観ている大会を一時停止・再開',32,1078,21,'#aebfc9');
   }else if(this.page===1){
    this.button('upperStudy','上空の花火',28,238,360,54,()=>{this.groundStudy=false;},{selected:!this.groundStudy});
@@ -244,6 +245,7 @@ export class MRPanel{
     this.button('big','二尺玉の三重芯',28,877,360,48,()=>this.click('big'));
     this.button('finale','銀かむろの締め',412,877,360,48,()=>this.click('finale'));
     this.button('wideFinale','空いっぱいのかむろを見る',28,938,744,36,()=>this.click('wideFinale'));
+    this.button('whistleSoundStudy','特別玉の笛を6発で聴く',28,994,744,48,()=>this.click('whistleSoundStudy'));
    }
   }else if(this.page===2){
    if(s.bridge){this.text(s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,'#ffe0a3');this.wrap(s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{

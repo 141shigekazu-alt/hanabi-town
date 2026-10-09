@@ -2,7 +2,7 @@
 export class MusicTransport {
  constructor(url,{autoload=true}={}){
   this.url=url;this.buffer=null;this.source=null;this.context=null;this.gain=null;this.offset=0;this.started=0;this.clockRunning=false;
-  this.volume=.65;this.clickEnabled=false;this.clicks=new Set();this.clickCursor=0;this.ready=null;
+  this.volume=.35;this.clickEnabled=false;this.clicks=new Set();this.clickCursor=0;this.ready=null;
   if(autoload)this.load();
  }
  load(){
@@ -12,13 +12,13 @@ export class MusicTransport {
 
  get loaded(){return !!this.buffer;}
  get currentTime(){return this.clockRunning?Math.max(this.offset,this.offset+this.context.currentTime-this.started):this.offset;}
- play(context,offset=0){
+ play(context,offset=0,destination=context.destination){
   if(!this.buffer)throw Error('音楽はまだ準備中です');this.pause();this.offset=Math.max(0,offset);
-  this.context=context;this.clockRunning=true;
+  this.context=context;this.destination=destination;this.clockRunning=true;
   // At 0:00 the short lead-in leaves enough time for the first ascent.
   this.started=context.currentTime+.08;this.clickCursor=0;
   if(this.offset<this.buffer.duration){
-   this.gain=context.createGain();this.gain.gain.value=this.volume;this.gain.connect(context.destination);
+   this.gain=context.createGain();this.gain.gain.value=this.volume;this.gain.connect(destination);
    const source=context.createBufferSource();this.source=source;source.buffer=this.buffer;source.connect(this.gain);
    source.onended=()=>{source.disconnect();if(this.source===source)this.source=null;};source.start(this.started,this.offset);
   }
@@ -37,7 +37,7 @@ export class MusicTransport {
   while(this.clickCursor<beats.length&&beats[this.clickCursor].time<=t+.12){
    const b=beats[this.clickCursor++],when=this.started+b.time-this.offset;if(when<this.context.currentTime)continue;
    const osc=this.context.createOscillator(),gain=this.context.createGain();osc.frequency.value=1200;gain.gain.setValueAtTime(.035,when);gain.gain.exponentialRampToValueAtTime(.0001,when+.025);
-   osc.connect(gain).connect(this.context.destination);osc.start(when);osc.stop(when+.03);this.clicks.add(osc);osc.onended=()=>{osc.disconnect();gain.disconnect();this.clicks.delete(osc);};
+   osc.connect(gain).connect(this.destination??this.context.destination);osc.start(when);osc.stop(when+.03);this.clicks.add(osc);osc.onended=()=>{osc.disconnect();gain.disconnect();this.clicks.delete(osc);};
   }
  }
 }

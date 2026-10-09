@@ -25,3 +25,5 @@ aside{max-height:82vh;overflow-y:auto}details{font-size:12px;border-top:1px soli
 .music-card canvas{height:12px;border-radius:6px;margin-top:12px}
 
 .offline-card{padding:10px 0;border-bottom:1px solid #405362;margin-bottom:12px}.offline-card p{font-size:12px;line-height:1.6;margin:7px 0}.offline-card progress{width:100%;height:10px}
+
+.music-mix{margin:16px 0;padding:12px;background:rgba(14,28,42,.8);border:1px solid #40536a;border-radius:10px}.music-mix h3{font-size:14px;margin:0 0 10px}.mix-choices{display:flex;gap:5px}.mix-choices button{flex:1;min-width:0;font-size:11px;white-space:nowrap;padding:10px 1px;background:#172635;color:#d5e0e9}.mix-choices button[aria-pressed="true"]{background:#59462c;border-color:#e4c58a;color:#fff3d7}.music-mix label{display:flex;justify-content:space-between}.music-mix input{width:100%;margin:8px 0}.mix-hint{font-size:11px!important;text-align:center;margin:0!important;color:#bcc9d8}

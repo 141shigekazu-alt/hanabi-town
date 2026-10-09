@@ -1,3 +1,4 @@
+import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,recordedLaunchSamples,recordedReverbBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.47';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
  if(data.length<2){if(data.length)data[0]=0;return data;}
@@ -141,7 +142,12 @@ export function reverbBuffer(context,opening=false){
  return buffer;
 }
 export class FireworkAudio{
- constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;this.master.connect(this.limiter).connect(context.destination);
+ constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;
+ // A compressor can overshoot at a sharp report. Guard the final mix, including
+ // music, with an identity curve below .94 and a smooth bounded shoulder above.
+ this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();const curve=new Float32Array(65537);
+ for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1,a=Math.abs(x),u=Math.min(1,Math.max(0,(a-.94)/.06));curve[i]=a<=.94?x:Math.sign(x)*(.94+.06*(u-u*u*u/3));}
+ this.outputGuard.curve=curve;this.master.connect(this.limiter).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
  // Retain the short space for launch/foot effects. Openings have a longer tail.
  this.reverb=context.createConvolver();this.reverb.buffer=reverbBuffer(context);
  this.openingReverb=context.createConvolver();this.openingReverb.buffer=reverbBuffer(context,true);
@@ -152,15 +158,34 @@ export class FireworkAudio{
  const rms=buffer=>{let sum=0;for(let c=0;c<buffer.numberOfChannels;c++)for(const v of buffer.getChannelData(c))sum+=v*v;return Math.max(.000125,Math.sqrt(sum/(buffer.length*buffer.numberOfChannels)));};
  this.openingWet=context.createGain();this.openingWet.gain.value=.22*rms(this.openingReverb.buffer)/rms(this.reverb.buffer);
  this.openingReverb.connect(this.openingWet).connect(this.master);
+ // Decode the selected recordings and prepare their short launch slices once.
+ // Reuse one B convolver for every large opening; no per-shell convolution node.
+ this.recordedReverb=context.createConvolver();this.recordedReverb.normalize=false;this.recordedReverb.buffer=recordedReverbBuffer(context,fadeTail);
+ this.recordedWet=context.createGain();this.recordedWet.gain.value=.14;this.recordedReverb.connect(this.recordedWet).connect(this.master);
+ const attackRms=new Map();
+ for(const key of [...new Set(Object.values(OPENING_VARIANTS).flat()),'Crack_B_01','Crack_B_02','Crack_A_01','Crack_A_03']){
+  const {data,rate,onset}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);if(key.startsWith('Crack_'))fadeTail(data,rate,.15);buffer.copyToChannel(data,0);this.cache.set('recorded-opening-'+key,buffer);
+  const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
  }
- startSource(source,when){
+ this.openingLevels=new Map();
+ for(const [size,keys] of Object.entries(OPENING_VARIANTS)){
+  const reference=attackRms.get(keys[0]);for(const key of keys)this.openingLevels.set(key,Math.min(1.2,reference/Math.max(.0001,attackRms.get(key))));
+ }
+ this.openingBags=new Map();this.openingSeed=0x141740;
+ this.crackleSerial=0;this.variationSeed=(Date.now()^0x141142)>>>0;this.textureBuffers=new Map();this.whistleBag=[];this.lastWhistle=null;this.whistles=new Map();this.whistleLevels=new Map();
+ for(const key of WHISTLE_VARIANTS){const {data,rate}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set("recorded-whistle-"+key,buffer);let sum=0;for(const v of data)sum+=v*v;this.whistleLevels.set(key,Math.min(1.3,Math.max(.85,.048/Math.sqrt(sum/data.length))));}
+ for(const key of Object.values(OPENING_VARIANTS).flat()){const {data,rate}=recordedLaunchSamples(key,fadeTail),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set('recorded-launch-'+key,buffer);}
+ }
+ startSource(source,when,offset=0){
  const at=Math.max(this.context.currentTime,when??this.context.currentTime),entry={source,at},onended=source.onended;
  source.onended=()=>{this.pending.delete(entry);onended?.();};
  if(at>this.context.currentTime)this.pending.add(entry);
- source.start(at);
+ if(offset>0)source.start(at,offset);else source.start(at);
  }
  cancelScheduled(){
- for(const entry of this.pending)if(entry.at>this.context.currentTime){entry.source.stop();this.pending.delete(entry);}
+ for(const [source,{dry,at}] of this.whistles){const started=at<=this.context.currentTime;if(started)dry.gain.setTargetAtTime(0,this.context.currentTime,.004);source.stop(started?this.context.currentTime+.015:this.context.currentTime);}
+ for(const entry of this.pending)if(this.whistles.has(entry.source)||entry.at>this.context.currentTime){if(!this.whistles.has(entry.source))entry.source.stop();this.pending.delete(entry);}
+ this.whistles.clear();
  }
  spatialPan(x,position){
  if(!position){const p=this.context.createStereoPanner();p.pan.value=Math.max(-.85,Math.min(.85,x/1.5));return p;}
@@ -168,7 +193,8 @@ export class FireworkAudio{
  if(p.positionX){p.positionX.value=position.x;p.positionY.value=position.y;p.positionZ.value=position.z;}else p.setPosition(position.x,position.y,position.z);
  return p;
  }
- playSenrinChildren(x=0,when,position=null){
+ playSenrinChildren(x=0,when,position=null,mode='original',size=10,variation=null){
+ if(mode==='recorded')return this.playRecordedCrackle(x,when,position,'senrin-children','Crack_A_01',variation,size);
  if(this.context.state!=='running')return;
  const key='senrin-children';
  if(!this.cache.has(key)){const data=senrinChildSamples(this.context.sampleRate),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
@@ -185,7 +211,100 @@ export class FireworkAudio{
  source.onended=()=>{source.disconnect();dry.disconnect();send.disconnect();};source.start();
  }
  setVolume(value){this.master.gain.setTargetAtTime(value,this.context.currentTime,.025);}
- playComet(x,when,position=null){
+ resetOpeningCycle(size){const state=this.openingBags.get(size);if(state)state.bag=[];}
+ chooseOpening(size){
+ if(size===2)return this.nextRecordedCrackle();
+ return this.chooseVariant(size,OPENING_VARIANTS[size]);
+ }
+ chooseLaunch(size){const group=size===2?3:size;return this.chooseVariant('launch-'+group,OPENING_VARIANTS[group]);}
+ chooseVariant(group,variants){
+ if(!variants)return null;if(variants.length===1)return variants[0];
+ let state=this.openingBags.get(group);if(!state){state={bag:[],last:null};this.openingBags.set(group,state);}
+ if(!state.bag.length){
+  state.bag=[...variants];
+  for(let i=state.bag.length-1;i>0;i--){this.openingSeed=(Math.imul(this.openingSeed,1664525)+1013904223)>>>0;const j=Math.floor(this.openingSeed/4294967296*(i+1));[state.bag[i],state.bag[j]]=[state.bag[j],state.bag[i]];}
+  if(state.bag.at(-1)===state.last)[state.bag[0],state.bag[state.bag.length-1]]=[state.bag.at(-1),state.bag[0]];
+ }
+ return state.last=state.bag.pop();
+ }
+ nextSoundRandom(){this.variationSeed=(Math.imul(this.variationSeed,1664525)+1013904223)>>>0;return this.variationSeed/4294967296;}
+ chooseWhistle(size=10){
+ if(!this.whistleBag.length){
+  this.whistleBag=[...WHISTLE_VARIANTS];
+  for(let i=this.whistleBag.length-1;i>0;i--){const j=Math.floor(this.nextSoundRandom()*(i+1));[this.whistleBag[i],this.whistleBag[j]]=[this.whistleBag[j],this.whistleBag[i]];}
+  if(this.whistleBag.at(-1)===this.lastWhistle)[this.whistleBag[0],this.whistleBag[this.whistleBag.length-1]]=[this.whistleBag.at(-1),this.whistleBag[0]];
+ }
+ const key=this.lastWhistle=this.whistleBag.pop(),variation=this.chooseSoundVariation('whistle',size);
+ return Object.freeze({key,size,variation,duration:this.cache.get('recorded-whistle-'+key).duration/variation.rate});
+ }
+ playWhistle(x,when,position,choice,offset=0){
+ if(this.context.state!=='running'&&!('startRendering' in this.context))return;
+ if(offset>=choice.duration)return;
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();source.buffer=this.cache.get('recorded-whistle-'+choice.key);
+ dry.gain.value=(choice.size===20?.95:.80)*(this.whistleLevels.get(choice.key)??1)*choice.variation.gain;
+ source.connect(pan);const color=this.varyVoice(source,pan,choice.variation);color.node.connect(dry).connect(this.master);const at=Math.max(this.context.currentTime,when??this.context.currentTime);if(offset>0){const level=dry.gain.value;dry.gain.setValueAtTime(0,at);dry.gain.linearRampToValueAtTime(level,at+.008);}this.whistles.set(source,{dry,at});
+ source.onended=()=>{this.whistles.delete(source);source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when,offset*choice.variation.rate);return source;
+ }
+ chooseSoundVariation(role,size=10){
+ const random=()=>this.nextSoundRandom();
+ const children=role==='senrin-children',tail=role.endsWith('-crackle'),opening=role==='opening',launch=role==='launch';
+ const index=children||tail?this.chooseVariant('texture-'+(children?'children':'tail'),[0,1,2,3,4,5]):null;
+ const cents=(children&&size===20?-240:tail&&size===20?-40:0)+(random()*2-1)*(opening?32:launch?50:children?55:tail?95:role==='whistle'?70:60);
+ return Object.freeze({index,rate:Math.pow(2,cents/1200),gain:1+(random()*2-1)*(opening?.04:role==='whistle'?.08:.06),shade:(random()*2-1)*(opening?1:1.5),bass:children&&size===20?6:size===20&&opening?5:size===20&&launch?6:tail&&size===20?1.5:0,bassHz:size===20&&(opening||launch)?140:220,send:children?(size===20?.18:.025):tail?(size===20?.045:.02):0});
+ }
+ varyVoice(source,pan,variation){
+ source.playbackRate.value=variation.rate;
+ const filters=[],shade=this.context.createBiquadFilter();shade.type='highshelf';shade.frequency.value=2600;shade.gain.value=variation.shade;pan.connect(shade);filters.push(shade);let node=shade;
+ if(variation.bass){const bass=this.context.createBiquadFilter();bass.type='lowshelf';bass.frequency.value=variation.bassHz??220;bass.gain.value=variation.bass;node.connect(bass);node=bass;filters.push(bass);}
+ return {node,disconnect(){for(const filter of filters)filter.disconnect();}};
+ }
+ textureBuffer(key,index,stretch=1){
+ const id=key+'-'+index+'-'+stretch;if(!this.textureBuffers.has(id)){const varied=variedCrackleBuffer(this.context,this.cache.get('recorded-opening-'+key),key,index,fadeTail);this.textureBuffers.set(id,stretch===1?varied:stretchedCrackleBuffer(this.context,varied,stretch,fadeTail));}
+ return this.textureBuffers.get(id);
+ }
+ nextRecordedCrackle(){return this.crackleSerial++%2?'Crack_B_02':'Crack_B_01';}
+ playRecordedCrackle(x,when,position=null,role='large-tail',key=this.nextRecordedCrackle(),variation=null,size=10){
+ if(this.context.state!=='running'&&!('startRendering' in this.context))return;
+ variation??=this.chooseSoundVariation(role,size);
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
+ const textured=role==='senrin-children'||role.endsWith('-crackle'),original=this.cache.get('recorded-opening-'+key),short=role==='small-tail';
+ if(textured)source.buffer=this.textureBuffer(key,variation.index,role==='silver-crackle'?1.5:1);
+ else{
+  const cacheKey=key+'-'+role;
+  if(!this.cache.has(cacheKey)){
+   const rate=original.sampleRate,length=Math.min(original.length,Math.round(rate*(short?1.6:role==='large-tail'?2.4:original.duration))),data=original.getChannelData(0).slice(0,length);
+   fadeTail(data,rate,short?.25:.3);const b=this.context.createBuffer(1,data.length,rate);b.copyToChannel(data,0);this.cache.set(cacheKey,b);
+  }
+  source.buffer=this.cache.get(cacheKey);
+ }
+ const level=role==='senrin-children'?(size===20?.36:.22):({'golden-ear':.10,'small-tail':.028,'large-tail':.055,'silver-crackle':.24,'willow-crackle':.22})[role];
+ dry.gain.value=level*variation.gain;
+ source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
+ let send=null;if(variation.send){send=this.context.createGain();send.gain.value=variation.send*variation.gain;color.node.connect(send).connect(this.recordedReverb);}
+ source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ }
+ playSilverCrackle(x,when,position=null,size=10,variation=null){return this.playOpeningCrackle(x,when,position,'silver',size,variation);}
+ playOpeningCrackle(x,when,position=null,kind='silver',size=10,variation=null){return this.playRecordedCrackle(x,when,position,kind+'-crackle','Crack_A_03',variation,size);}
+ playRecorded(explosion,x,size,when,position=null,openingKey=null,variation=null){
+ if(this.context.state!=='running'&&!('startRendering' in this.context))return;
+ const key=explosion?(openingKey??this.chooseOpening(size)):this.chooseLaunch(size);if(!key)return;
+ variation??=this.chooseSoundVariation(explosion?'opening':'launch',size);
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
+ source.buffer=this.cache.get((explosion?'recorded-opening-':'recorded-launch-')+key);
+ const level=explosion?({3:.40,5:.50,10:.65,20:.80})[size]*(this.openingLevels.get(key)??1):({2:.375,3:.75,5:1,10:1.15,20:1.65})[size];dry.gain.value=level*variation.gain;
+ source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
+ let send=null;
+ if(explosion&&size>=10){send=this.context.createGain();send.gain.value=.65*(this.openingLevels.get(key)??1)*variation.gain;color.node.connect(send).connect(this.recordedReverb);}
+ source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ }
+ playComet(x,when,position=null,mode='recorded',small=false){
+ if(mode==='recorded'){
+  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
+  const key=this.chooseLaunch(3),source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
+  const variation=this.chooseSoundVariation('launch',small?2:3);source.buffer=this.cache.get('recorded-launch-'+key);dry.gain.value=(small?.22:.40)*variation.gain;
+  source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
+  source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when);return source;
+ }
  if(this.context.state!=='running')return;
  const key='realistic-false-3';
  if(!this.cache.has(key)){const data=realisticSamples(this.context.sampleRate,false,3),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
@@ -204,7 +323,7 @@ export class FireworkAudio{
  let send=null;if(!explosion){send=this.context.createGain();send.gain.value=.025;pan.connect(send).connect(this.reverb);}
  source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);
  }
- play(explosion,x,z,size,mode='original',when,position=null){if(size===2)return this.playEar(explosion,x,when,position);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ play(explosion,x,z,size,mode='original',when,position=null,openingKey=null,variation=null){if(size===2){if(mode==='recorded')return explosion?this.playRecordedCrackle(x,when,position,'golden-ear',openingKey??this.nextRecordedCrackle(),variation,size):this.playRecorded(false,x,size,when,position,null,variation);return this.playEar(explosion,x,when,position);}if(mode==='recorded')return this.playRecorded(explosion,x,size,when,position,openingKey,variation);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
  const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.spatialPan(x,position);const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
  }
 }
