@@ -1,6 +1,6 @@
 // Follow the river in normal-offset lanes; turn in world space without river shear.
 // Ease heading rotation at both ends. The hull always faces its travel direction.
-const RADIUS=.08,BACK=-.235,TURN_SECONDS=120,MAX_SPEED=.0054,STEPS=1024;
+const RADIUS=.08,BACK=-.235,TURN_SECONDS=120,MAX_SPEED=.007,RAMP_SECONDS=20,STEPS=1024;
 const centre=z=>.22*Math.sin(z*2.7+.35),slope=z=>.594*Math.cos(z*2.7+.35);
 const curvature=z=>-1.6038*Math.sin(z*2.7+.35);
 const ease=u=>u*u*(3-2*u);
@@ -24,16 +24,20 @@ function makeLeg(from,to,offset){
   points[i]=from+step*i;
   if(i){const p=lane(points[i],offset),scale=Math.hypot(p.dx,p.dz);lengths[i]=lengths[i-1]+Math.abs(step)*(previousScale+scale)/2;previousScale=scale;}
  }
- const length=lengths[STEPS],duration=2*length/(MAX_SPEED+TURN_SPEED);
+ const length=lengths[STEPS],duration=(length+(MAX_SPEED-TURN_SPEED)*RAMP_SECONDS)/MAX_SPEED;
  return {from,to,offset,points,lengths,length,duration};
 }
 const outLeg=makeLeg(FRONT,BACK,RADIUS),returnLeg=makeLeg(BACK,FRONT,-RADIUS);
 export const CRUISE_PERIOD=outLeg.duration+returnLeg.duration+2*TURN_SECONDS;
 export const CRUISE_TURNS=Object.freeze([{name:'far',start:outLeg.duration,duration:TURN_SECONDS},{name:'near',start:outLeg.duration+TURN_SECONDS+returnLeg.duration,duration:TURN_SECONDS}]);
 function leg(t,l){
- const u=t/l.duration,d=MAX_SPEED-TURN_SPEED;
- const distance=TURN_SPEED*t+d*(t/2-l.duration*Math.sin(2*Math.PI*u)/(4*Math.PI));
- const speed=TURN_SPEED+d*Math.sin(Math.PI*u)**2;
+ // Cruise through the leg; ease only the final/first twenty seconds beside a turn.
+ const d=MAX_SPEED-TURN_SPEED,ramp=RAMP_SECONDS;
+ const rampDistance=t=>{const u=t/ramp;return TURN_SPEED*t+d*ramp*(u**3-u**4/2);};
+ let distance,speed;
+ if(t<ramp){distance=rampDistance(t);speed=TURN_SPEED+d*ease(t/ramp);}
+ else if(t>l.duration-ramp){const remaining=l.duration-t;distance=l.length-rampDistance(remaining);speed=TURN_SPEED+d*ease(remaining/ramp);}
+ else{distance=rampDistance(ramp)+MAX_SPEED*(t-ramp);speed=MAX_SPEED;}
  let lo=0,hi=STEPS;
  while(hi-lo>1){const mid=(lo+hi)>>1;if(l.lengths[mid]<distance)lo=mid;else hi=mid;}
  const span=l.lengths[hi]-l.lengths[lo],v=Math.max(0,Math.min(1,(distance-l.lengths[lo])/span));

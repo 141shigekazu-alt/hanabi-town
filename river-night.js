@@ -171,7 +171,8 @@ export class RiverNight{
   const turnOccupied=turn&&traffic.some(p=>p.visible&&inTurn(p));
   // Claim the approach first: boats already inside clear it; later boats wait outside.
   if(moving&&turn&&!this.turnReservation)this.turnReservation=turn;
-  const turnYield=!!turn&&(!this.turnReservation||turnOccupied);
+  // Close entry early while continuing the safe approach; hold only at the actual turn.
+  const turnYield=!!turn&&(!this.turnReservation||turnOccupied)&&seconds+dt>=turn.key;
   const held=[];
   // A following boat must also stop rather than pass through a stopped passenger boat.
   for(let i=0;i<4;i++){

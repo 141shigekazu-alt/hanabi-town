@@ -1,28 +1,27 @@
-import {EITAI_ANGLE,EITAI_Z,eitaiCenterX,AVENUE_WIDTH,SIDEWALK_WIDTH,arrangeCity} from './city-layout.js?v=1.1.37';
-import {viewBoatPose} from './boat-cruise.js?v=1.1.37';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.37';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.37';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.37';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.37';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.37';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.37';
+import {viewBoatPose} from './boat-cruise.js?v=1.1.38';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.38';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.38';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.38';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.38';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.38';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.38';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.37';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.38';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.37';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.37';
-import {FireworkAudio} from './audio.js?v=1.1.37';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.37';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.37';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.37';
-import {TowerLighting} from './tower-lighting.js?v=1.1.37';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.37';
-import {ShowInfoPanel} from './show-info.js?v=1.1.37';
-import {WristMenu} from './wrist-menu.js?v=1.1.37';
-import {XRControls} from './xr-controls.js?v=1.1.37';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.37';
-import {EntryTip} from './entry-tip.js?v=1.1.37';
-const BUILD_VERSION='1.1.37';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.38';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.38';
+import {FireworkAudio} from './audio.js?v=1.1.38';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.38';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.38';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.38';
+import {TowerLighting} from './tower-lighting.js?v=1.1.38';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.38';
+import {ShowInfoPanel} from './show-info.js?v=1.1.38';
+import {WristMenu} from './wrist-menu.js?v=1.1.38';
+import {XRControls} from './xr-controls.js?v=1.1.38';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.38';
+import {EntryTip} from './entry-tip.js?v=1.1.38';
+const BUILD_VERSION='1.1.38';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -67,8 +66,8 @@ for(let side of [-1,1])for(let row=0;row<7;row++)for(let col=0;col<5;col++){
  const firstWindow=windows.length/3;
  const z=-.86+row*.27+(rand()-.5)*.04,x=riverCenter(z)+side*(riverWidth(z)/2+.12+col*.205),w=.105+rand()*.055,d=.12+rand()*.06,h=.10+rand()*.31;
  const building=cube(x,h/2,z,w,h,d,mats[Math.floor(rand()*mats.length)]);building.name='city-building-'+side+'-'+row+'-'+col;cityBuildingMeshes.push(building);
- buildingRoofs.push({x,y:h,z,w,d,side,row,col});
- if(h>.32)rooftops.push({x,y:h,z,w,d});
+ const roof={x,y:h,z,w,d,side,row,col};buildingRoofs.push(roof);
+ if(h>.32)rooftops.push(roof);
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++)if(rand()>.38)addWindow(x+k*w*.25,level,z+d/2+.001,0,1);
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++){
   if(windowRand()>.38)addWindow(x+k*w*.25,level,z-d/2-.001,0,-1);
@@ -77,13 +76,6 @@ for(let side of [-1,1])for(let row=0;row<7;row++)for(let col=0;col<5;col++){
  }
  windowRanges.push({first:firstWindow,last:windows.length/3});
 }
-// Keep each facade and its roof details attached while redistributing the blocks.
-const avenueLayout=arrangeCity(buildingRoofs,riverCenter,riverWidth);
-for(let i=0;i<buildingRoofs.length;i++){
- const roof=buildingRoofs[i],next=avenueLayout[i],dx=next.x-roof.x,dz=next.z-roof.z;
- Object.assign(roof,next);cityBuildingMeshes[i].position.x+=dx;cityBuildingMeshes[i].position.z+=dz;
- for(let w=windowRanges[i].first;w<windowRanges[i].last;w++){windows[w*3]+=dx;windows[w*3+2]+=dz;}
-}
 // A low near-edge row continues both banks around the extended cruise turn.
 // Its own stream preserves every existing building and firework random choice.
 let nearRowSeed=0x141730;
@@ -91,12 +83,27 @@ function nearRowRand(){nearRowSeed=(nearRowSeed*1664525+1013904223)>>>0;return n
 for(const side of [-1,1])for(let col=0;col<5;col++){
  const firstWindow=windows.length/3,z=1.25+(nearRowRand()-.5)*.012;
  const x=riverCenter(z)+side*(riverWidth(z)/2+.14+col*.205),w=.105+nearRowRand()*.035,d=.085+nearRowRand()*.012,h=.12+nearRowRand()*.09;
- const building=cube(x,h/2,z,w,h,d,mats[Math.floor(nearRowRand()*mats.length)]);building.name='near-edge-building-'+side+'-'+col;
+ const building=cube(x,h/2,z,w,h,d,mats[Math.floor(nearRowRand()*mats.length)]);building.name='near-edge-building-'+side+'-'+col;cityBuildingMeshes.push(building);buildingRoofs.push({x,y:h,z,w,d,side,row:8,col});
  for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++){
   if(nearRowRand()>.38)addWindow(x+k*w*.25,level,z+d/2+.001,0,1);
   if(nearRowRand()>.38)addWindow(x+k*w*.25,level,z-d/2-.001,0,-1);
   if(nearRowRand()>.38)addWindow(x-w/2-.001,level,z+k*d*.25,-1,0);
   if(nearRowRand()>.38)addWindow(x+w/2+.001,level,z+k*d*.25,1,0);
+ }
+ windowRanges.push({first:firstWindow,last:windows.length/3});
+}
+// Fill the former broad foreground gap with a normal block row, using its own random stream.
+let fillRowSeed=0x141738;
+function fillRowRand(){fillRowSeed=(fillRowSeed*1664525+1013904223)>>>0;return fillRowSeed/4294967296;}
+for(const side of [-1,1])for(let col=0;col<5;col++){
+ const firstWindow=windows.length/3,z=1.015+(fillRowRand()-.5)*.012;
+ const x=riverCenter(z)+side*(riverWidth(z)/2+.12+col*.205),w=.105+fillRowRand()*.045,d=.11+fillRowRand()*.025,h=.14+fillRowRand()*.12;
+ const building=cube(x,h/2,z,w,h,d,mats[Math.floor(fillRowRand()*mats.length)]);building.name='gap-fill-building-'+side+'-'+col;cityBuildingMeshes.push(building);buildingRoofs.push({x,y:h,z,w,d,side,row:7,col});
+ for(let level=.045;level<h-.015;level+=.04)for(let k=-1;k<=1;k++){
+  if(fillRowRand()>.38)addWindow(x+k*w*.25,level,z+d/2+.001,0,1);
+  if(fillRowRand()>.38)addWindow(x+k*w*.25,level,z-d/2-.001,0,-1);
+  if(fillRowRand()>.38)addWindow(x-w/2-.001,level,z+k*d*.25,-1,0);
+  if(fillRowRand()>.38)addWindow(x+w/2+.001,level,z+k*d*.25,1,0);
  }
  windowRanges.push({first:firstWindow,last:windows.length/3});
 }
@@ -118,18 +125,6 @@ for(const range of windowRanges){
 }
 const windowPose=new T.Object3D(),windowColor=new T.Color();
 for(let i=0;i<windows.length/3;i++){windowPose.position.fromArray(windows,i*3);windowPose.rotation.y=Math.atan2(windowNormals[i*3],windowNormals[i*3+2]);windowPose.updateMatrix();win.setMatrixAt(i,windowPose.matrix);win.setColorAt(i,windowColor.fromArray(windowColors,i*3));}win.instanceMatrix.needsUpdate=true;win.instanceColor.needsUpdate=true;
-const roadmat=new T.MeshStandardMaterial({color:0x252f37,roughness:.95}),sidewalkmat=new T.MeshStandardMaterial({color:0x48545d,roughness:.9});
-// The bridge deck slopes down on land, then its avenue continues to the town edge.
-const avenue=new T.Group();avenue.name='eitai-avenue';avenue.position.set(eitaiCenterX,0,EITAI_Z);avenue.rotation.y=EITAI_ANGLE;town.add(avenue);
-function avenueStrip(side,v0,v1,material,name){
- const end=(side*1.58-eitaiCenterX)/Math.cos(EITAI_ANGLE),sections=[side*.35,side*1.35,end],vertices=[],indices=[];
- for(let i=0;i<sections.length;i++){const u=sections[i],y=i===0?.1025:.004;vertices.push(u,y,v0,u,y,v1);if(i<sections.length-1){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}}
- if(side===-1)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
- const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));geometry.setIndex(indices);geometry.computeVertexNormals();
- const mesh=new T.Mesh(geometry,material);mesh.name=name+'-'+side;avenue.add(mesh);
-}
-for(const side of [-1,1]){avenueStrip(side,-AVENUE_WIDTH/2,AVENUE_WIDTH/2,roadmat,'road');for(const edge of [-1,1]){const a=edge*AVENUE_WIDTH/2,b=edge*(AVENUE_WIDTH/2+SIDEWALK_WIDTH);avenueStrip(side,Math.min(a,b),Math.max(a,b),sidewalkmat,'sidewalk');}}
-
 for(let z=-.98;z<1.32;z+=.055)for(let side of [-1,1])lamps.push(riverCenter(z)+side*(riverWidth(z)/2+.027),.018,z);
 pointCloud(lamps,0xffe1a5,.009);
 // Preserve old town random consumption without keeping the placeholder boats.
