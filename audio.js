@@ -1,4 +1,4 @@
-import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.50';
+import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.51';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
  if(data.length<2){if(data.length)data[0]=0;return data;}
@@ -147,7 +147,7 @@ export class FireworkAudio{
  // music, with an identity curve below .94 and a smooth bounded shoulder above.
  this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();const curve=new Float32Array(65537);
  for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1,a=Math.abs(x),u=Math.min(1,Math.max(0,(a-.94)/.06));curve[i]=a<=.94?x:Math.sign(x)*(.94+.06*(u-u*u*u/3));}
- this.outputGuard.curve=curve;this.fxBoost=context.createGain();this.fxBoost.gain.value=6;this.master.connect(this.fxBoost).connect(this.limiter);this.fxHeadroom=context.createGain();this.fxHeadroom.gain.value=.88;this.limiter.connect(this.fxHeadroom).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
+ this.outputGuard.curve=curve;this.fxBoost=context.createGain();this.fxBoost.gain.value=7.2;this.master.connect(this.fxBoost).connect(this.limiter);this.fxHeadroom=context.createGain();this.fxHeadroom.gain.value=.88;this.limiter.connect(this.fxHeadroom).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
  // Retain the short space for launch/foot effects. Openings have a longer tail.
  this.reverb=context.createConvolver();this.reverb.buffer=reverbBuffer(context);
  this.openingReverb=context.createConvolver();this.openingReverb.buffer=reverbBuffer(context,true);
@@ -162,7 +162,7 @@ export class FireworkAudio{
  // Reuse one B convolver for every large opening; no per-shell convolution node.
  this.recordedReverb=context.createConvolver();this.recordedReverb.normalize=false;this.recordedReverb.buffer=recordedReverbBuffer(context,fadeTail);
  this.recordedWet=context.createGain();this.recordedWet.gain.value=.14;this.recordedReverb.connect(this.recordedWet).connect(this.master);
- this.lateReverb=context.createConvolver();this.lateReverb.normalize=false;this.lateReverb.buffer=recordedLateReverbBuffer(context,fadeTail);this.lateReverb.connect(this.master);
+ this.lateReverb=context.createConvolver();this.lateReverb.normalize=false;this.lateReverb.buffer=recordedOutdoorReflectionBuffer(context,fadeTail,true);this.lateReverb.connect(this.master);
  this.outdoorReverb=context.createConvolver();this.outdoorReverb.normalize=false;this.outdoorReverb.buffer=recordedOutdoorReflectionBuffer(context,fadeTail);this.outdoorReverb.connect(this.master);
  this.recordedOnsets=new Map();const attackRms=new Map();
  for(const key of [...new Set(Object.values(OPENING_VARIANTS).flat()),'Crack_B_01','Crack_B_02','Crack_A_01','Crack_A_03']){
@@ -244,7 +244,7 @@ export class FireworkAudio{
  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
  if(offset>=choice.duration)return;
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();source.buffer=this.cache.get('recorded-whistle-'+choice.key);
- dry.gain.value=(choice.size===20?.95:.80)*(this.whistleLevels.get(choice.key)??1)*choice.variation.gain;
+ dry.gain.value=.75*(6/this.fxBoost.gain.value)*(choice.size===20?.95:.80)*(this.whistleLevels.get(choice.key)??1)*choice.variation.gain;
  source.connect(pan);const color=this.varyVoice(source,pan,choice.variation);color.node.connect(dry).connect(this.master);const at=Math.max(this.context.currentTime,when??this.context.currentTime);if(offset>0){const level=dry.gain.value;dry.gain.setValueAtTime(0,at);dry.gain.linearRampToValueAtTime(level,at+.008);}this.whistles.set(source,{dry,at});
  source.onended=()=>{this.whistles.delete(source);source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when,offset*choice.variation.rate);return source;
  }
@@ -299,7 +299,7 @@ export class FireworkAudio{
  // Feed only the quiet, later part of the recording into the short coda.
  let send=null;if(explosion&&size>=5){
   send=this.context.createGain();const at=Math.max(this.context.currentTime,when??this.context.currentTime),delay=(this.recordedOnsets.get(key)+({5:.55,10:.65,20:.75})[size])/variation.rate;
-  send.gain.setValueAtTime(0,at);send.gain.setValueAtTime(0,at+delay);send.gain.linearRampToValueAtTime(level*(size>=10?.20:.16)*variation.gain,at+delay+.25/variation.rate);node.connect(send).connect(size>=10?this.outdoorReverb:this.lateReverb);
+  send.gain.setValueAtTime(0,at);send.gain.setValueAtTime(0,at+delay);send.gain.linearRampToValueAtTime(level*(size>=10?.20:.10)*variation.gain,at+delay+.25/variation.rate);node.connect(send).connect(size>=10?this.outdoorReverb:this.lateReverb);
  }
  source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();presence?.disconnect();send?.disconnect();};this.startSource(source,when);return source;
  }

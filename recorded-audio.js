@@ -1,4 +1,4 @@
-import {samples} from './firework-samples.js?v=1.1.50';
+import {samples} from './firework-samples.js?v=1.1.51';
 
 export const WHISTLE_VARIANTS=['Whistle_01','Whistle_02','Whistle_03','Whistle_04','Whistle_05','Whistle_06'];
 export const OPENING_SAMPLES={3:'Shoot_A_01',5:'Shoot_A_03',10:'Shoot_A_10',20:'Shoot_B_05'};
@@ -101,10 +101,11 @@ export function recordedLateReverbBuffer(context,fadeTail){
 
 // Uneven, one-pass outdoor reflections. No feedback loop or periodic echo taps.
 // Each distant return is a short broad cluster, progressively quieter.
-export function recordedOutdoorReflectionBuffer(context,fadeTail){
- const rate=context.sampleRate,n=Math.ceil(rate*3.8),buffer=context.createBuffer(2,n,rate);let seed=1411150;
- const centers=[.18,.33,.57,.91,1.36,1.92,2.62,3.24],weights=[1,.72,.48,.32,.21,.13,.075,.04];
+export function recordedOutdoorReflectionBuffer(context,fadeTail,small=false){
+ const rate=context.sampleRate,n=Math.ceil(rate*(small?1.6:5.3)),buffer=context.createBuffer(2,n,rate);let seed=1411150;
+ const centers=small?[.13,.29,.52,.84,1.18]:[.18,.33,.57,.91,1.36,1.92,2.62,3.24,3.94,4.81],weights=small?[1,.60,.34,.16,.07]:[1,.72,.48,.32,.21,.13,.075,.04,.028,.016];
  for(let channel=0;channel<2;channel++){
+  seed=1411150;if(channel===1)for(let j=0;j<8;j++)for(let k=0;k<Math.round((.048+j*.011)*rate);k++)seed=(Math.imul(seed,1664525)+1013904223)>>>0;
   const d=buffer.getChannelData(channel);
   centers.forEach((center,j)=>{const start=Math.round((center+channel*(j%2?.017:-.009))*rate),length=Math.round((.048+j*.011)*rate),a=1-Math.exp(-2*Math.PI*(3500-j*230)/rate),lowA=1-Math.exp(-2*Math.PI*200/rate);let low=0,high=0;
    const cluster=new Float32Array(length);let energy=0;

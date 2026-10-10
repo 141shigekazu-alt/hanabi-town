@@ -30,9 +30,12 @@ export class BridgeView{
   if(transform){
    const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10];const length=Math.hypot(x,z);
    if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
-   this.cruiseYaw=Math.atan2(-x,-z);this.town.rotation.set(0,this.cruiseYaw-(mode==='boat'?this.boatPose.angle:0),0);this.cruiseAnchor.set(p.x,p.y-SEATED_EYE_HEIGHT,p.z);
+   // local-floor already tracks the real floor. Bridge entry must not lift it
+   // to a fixed seated eye height; keep the boat's adopted seated presentation.
+   const eyeHeight=mode==='boat'?SEATED_EYE_HEIGHT:p.y;
+   this.cruiseYaw=Math.atan2(-x,-z);this.town.rotation.set(0,this.cruiseYaw-(mode==='boat'?this.boatPose.angle:0),0);this.cruiseAnchor.set(p.x,p.y-eyeHeight,p.z);
    const seat=(mode==='boat'?this.boatSeat():FRONT_BRIDGE).clone().multiplyScalar(BRIDGE_SCALE).applyQuaternion(this.town.quaternion);
-   this.town.position.set(p.x-seat.x,p.y-SEATED_EYE_HEIGHT-seat.y,p.z-seat.z);
+   this.town.position.set(p.x-seat.x,p.y-eyeHeight-seat.y,p.z-seat.z);
   }else{
    this.town.position.set(0,0,0);this.town.rotation.set(0,0,0);
    this.camera.position.copy(mode==='boat'?this.boatSeat():FRONT_BRIDGE).multiplyScalar(BRIDGE_SCALE);this.camera.position.y+=SEATED_EYE_HEIGHT;
