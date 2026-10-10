@@ -216,11 +216,11 @@ export class MRPanel{
    this.button('musicStop','大会を止める',28,516,360,54,()=>this.click('musicStop'));
    this.button('musicRestart','最初から観る',412,516,360,54,()=>this.click('musicRestart'));
    this.wrap(s.musicSequenceState,32,610,736,2);
-   this.wrap(s.musicState??'花火の夜 · 約２分',32,700,736,2);
-   this.range('musicVolume','音楽と花火のバランス · 音楽の音量',788,s.musicVolume);
-   for(const [id,label,amount,x] of [['musicMixFireworks','花火を聴く',.20,28],['musicMixDefault','標準',.35,280],['musicMixMusic','音楽を聴く',.55,532]])this.button(id,label,x,900,240,54,()=>this.click(id),{selected:Math.abs(s.musicVolume.value-amount)<.001});
-   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,1000,736,2);
-   this.text('右B：いま観ている大会を一時停止・再開',32,1078,21,'#aebfc9');
+   this.wrap(s.musicState??'花火の夜 · 約２分',32,682,736,2);
+   this.range('musicVolume','音楽と花火のバランス · 音楽の音量',736,s.musicVolume);
+   for(const [id,label,amount,x] of [['musicMixFireworks','花火を聴く',.20,28],['musicMixDefault','標準',.35,280],['musicMixMusic','音楽を聴く',.55,532]])this.button(id,label,x,846,240,54,()=>this.click(id),{selected:Math.abs(s.musicVolume.value-amount)<.001});
+   this.range('volume','花火の音量',940,s.volume);
+   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,1058,736,2);
   }else if(this.page===1){
    this.button('upperStudy','上空の花火',28,238,360,54,()=>{this.groundStudy=false;},{selected:!this.groundStudy});
    this.button('groundStudy','大トラ・子トラ',412,238,360,54,()=>{this.groundStudy=true;},{selected:this.groundStudy});
@@ -252,7 +252,7 @@ export class MRPanel{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
    this.range('height','街の底面の高さ（床から）',458,s.height,' m');}
-   this.range('volume','音量',566,s.volume);
+   this.range('volume','花火の音量',566,s.volume);
    this.selector('audioMode','音の種類',674,s.audioMode);
    this.selector('towerColor','塔のライトアップ',785,s.towerColor);
    if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
@@ -270,7 +270,7 @@ export class MRPanel{
   }
 
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,'#8caabb',736);
-  if(!s.preparing&&s.bridge)this.wrap(s.boat?'視点の切り替えは左Xのクルッとパネルから。街のミニチュアや橋の上へ戻れます。':'橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else if(!s.preparing)this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});
+  if(this.page!==4){if(!s.preparing&&s.bridge)this.wrap(s.boat?'視点の切り替えは左Xのクルッとパネルから。街のミニチュアや橋の上へ戻れます。':'橋の上では、部屋を隠して夜空を見渡せます。元の街へ戻るには下のボタンを押してください。',32,990,736,3);else if(!s.preparing)this.slider('roomBrightness','部屋の明るさ',980,s.roomBrightness??{value:1});}
   this.button('bridge',s.boat?'橋の上へ移る':s.bridge?'ミニチュアに戻る':'街に入る · 手前の橋',28,1116,744,44,()=>this.click('bridge'),{selected:s.bridge});
   this.button('close','パネルを閉じて鑑賞',28,1170,360,62,()=>this.close());
   this.button('exit','鑑賞を終了してページへ',412,1170,360,62,()=>this.exit(),{danger:true});

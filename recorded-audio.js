@@ -1,4 +1,4 @@
-import {samples} from './firework-samples.js?v=1.1.48';
+import {samples} from './firework-samples.js?v=1.1.49';
 
 export const WHISTLE_VARIANTS=['Whistle_01','Whistle_02','Whistle_03','Whistle_04','Whistle_05','Whistle_06'];
 export const OPENING_SAMPLES={3:'Shoot_A_01',5:'Shoot_A_03',10:'Shoot_A_10',20:'Shoot_B_05'};
@@ -85,4 +85,16 @@ export function stretchedCrackleBuffer(context,original,factor,fadeTail){
  const head=Math.round(rate*.03),blend=Math.round(rate*.02);
  for(let i=0;i<head+blend;i++){const w=Math.max(0,Math.min(1,(i-head)/blend));data[i]=raw[i]*(1-w)+data[i]*w;}
  fadeTail(data,rate,.3*factor);const buffer=context.createBuffer(1,length,rate);buffer.copyToChannel(data,0);return buffer;
+}
+
+// Short, broad outdoor coda. No fixed echo taps or resonant low-frequency room.
+export function recordedLateReverbBuffer(context,fadeTail){
+ const rate=context.sampleRate,n=Math.ceil(rate*1.25),buffer=context.createBuffer(2,n,rate);let seed=1411149,sum=0;
+ const lo=1-Math.exp(-2*Math.PI*180/rate),hi=1-Math.exp(-2*Math.PI*2400/rate);
+ for(let c=0;c<2;c++){const d=buffer.getChannelData(c);let bass=0,air=0;
+  for(let i=0;i<n;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/4294967296*2-1;bass+=lo*(noise-bass);air+=hi*(noise-air);const t=i/rate;d[i]=t<.035?0:(air-bass)*Math.exp(-(t-.035)/.23)*Math.min(1,(t-.035)/.04);}
+  fadeTail(d,rate,.30);for(const v of d)sum+=v*v;
+ }
+ const gain=Math.sqrt(2/Math.max(sum,1e-12));for(let c=0;c<2;c++){const d=buffer.getChannelData(c);for(let i=0;i<n;i++)d[i]*=gain;}
+ return buffer;
 }

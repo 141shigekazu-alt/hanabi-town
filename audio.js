@@ -1,4 +1,4 @@
-import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.48';
+import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.49';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
  if(data.length<2){if(data.length)data[0]=0;return data;}
@@ -162,10 +162,11 @@ export class FireworkAudio{
  // Reuse one B convolver for every large opening; no per-shell convolution node.
  this.recordedReverb=context.createConvolver();this.recordedReverb.normalize=false;this.recordedReverb.buffer=recordedReverbBuffer(context,fadeTail);
  this.recordedWet=context.createGain();this.recordedWet.gain.value=.14;this.recordedReverb.connect(this.recordedWet).connect(this.master);
- const attackRms=new Map();
+ this.lateReverb=context.createConvolver();this.lateReverb.normalize=false;this.lateReverb.buffer=recordedLateReverbBuffer(context,fadeTail);this.lateReverb.connect(this.master);
+ this.recordedOnsets=new Map();const attackRms=new Map();
  for(const key of [...new Set(Object.values(OPENING_VARIANTS).flat()),'Crack_B_01','Crack_B_02','Crack_A_01','Crack_A_03']){
   const {data,rate,onset}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);if(key.startsWith('Crack_'))fadeTail(data,rate,.15);buffer.copyToChannel(data,0);this.cache.set('recorded-opening-'+key,buffer);
-  const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
+  this.recordedOnsets.set(key,onset);const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
   if(OPENING_VARIANTS[5].includes(key))buffer.copyToChannel(fiveGoOpeningDecay(data,rate,onset),0);
  }
  this.openingLevels=new Map();
@@ -294,8 +295,12 @@ export class FireworkAudio{
  source.buffer=this.cache.get((explosion?'recorded-opening-':'recorded-launch-')+key);
  const level=explosion?({3:.40,5:.50,10:.65,20:.80})[size]*(this.openingLevels.get(key)??1):({2:.375,3:.75,5:1,10:1.15,20:1.65})[size];dry.gain.value=level*variation.gain;
  source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
- // Reports retain the recorded outdoor decay. No added B convolution on large shells.
- source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when);return source;
+ // Feed only the quiet, later part of the recording into the short coda.
+ let send=null;if(explosion&&size>=5){
+  send=this.context.createGain();const at=Math.max(this.context.currentTime,when??this.context.currentTime),delay=(this.recordedOnsets.get(key)+({5:.55,10:.65,20:.75})[size])/variation.rate;
+  send.gain.setValueAtTime(0,at);send.gain.setValueAtTime(0,at+delay);send.gain.linearRampToValueAtTime(level*.16*variation.gain,at+delay+.25/variation.rate);color.node.connect(send).connect(this.lateReverb);
+ }
+ source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
  }
  playComet(x,when,position=null,mode='recorded',small=false){
  if(mode==='recorded'){

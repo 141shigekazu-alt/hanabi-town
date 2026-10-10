@@ -1,27 +1,27 @@
-import {viewBoatPose} from './boat-cruise.js?v=1.1.48';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.48';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.48';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.48';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.48';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.48';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.1.48';
+import {viewBoatPose} from './boat-cruise.js?v=1.1.49';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.1.49';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.1.49';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.1.49';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.1.49';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.1.49';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.1.49';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.48';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.1.49';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.48';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.48';
-import {FireworkAudio} from './audio.js?v=1.1.48';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.48';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.48';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.48';
-import {TowerLighting} from './tower-lighting.js?v=1.1.48';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.48';
-import {ShowInfoPanel} from './show-info.js?v=1.1.48';
-import {WristMenu} from './wrist-menu.js?v=1.1.48';
-import {XRControls} from './xr-controls.js?v=1.1.48';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.48';
-import {EntryTip} from './entry-tip.js?v=1.1.48';
-const BUILD_VERSION='1.1.48';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.1.49';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.1.49';
+import {FireworkAudio} from './audio.js?v=1.1.49';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.1.49';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.1.49';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.1.49';
+import {TowerLighting} from './tower-lighting.js?v=1.1.49';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.1.49';
+import {ShowInfoPanel} from './show-info.js?v=1.1.49';
+import {WristMenu} from './wrist-menu.js?v=1.1.49';
+import {XRControls} from './xr-controls.js?v=1.1.49';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.1.49';
+import {EntryTip} from './entry-tip.js?v=1.1.49';
+const BUILD_VERSION='1.1.49';
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -578,8 +578,8 @@ function stopShow(){
  syncShowButtons();$('chapter').textContent='大会を終了';$('last').textContent='街の灯りだけを眺める';$('status').textContent='花火大会を止めました。次は最初から始まります。';drawMusicTimeline();
 }
 function resetAll(){
- cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();stopShow();resetBoatCruise(false);restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.3',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'recorded',program:'one',musicVolume:'0.35'};
- for(const [id,value] of Object.entries(defaults))$(id).value=value;music.setVolume(.35);syncMusicMix();
+ cancelPreparation();controls?.release();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();stopShow();resetBoatCruise(false);restoreDefaultShells();if(showInfo.enabled)toggleShowInfo();const defaults={mood:'quiet',ending:'loop',volume:'0.6',scale:'1',distance:'2',height:'0',roomBrightness:'1',type:'core',size:'5',palette:'original',towerColor:'blue',audioMode:'recorded',program:'one',musicVolume:'0.35'};
+ for(const [id,value] of Object.entries(defaults))$(id).value=value;music.setVolume(.35);syncMusicMix();syncFireworkVolume();
  try{localStorage.removeItem('hanabi-town-settings');}catch{}
  town.scale.setScalar(1);town.position.set(0,0,0);town.rotation.y=0;yaw=0;pitch=0;camera.position.set(0,1.2,2.9);setTowerColor();syncSize();syncPalette();applyRoomBrightness();
  if(renderer.xr.isPresenting)placeTown();
@@ -674,7 +674,12 @@ $('starmine').onclick=()=>{beginPreview();if($('program').value==='random')start
 $('sample').onclick=()=>{beginPreview();syncSize();const ok=launch($('type').value,Number($('size').value),{x:0,z:.05,palette:$('palette').value});$('status').textContent=ok?'選んだ一玉を打ち上げています。'+(['silver','willow'].includes($('type').value)?' 尾のバラバラ音は、開花音の'+(Number($('size').value)===20?'2':'1.5')+'秒後です。':''):'この組み合わせを上げられません。種類と号数を確認してください。';};$('status').textContent='川と橋のある街へ、ようこそ。';
 $('program').onchange=()=>{$('status').textContent=showPlan?'次の大会から「'+PROGRAM_NAMES[$('program').value]+'」で始まります。「大会を最初から」で今すぐ切り替えられます。':'「'+PROGRAM_NAMES[$('program').value]+'」を選びました。';};
 $('audioMode').onchange=()=>{$('status').textContent=({'recorded':'録音素材の花火音です。玉ごとに音が変わります。','realistic':'リアル寄せ合成の花火音です。','original':'従来の合成音です。'})[$('audioMode').value];};
-$('volume').oninput=()=>soundEngine?.setVolume(Number($('volume').value));
+function syncFireworkVolume(){
+ const value=Number($('volume').value),text=Math.round(value*100)+'％';$('volumeValue').textContent=text;$('musicFireworkVolumeValue').textContent=text;$('musicFireworkVolume').value=String(value);
+}
+$('volume').oninput=()=>{soundEngine?.setVolume(Number($('volume').value));syncFireworkVolume();};
+$('musicFireworkVolume').oninput=()=>{$('volume').value=$('musicFireworkVolume').value;$('volume').dispatchEvent(new Event('input'));};
+$('musicFireworkVolume').onchange=()=>{$('volume').dispatchEvent(new Event('change'));};
  $('fiveSoundStudy').onclick=()=>{
   beginPreview();soundEngine?.resetOpeningCycle?.(5);
   burstQueue=Array.from({length:5},(_,i)=>({at:i*4.6,kind:'core',size:5,position:{x:0,z:.05,palette:'original',startAt:i*4.6}}));
@@ -723,8 +728,8 @@ function syncPalette(){
 }
 $('type').addEventListener('change',()=>{syncSize();syncPalette();});
 const settingsIds=['program','mood','ending','volume','scale','distance','height','roomBrightness','type','size','palette','towerColor','audioMode','musicVolume'];
-try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');if(!localStorage.getItem('hanabi-town-mix-default-35')){if(saved.musicVolume===undefined||Number(saved.musicVolume)===.65){saved.musicVolume='0.35';localStorage.setItem('hanabi-town-settings',JSON.stringify(saved));}localStorage.setItem('hanabi-town-mix-default-35','1');}for(const id of settingsIds){if(id==='palette')syncPalette();const el=$(id);if(saved[id]!==undefined){const old=el.value;el.value=saved[id];if(el.value==='')el.value=old;}}town.scale.setScalar(Number($('scale').value));}catch{}
-setTowerColor();syncSize();syncPalette();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
+try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');if(!localStorage.getItem('hanabi-town-fx-default-60')){if(saved.volume===undefined||Number(saved.volume)===.3){saved.volume='0.6';localStorage.setItem('hanabi-town-settings',JSON.stringify(saved));}localStorage.setItem('hanabi-town-fx-default-60','1');}if(!localStorage.getItem('hanabi-town-mix-default-35')){if(saved.musicVolume===undefined||Number(saved.musicVolume)===.65){saved.musicVolume='0.35';localStorage.setItem('hanabi-town-settings',JSON.stringify(saved));}localStorage.setItem('hanabi-town-mix-default-35','1');}for(const id of settingsIds){if(id==='palette')syncPalette();const el=$(id);if(saved[id]!==undefined){const old=el.value;el.value=saved[id];if(el.value==='')el.value=old;}}town.scale.setScalar(Number($('scale').value));}catch{}
+setTowerColor();syncSize();syncPalette();syncFireworkVolume();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
 for(const id of settingsIds)$(id).addEventListener('change',()=>{if(dioramaSaved)return;try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
 let pendingDiorama=false,pendingPlace=false,mrStarting=false,mrSession=null,mrMetrics=null,mrMeta=null,lastMRReport=null,latestViewerTransform=null,pendingViewMode=null,pendingPanelOpen=false,pendingBridge=false,vrSupported=false;
 let miniAngles=null;
@@ -1085,7 +1090,7 @@ window.__musicStudy={get state(){return{time,transport:music.currentTime,running
 
 if($('candyCard')){
  town.rotation.set(0,0,0);town.scale.setScalar(1);camera.position.set(0,1.15,3.0);camera.lookAt(0,.72,-.12);scene.fog.density=.025;
- $('candyVolume').oninput=()=>{$('volume').value=$('candyVolume').value;soundEngine?.setVolume(Number($('candyVolume').value));};
+ $('candyVolume').oninput=()=>{$('volume').value=$('candyVolume').value;$('volume').dispatchEvent(new Event('input'));};
  const monoSelect=$('candyMono');monoSelect.replaceChildren(...CANDY_PALETTES.filter(p=>p.colors.length===1).map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));
  const candySelect=$('candyPalette');candySelect.replaceChildren(...CANDY_PALETTES.map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));
  function beginCandyComparison(id){
