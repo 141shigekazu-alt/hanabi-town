@@ -1,4 +1,4 @@
-import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.51';
+import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.2.0';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
  if(data.length<2){if(data.length)data[0]=0;return data;}
@@ -280,7 +280,7 @@ export class FireworkAudio{
   }
   source.buffer=this.cache.get(cacheKey);
  }
- const level=role==='senrin-children'?(size===20?.36:.22):({'golden-ear':.10,'small-tail':.028,'large-tail':.055,'silver-crackle':.24,'willow-crackle':.22})[role];
+ const level=role==='senrin-children'?(size===20?.36:.22):({'golden-ear':.06,'small-tail':.028,'large-tail':.055,'silver-crackle':.24,'willow-crackle':.22})[role];
  dry.gain.value=level*variation.gain;
  source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
  let send=null;if(variation.send){send=this.context.createGain();send.gain.value=variation.send*variation.gain;color.node.connect(send).connect(this.recordedReverb);}

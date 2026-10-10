@@ -1,4 +1,4 @@
-import {samples} from './firework-samples.js?v=1.1.51';
+import {samples} from './firework-samples.js?v=1.2.0';
 
 export const WHISTLE_VARIANTS=['Whistle_01','Whistle_02','Whistle_03','Whistle_04','Whistle_05','Whistle_06'];
 export const OPENING_SAMPLES={3:'Shoot_A_01',5:'Shoot_A_03',10:'Shoot_A_10',20:'Shoot_B_05'};
