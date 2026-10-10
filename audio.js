@@ -1,4 +1,4 @@
-import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.49';
+import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.1.50';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
  if(data.length<2){if(data.length)data[0]=0;return data;}
@@ -142,12 +142,12 @@ export function reverbBuffer(context,opening=false){
  return buffer;
 }
 export class FireworkAudio{
- constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-9;this.limiter.knee.value=9;this.limiter.ratio.value=8;this.limiter.attack.value=.003;this.limiter.release.value=.2;
+ constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=6;this.limiter.ratio.value=12;this.limiter.attack.value=.001;this.limiter.release.value=.15;
  // A compressor can overshoot at a sharp report. Guard the final mix, including
  // music, with an identity curve below .94 and a smooth bounded shoulder above.
  this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();const curve=new Float32Array(65537);
  for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1,a=Math.abs(x),u=Math.min(1,Math.max(0,(a-.94)/.06));curve[i]=a<=.94?x:Math.sign(x)*(.94+.06*(u-u*u*u/3));}
- this.outputGuard.curve=curve;this.master.connect(this.limiter).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
+ this.outputGuard.curve=curve;this.fxBoost=context.createGain();this.fxBoost.gain.value=6;this.master.connect(this.fxBoost).connect(this.limiter);this.fxHeadroom=context.createGain();this.fxHeadroom.gain.value=.88;this.limiter.connect(this.fxHeadroom).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
  // Retain the short space for launch/foot effects. Openings have a longer tail.
  this.reverb=context.createConvolver();this.reverb.buffer=reverbBuffer(context);
  this.openingReverb=context.createConvolver();this.openingReverb.buffer=reverbBuffer(context,true);
@@ -163,6 +163,7 @@ export class FireworkAudio{
  this.recordedReverb=context.createConvolver();this.recordedReverb.normalize=false;this.recordedReverb.buffer=recordedReverbBuffer(context,fadeTail);
  this.recordedWet=context.createGain();this.recordedWet.gain.value=.14;this.recordedReverb.connect(this.recordedWet).connect(this.master);
  this.lateReverb=context.createConvolver();this.lateReverb.normalize=false;this.lateReverb.buffer=recordedLateReverbBuffer(context,fadeTail);this.lateReverb.connect(this.master);
+ this.outdoorReverb=context.createConvolver();this.outdoorReverb.normalize=false;this.outdoorReverb.buffer=recordedOutdoorReflectionBuffer(context,fadeTail);this.outdoorReverb.connect(this.master);
  this.recordedOnsets=new Map();const attackRms=new Map();
  for(const key of [...new Set(Object.values(OPENING_VARIANTS).flat()),'Crack_B_01','Crack_B_02','Crack_A_01','Crack_A_03']){
   const {data,rate,onset}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);if(key.startsWith('Crack_'))fadeTail(data,rate,.15);buffer.copyToChannel(data,0);this.cache.set('recorded-opening-'+key,buffer);
@@ -261,7 +262,7 @@ export class FireworkAudio{
  return {node,disconnect(){for(const filter of filters)filter.disconnect();}};
  }
  textureBuffer(key,index,stretch=1){
- const id=key+'-'+index+'-'+stretch;if(!this.textureBuffers.has(id)){const varied=variedCrackleBuffer(this.context,this.cache.get('recorded-opening-'+key),key,index,fadeTail);this.textureBuffers.set(id,stretch===1?varied:stretchedCrackleBuffer(this.context,varied,stretch,fadeTail));}
+ const id=key+'-'+index+'-'+stretch;if(!this.textureBuffers.has(id)){const varied=variedCrackleBuffer(this.context,this.cache.get('recorded-opening-'+key),key,index,fadeTail);this.textureBuffers.set(id,stretch===1?varied:stretchedCrackleBuffer(this.context,varied,stretch,fadeTail,index));}
  return this.textureBuffers.get(id);
  }
  nextRecordedCrackle(){return this.crackleSerial++%2?'Crack_B_02':'Crack_B_01';}
@@ -294,13 +295,13 @@ export class FireworkAudio{
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
  source.buffer=this.cache.get((explosion?'recorded-opening-':'recorded-launch-')+key);
  const level=explosion?({3:.40,5:.50,10:.65,20:.80})[size]*(this.openingLevels.get(key)??1):({2:.375,3:.75,5:1,10:1.15,20:1.65})[size];dry.gain.value=level*variation.gain;
- source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
+ source.connect(pan);const color=this.varyVoice(source,pan,variation);let presence=null,node=color.node;if(size>=5){presence=this.context.createBiquadFilter();presence.type='highshelf';presence.frequency.value=1800;presence.gain.value=1.5;node.connect(presence);node=presence;}node.connect(dry).connect(this.master);
  // Feed only the quiet, later part of the recording into the short coda.
  let send=null;if(explosion&&size>=5){
   send=this.context.createGain();const at=Math.max(this.context.currentTime,when??this.context.currentTime),delay=(this.recordedOnsets.get(key)+({5:.55,10:.65,20:.75})[size])/variation.rate;
-  send.gain.setValueAtTime(0,at);send.gain.setValueAtTime(0,at+delay);send.gain.linearRampToValueAtTime(level*.16*variation.gain,at+delay+.25/variation.rate);color.node.connect(send).connect(this.lateReverb);
+  send.gain.setValueAtTime(0,at);send.gain.setValueAtTime(0,at+delay);send.gain.linearRampToValueAtTime(level*(size>=10?.20:.16)*variation.gain,at+delay+.25/variation.rate);node.connect(send).connect(size>=10?this.outdoorReverb:this.lateReverb);
  }
- source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();presence?.disconnect();send?.disconnect();};this.startSource(source,when);return source;
  }
  playComet(x,when,position=null,mode='recorded',small=false){
  if(mode==='recorded'){

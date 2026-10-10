@@ -1,4 +1,4 @@
-import {samples} from './firework-samples.js?v=1.1.49';
+import {samples} from './firework-samples.js?v=1.1.50';
 
 export const WHISTLE_VARIANTS=['Whistle_01','Whistle_02','Whistle_03','Whistle_04','Whistle_05','Whistle_06'];
 export const OPENING_SAMPLES={3:'Shoot_A_01',5:'Shoot_A_03',10:'Shoot_A_10',20:'Shoot_B_05'};
@@ -48,31 +48,31 @@ export function recordedReverbBuffer(context,fadeTail){
  return buffer;
 }
 
-// Reorder short forward-playing parts within each phase of the crackle.
-// Keep the opening, overall decay and duration; soften every new join.
+// Choose irregular forward segments within each phase of the crackle.
+// Overlap joins instead of periodically fading each block to silence.
 export function variedCrackleBuffer(context,original,key,index,fadeTail){
- const rate=original.sampleRate,data=original.getChannelData(0).slice(),start=Math.round(rate*.05),grain=Math.round(rate*.14),count=key==='Crack_A_01'?12:8;
- let seed=(0x141142+index*7919+(key==='Crack_A_01'?101:303))>>>0;
+ const rate=original.sampleRate,raw=original.getChannelData(0),data=raw.slice(),start=Math.round(rate*.05),end=Math.min(raw.length-Math.round(rate*.05),start+Math.round(rate*(key==='Crack_A_01'?1.68:1.12)));
+ let seed=(0x141150+index*7919+(key==='Crack_A_01'?101:303))>>>0;
  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const order=Array.from({length:count},(_,i)=>i);
- for(let group=0;group<count;group+=4){for(let j=Math.min(count-1,group+3);j>group;j--){const k=group+Math.floor(random()*(j-group+1));[order[j],order[k]]=[order[k],order[j]];}}
- const originalData=original.getChannelData(0),fade=Math.round(rate*.006);
- for(let block=0;block<count;block++)for(let i=0;i<grain;i++){
-  const at=start+block*grain,from=start+order[block]*grain+i;
-  const edge=Math.min(1,i/fade,(grain-1-i)/fade),gain=.5-.5*Math.cos(Math.PI*Math.max(0,edge));
-  data[at+i]=originalData[from]*gain;
-  // Blend into the untouched start and decay instead of cutting them to zero.
-  if(block===0&&i<fade||block===count-1&&i>=grain-fade)data[at+i]+=originalData[at+i]*(1-gain);
+ let cursor=start;
+ while(cursor<end){
+  const length=Math.min(end-cursor,Math.round(rate*(.095+random()*.115))),overlap=Math.min(length,Math.round(rate*(.014+random()*.010)));
+  const phase=Math.floor((cursor-start)/(rate*.42)),lo=start+Math.round(phase*rate*.42),hi=Math.min(raw.length-length,lo+Math.round(rate*.42));
+  const from=Math.max(0,Math.round(lo+random()*Math.max(0,hi-lo)));
+  for(let i=0;i<length;i++){const at=cursor+i,w=i<overlap?.5-.5*Math.cos(Math.PI*i/overlap):1;data[at]=data[at]*(1-w)+raw[from+i]*w;}
+  if(cursor+length>=end)break;cursor+=Math.max(1,length-overlap);
  }
+ const edge=Math.round(rate*.024);for(let i=Math.max(start,end-edge);i<end;i++){const w=.5-.5*Math.cos(Math.PI*(i-(end-edge))/edge);data[i]=data[i]*(1-w)+raw[i]*w;}
  fadeTail(data,rate,.3);const buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);return buffer;
 }
 
 // Forward overlap-add stretches the noisy tail while keeping local pitch.
 // Normalize the overlap weights so joins cannot add unexpected peaks.
-export function stretchedCrackleBuffer(context,original,factor,fadeTail){
+export function stretchedCrackleBuffer(context,original,factor,fadeTail,index=0){
  const rate=original.sampleRate,raw=original.getChannelData(0),length=Math.round(raw.length*factor),data=new Float32Array(length),weights=new Float32Array(length);
- const grain=Math.round(rate*.09),hop=Math.round(rate*.06),edge=grain-hop;
- for(let at=-hop;at<length;at+=hop){
+ const grain=Math.round(rate*.12),edge=Math.round(rate*.03);let seed=(1411150+index*7919)>>>0;
+ const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+ for(let at=-Math.round(rate*.06);at<length;at+=Math.round(rate*(.044+random()*.034))){
   const from=Math.round(at/factor);
   for(let i=0;i<grain;i++){
    const target=at+i,source=from+i;if(target<0||target>=length||source<0||source>=raw.length)continue;
@@ -96,5 +96,21 @@ export function recordedLateReverbBuffer(context,fadeTail){
   fadeTail(d,rate,.30);for(const v of d)sum+=v*v;
  }
  const gain=Math.sqrt(2/Math.max(sum,1e-12));for(let c=0;c<2;c++){const d=buffer.getChannelData(c);for(let i=0;i<n;i++)d[i]*=gain;}
+ return buffer;
+}
+
+// Uneven, one-pass outdoor reflections. No feedback loop or periodic echo taps.
+// Each distant return is a short broad cluster, progressively quieter.
+export function recordedOutdoorReflectionBuffer(context,fadeTail){
+ const rate=context.sampleRate,n=Math.ceil(rate*3.8),buffer=context.createBuffer(2,n,rate);let seed=1411150;
+ const centers=[.18,.33,.57,.91,1.36,1.92,2.62,3.24],weights=[1,.72,.48,.32,.21,.13,.075,.04];
+ for(let channel=0;channel<2;channel++){
+  const d=buffer.getChannelData(channel);
+  centers.forEach((center,j)=>{const start=Math.round((center+channel*(j%2?.017:-.009))*rate),length=Math.round((.048+j*.011)*rate),a=1-Math.exp(-2*Math.PI*(3500-j*230)/rate),lowA=1-Math.exp(-2*Math.PI*200/rate);let low=0,high=0;
+   const cluster=new Float32Array(length);let energy=0;
+   for(let i=0;i<length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const noise=seed/4294967296*2-1;high+=a*(noise-high);low+=lowA*(noise-low);const envelope=Math.sin(Math.PI*i/(length-1))**2;cluster[i]=(high-low)*envelope;energy+=cluster[i]**2;}
+   const gain=weights[j]/Math.sqrt(Math.max(energy,1e-12));for(let i=0;i<length;i++)d[start+i]+=cluster[i]*gain;
+  });fadeTail(d,rate,.3);
+ }
  return buffer;
 }
