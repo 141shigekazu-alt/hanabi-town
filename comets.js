@@ -1,4 +1,4 @@
-import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.20';
+import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.27';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.16';

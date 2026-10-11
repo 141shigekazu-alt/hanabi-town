@@ -22,7 +22,7 @@ export class MRPanel{
   this.groundStudy=false;this.page=0;this.controls=[];this.controllers=[];this.edges=new WeakMap();this.hover='';this.lastDraw=0;this.active=false;
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
-  this.mesh=new T.Mesh(new T.PlaneGeometry(.68,.68*H/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.FrontSide}));
+  this.mesh=new T.Mesh(new T.PlaneGeometry(.68,.68*H/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.DoubleSide,forceSinglePass:true}));
   this.mesh.renderOrder=1000;this.mesh.visible=false;scene.add(this.mesh);
   // The visible white bar has a larger, invisible target for seated ray grabs.
   this.bar=new T.Mesh(new T.CapsuleGeometry(.007,.23,4,12),new T.MeshBasicMaterial({color:0xf2f5f8,depthTest:false,depthWrite:false}));
@@ -53,7 +53,20 @@ export class MRPanel{
  begin(transform){this.active=true;this.preview=false;this.edges=new WeakMap();this.page=0;this.openAt(transform);}
  end(){this.active=false;this.close();this.edges=new WeakMap();}
  close(){this.release();this.mesh.visible=false;this.cursor.visible=false;this.hover='';for(const e of this.controllers)e.beam.visible=false;}
- toggle(){if(this.visible)this.close();else if(this.moved){this.mesh.visible=true;this.draw();}else this.openAt(this.lastTransform);}
+ // A moved panel can end up behind the viewer or facing away. A returns it
+ // to a readable position in those cases, instead of toggling an unseen plane.
+ isReadable(transform=this.lastTransform){
+  if(!transform)return true;const p=transform.position,m=transform.matrix;
+  const toEye=new T.Vector3(p.x,p.y,p.z).sub(this.mesh.position),distance=toEye.length();
+  if(!Number.isFinite(distance)||distance<.2||distance>3)return false;
+  const normal=new T.Vector3(0,0,1).applyQuaternion(this.mesh.quaternion);
+  const forward=new T.Vector3(-m[8],-m[9],-m[10]);
+  return normal.dot(toEye)/distance>.25&&forward.dot(toEye.negate())/distance>.25;
+ }
+ toggle(){
+  if(!this.isReadable()){this.openAt(this.lastTransform);return;}
+  if(this.visible)this.close();else if(this.moved){this.mesh.visible=true;this.draw();}else this.openAt(this.lastTransform);
+ }
  pulse(source){const actuator=source?.gamepad?.hapticActuators?.[0];if(actuator)try{actuator.pulse(.22,20)?.catch(()=>{});}catch{}}
  fire(control,source){if(!control)return;this.pulse(source);control.action();this.hover='';if(this.visible)this.draw();}
  hitController(controller){
@@ -222,7 +235,6 @@ export class MRPanel{
    this.range('musicVolume','音楽の音量',810,s.musicVolume);
    for(const [id,label,amount,x] of [['musicMixFireworks','花火を聴く',.20,28],['musicMixDefault','標準',.35,280],['musicMixMusic','音楽を聴く',.55,532]])this.button(id,label,x,900,240,42,()=>this.click(id),{selected:Math.abs(s.musicVolume.value-amount)<.001});
    this.range('volume','花火の音量',967,s.volume);
-   this.button('betaToggleTC',s.betaTCEnabled?'TCパネルを隠す':'TCパネルを出す',28,1067,744,42,()=>this.click('betaToggleTC'),{selected:s.betaTCEnabled});
   }else if(this.page===1){
    this.button('upperStudy','上空の花火',28,238,360,54,()=>{this.groundStudy=false;},{selected:!this.groundStudy});
    this.button('groundStudy','大トラ・子トラ',412,238,360,54,()=>{this.groundStudy=true;},{selected:this.groundStudy});

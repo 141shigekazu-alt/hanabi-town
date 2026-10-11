@@ -1,32 +1,34 @@
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.20';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.20';
-import {rainEarSequence} from './rain-ears.js?v=1.2.20';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint} from './sparkling-stars.js?v=1.2.20';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint} from './long-stars.js?v=1.2.20';
-import {viewBoatPose} from './boat-cruise.js?v=1.2.20';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.20';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.2.20';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.20';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.20';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.20';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.20';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.27';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.27';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.27';
+import {rainEarSequence} from './rain-ears.js?v=1.2.27';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.27';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.27';
+import {viewBoatPose} from './boat-cruise.js?v=1.2.27';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.27';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.2.27';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.27';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.27';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.27';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.2.27';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.20';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.27';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.20';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.20';
-import {FireworkAudio} from './audio.js?v=1.2.20';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.20';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.20';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.20';
-import {TowerLighting} from './tower-lighting.js?v=1.2.20';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.20';
-import {ShowInfoPanel} from './show-info.js?v=1.2.20';
-import {WristMenu} from './wrist-menu.js?v=1.2.20';
-import {XRControls} from './xr-controls.js?v=1.2.20';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.20';
-import {EntryTip} from './entry-tip.js?v=1.2.20';
-const BUILD_VERSION='1.2.20';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.27';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.27';
+import {FireworkAudio} from './audio.js?v=1.2.27';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.27';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.27';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.27';
+import {TowerLighting} from './tower-lighting.js?v=1.2.27';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.27';
+import {ShowInfoPanel} from './show-info.js?v=1.2.27';
+import {WristMenu} from './wrist-menu.js?v=1.2.27';
+import {XRControls} from './xr-controls.js?v=1.2.27';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.27';
+import {EntryTip} from './entry-tip.js?v=1.2.27';
+const BUILD_VERSION='1.2.27';
+const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(TORA_MOUNTAIN_COLORS.map(c=>[c.id,c.label+'の星・'+(c.id==='mountain-gold'?'金':'銀')+'の尾'])),'tora-row-mix':'桃・水色・緑の列',...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
@@ -42,7 +44,7 @@ const town=new T.Group();scene.add(town);const light=new T.AmbientLight(0x8da9d9
 const bridgeView=new BridgeView(town,camera);
 let dioramaSaved=null;
 const showInfo=new ShowInfoPanel({scene,timer:$('infoTime'),names:$('infoNames'),overlay:$('showInfoPanel')});
-const betaReviewPanel=new BetaReviewPanel({scene,click:id=>$(id).click()});
+const betaReviewPanel=new BetaReviewPanel({scene,click:id=>$(id).click(),set:(value,commit)=>setPanelRange('betaMusicSeek',value,commit)});
 const betaPanelDrag=attachBetaPanelDrag($('betaReviewBar'),$('betaReviewHandle'),()=>({width:innerWidth,height:innerHeight}));
 addEventListener('resize',()=>betaPanelDrag.resize());
 let seed=141;function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
@@ -245,7 +247,7 @@ async function beginMusicShow(){
  musicBusy=false;startLoadedMusicShow();
 }
 function clearMusicSequence(){
- musicSequence=null;$('musicSequenceState').textContent='花火の夜 → 夏の名残 → パステル・パラサイト → もう一度だけ。余韻まで観て、次の曲へ。';
+ musicSequence=null;$('musicSequenceState').textContent=MUSIC_SHOWS.map(item=>item.title).join(' → ')+'。余韻まで観て、次の曲へ。';
 }
 function selectMusic(chosen,transport=new MusicTransport(chosen.src,{autoload:false})){
  music.stop();selectedMusic=chosen;MUSIC_PLAN=chosen.plan;music=transport;
@@ -265,7 +267,7 @@ async function beginMusicSequence(){
  const request=++musicRequest;musicBusy=true;syncShowButtons();
  $('musicSequenceState').textContent='４曲を準備中…';
  // Prepare all tracks under the user's start action so each change is immediate.
- const tracks=['hanabi-no-yoru','natsu-no-nagori','pastel-parasite','mou-ichido-dake'].map(id=>MUSIC_SHOWS.find(item=>item.id===id)).map(item=>({item,transport:item.id===selectedMusic.id?music:new MusicTransport(item.src,{autoload:false})}));
+ const tracks=MUSIC_SHOWS.map(item=>({item,transport:item.id===selectedMusic.id?music:new MusicTransport(item.src,{autoload:false})}));
  try{await Promise.all(tracks.map(({transport})=>transport.load()));}
  catch(e){if(request!==musicRequest)return;musicBusy=false;for(const {transport} of tracks)if(!transport.loaded)transport.ready=null;clearMusicSequence();syncShowButtons();$('musicSequenceState').textContent='曲を読み込めませんでした。「全てを続けて見る」でお試しください。';return;}
  if(request!==musicRequest)return;
@@ -277,7 +279,7 @@ function advanceMusicSequence(){
 }
 function beginNormalShow(){stopShow();prepareProgram();running=true;ensureAudio();syncShowButtons();$('status').textContent='稲穂の横一列から、曲なしの花火大会を始めます。';}
 
-function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0,openingKey=null,variation=null){if(groundStudySilent)return;const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,position,openingKey,variation);}
+function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0,openingKey=null,variation=null,openingTail=null){if(groundStudySilent)return;const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,position,openingKey,variation,openingTail);}
 function soundDelayFor(f){return bridgeView.active?bridgeView.delay(f.x,f.y,f.z,latestViewerTransform):({2:.18,3:.2,5:.5,10:1,20:1.5})[f.size]??0;}
 function isWhistleShell(f){return [10,20].includes(f.size)&&['double','triple','quad','penta'].includes(f.kind);}
 const WHISTLE_LAUNCH_DELAY=.5;
@@ -386,7 +388,7 @@ function launch(kind='core',size=5,position=null){
   if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
  }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- const f={x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,hideAscent:!!position?.hideAscent};if(!f.hideAscent&&isWhistleShell(f)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,x,z,size);
+ const f={x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
@@ -401,7 +403,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
   const offset=Math.max(0,f.whistleResumeOffset??0,age-f.whistleDue);if(offset<f.whistle.duration)soundEngine?.playWhistle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.whistleDue-age),whistlePositionFor(f),f.whistle,offset);
  }
  const soundDelay=soundDelayFor(f);
- if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.size);f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.size);}sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation);}
+ if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.size);f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.size);}sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation,f.openingTail);}
  if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;if(f.soundMode==='recorded')f.childVariation??=soundEngine?.chooseSoundVariation?.('senrin-children',f.size);(!groundStudySilent)&&soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.soundMode??$('audioMode').value,f.size,f.childVariation);}
  const afterDelay=tailCrackleDelayFor(f);
  if(['silver','willow'].includes(f.kind)&&f.soundMode==='recorded'&&t>=afterDelay&&!f.afterSoundPlayed){f.afterSoundPlayed=true;f.afterSoundDue=soundDelay+afterDelay;f.afterVariation??=soundEngine?.chooseSoundVariation?.(f.kind+'-crackle',f.size);(!groundStudySilent)&&soundEngine?.playOpeningCrackle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.afterSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.kind,f.size,f.afterVariation);}
@@ -421,16 +423,19 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   f.candyTrailCache??=new Float64Array(f.trailCount*4);
   for(let j=0;j<f.trailCount;j++){const lag=j*f.spec.tail,at=Math.max(0,t-lag),k=j*4;f.candyTrailCache[k]=1-Math.exp(-1.9*at);f.candyTrailCache[k+1]=.085*at;f.candyTrailCache[k+2]=f.spec.gravity*at*at;f.candyTrailCache[k+3]=(t>=lag?1:0)*Math.pow(1-j/f.trailCount,1.7);}
  }
- for(let i=0;i<f.n;i++)for(let j=0;j<f.trailCount;j++){
+ f.pointSample??={};f.starFrame??={};
+ for(let i=0;i<f.n;i++){
+ const prepared=t<0?null:f.kind==='sparklelarge'?prepareSparklePoint(f.sparkleStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):f.kind==='longstar'?prepareLongStarPoint(f.longStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):null;
+ for(let j=0;j<f.trailCount;j++){
  const index=(i*f.trailCount+j)*3;let x,y,z,brightness,longBlue=0;
  if(t<0){
  const trail=(i%24)*.003+j*.004,riseAge=f.kind==='silver'?Math.max(0,age-j*.03):age;
  x=f.x;y=Math.max(.02,f.y*(f.size<10?Math.pow(riseAge/f.ascent,.85):(1-Math.pow(1-Math.min(1,riseAge/(f.ascent-(f.size===20?.6:.28))),2)))-(f.kind==='silver'?0:trail));z=f.z;
  brightness=f.hideAscent?0:f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
  }
- else if(f.kind==='sparklelarge'){const v=sparklePoint(f.sparkleStars[i],f.r,t,j,f.trailCount,f.spec.life);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;}
+ else if(f.kind==='sparklelarge'){const v=sparklePoint(f.sparkleStars[i],f.r,t,j,f.trailCount,f.spec.life,f.pointSample,prepared);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;}
  else if(f.kind==='longstar'){
- const v=longStarPoint(f.longStars[i],f.r,t,j,f.trailCount,f.spec.life);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;
+ const v=longStarPoint(f.longStars[i],f.r,t,j,f.trailCount,f.spec.life,f.pointSample,prepared);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;
  }
  else if(f.kind==='candyburst'){
  const v=candyBigStarPoint(f.bigStars[i],f.r,t,j,f.trailCount);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
@@ -445,7 +450,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const v=point(f.directions[i],f.r,f.shells[i],t,j,f.trailCount,f.spec.life);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
  }
  else if(f.kind==='ear'){
- const v=earPoint(f.earStars[i],f.r,t,j);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
+ const v=earPoint(f.earStars[i],f.r,t,j,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
  }
  else if(f.kind==='silver'){
  // The tail is a short history of the same star, never a fresh delayed shell.
@@ -487,6 +492,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
  const col=f.starColors[i];if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
+ }
  }
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
  f.reflectionGain=0;f.reflectionRadius=0;
@@ -677,6 +683,7 @@ function updateReflections(){
 function placeTown(){if(renderer.xr.isPresenting&&!bridgeView.active)pendingPlace=true;}
 function ensureAudio(){
  if(!audio){audio=new(window.AudioContext||window.webkitAudioContext)();soundEngine=new FireworkAudio(audio,Number($('volume').value));}
+ soundEngine?.setSpatialMode?.(new URLSearchParams(location.search).get('spatial')==='full'?'full':renderer.xr.isPresenting||/OculusBrowser/.test(navigator.userAgent)?'adaptive':'full');
  audio.resume().catch(e=>{$('status').textContent='音声を開始できませんでした：'+e.message;});
 }
 function toggle(){
@@ -821,7 +828,7 @@ async function exitMRToPage(){
 const entryTip=new EntryTip(scene);
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;betaReviewPanel.entries=mrPanel.controllers;
-const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',readCruiseStarted:()=>boatStarted,choose:mode=>{if(mode==='boat-start'){$('boatStart').click();return;}if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
+const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readTC:()=>betaTCEnabled,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',readCruiseStarted:()=>boatStarted,choose:mode=>{if(mode==='tc-panel'){toggleBetaTC();return;}if(mode==='boat-start'){$('boatStart').click();return;}if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
 function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
 $('showInfo').onclick=toggleShowInfo;
 // Each hand keeps a snapshot of the chosen shell; changing the picker later
@@ -963,6 +970,7 @@ async function checkMR(){
  try{const [ar,vr]=await Promise.all([navigator.xr.isSessionSupported('immersive-ar'),navigator.xr.isSessionSupported('immersive-vr')]);vrSupported=vr;$('mr').disabled=!ar;$('mr').textContent=ar?'部屋で観る':'このブラウザはMR非対応';$('mrInfo').textContent=ar||vr?'QuestでMR・橋の上からの鑑賞を開始できます。':'このブラウザでは、画面上で橋の視点を試せます。';}catch(e){$('mr').textContent='MR対応を確認できませんでした';$('mrInfo').textContent=e.name+'：'+e.message;}
 }
 function finishMR(){
+ soundEngine?.setSpatialMode?.(/OculusBrowser/.test(navigator.userAgent)&&new URLSearchParams(location.search).get('spatial')!=='full'?'adaptive':'full');
  cancelMusicRequest();
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();}
  entryTip.end();cancelPreparation();
@@ -981,7 +989,7 @@ async function startXR(mode,bridge=false){
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
   session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();betaReviewPanel.release();wristMenu.gesture.reset();}});
-  await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
+  await renderer.xr.setSession(session);soundEngine?.setSpatialMode?.(new URLSearchParams(location.search).get('spatial')==='full'?'full':'adaptive');mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
   // Enter the room with an unlit sky; only the explicit show button starts it.
@@ -1047,11 +1055,12 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
  if(!renderer.xr.isPresenting){const lookYaw=yaw-(bridgeView.active&&bridgeView.mode==='boat'?boatPose.angle:0);const target=bridgeView.active?new T.Vector3(Math.sin(lookYaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(lookYaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*(dioramaSaved?.25:1.2),(dioramaSaved?.88:new URLSearchParams(location.search).has('rainMusicTrial')?1.15:$('toraSceneCard')&&!$('toraSceneCard').hidden?.70:$('rainEarCard')&&!$('rainEarCard').hidden?.70:(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial'))?1.04:.55)+pitch,0);camera.lookAt(target);}
  if(!session&&bridgeView.active)bridgeView.move((walkKeys.has('KeyD')?1:0)-(walkKeys.has('KeyA')?1:0),(walkKeys.has('KeyS')?1:0)-(walkKeys.has('KeyW')?1:0),dt);bridgeView.listener(audio,pose?.transform);
- if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled&&!!showPlan?.music,current:betaClock(Math.min(time,MUSIC_PLAN.duration)),duration:betaClock(MUSIC_PLAN.duration),tail:time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else betaReviewPanel.release();if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0||!!mrPanel.sliderDrag||!!betaReviewPanel.sliderDrag});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled,musicActive:!!showPlan?.music,current:betaClock(showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration)):0),seek:showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration:0,duration:betaClock(MUSIC_PLAN.duration),tail:showPlan?.music&&time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running:!!showPlan?.music&&running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else betaReviewPanel.release();if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
  }else if(frame&&mrMetrics)mrMetrics.breakWindow();
+ if(questDiagnostics.enabled)questDiagnostics.record(stamp,{showTime:Number(time.toFixed(3)),running,xr:!!session,view:bridgeView.active?bridgeView.mode:dioramaSaved?'diorama':'miniature',updateCpuMs:renderStart-updateStart,renderCpuMs:performance.now()-renderStart,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),groundPoints:comets.points??0,audioState:audio?.state,spatial:soundEngine?.spatialStats,sidebarVisible:mrPanel.visible,sidebarReadable:mrPanel.isReadable(),tcEnabled:betaTCEnabled,tcVisible:betaReviewPanel.mesh.visible,tcMusicActive:betaReviewPanel.state?.musicActive});
 });
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 window.__hanabi={riverNight,towerLighting,get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?bridgeView.mode:'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
@@ -1127,7 +1136,8 @@ $('betaMusicSeek').onchange=()=>{const resume=betaDragging?betaResumeAfterDrag:r
 $('betaMusicSeek').addEventListener('pointercancel',()=>{const resume=betaResumeAfterDrag;betaDragging=false;syncBetaReview();if(resume&&!document.hidden&&showPlan?.music&&!running)toggle();});
 for(const [id,offset] of [['betaBack10',-10],['betaBack5',-5],['betaForward5',5],['betaFloatBack10',-10],['betaFloatBack5',-5],['betaFloatForward5',5]])$(id).onclick=()=>seekBetaMusic(Math.min(music.currentTime,MUSIC_PLAN.duration)+offset,running);
 $('betaFloatPause').onclick=()=>{if(showPlan?.music)toggle();};
-$('betaToggleTC').onclick=()=>{betaTCEnabled=!betaTCEnabled;if(betaTCEnabled)betaReviewPanel.reanchor();else{betaReviewPanel.end();for(const [controller,grab] of controls.grabs)if(grab.panel===betaReviewPanel)controls.release(controller);}$('betaToggleTC').textContent=betaTCEnabled?'TCパネルを隠す':'TCパネルを出す';mrPanel.draw();};
+function toggleBetaTC(){betaTCEnabled=!betaTCEnabled;if(betaTCEnabled)betaReviewPanel.reanchor();else{betaReviewPanel.end();for(const [controller,grab] of controls.grabs)if(grab.panel===betaReviewPanel)controls.release(controller);}$('betaToggleTC').textContent=betaTCEnabled?'TCパネルを隠す':'TCパネルを出す';wristMenu.draw();}
+$('betaToggleTC').onclick=toggleBetaTC;
 
 async function beginRainMusicSnapshot(target){if(selectedMusic.id==='mou-ichido-dake')await seekBetaMusic(target,false);}
 $('rainMusicFirstPeak').onclick=()=>beginRainMusicSnapshot(57.9);
@@ -1142,7 +1152,7 @@ function pauseMusicForVisibility(){
  if(running&&showPlan?.music){time=music.pause();running=false;cancelFutureSounds();triggerEmbers.clear();syncShowButtons();$('status').textContent='鑑賞を離れたので、曲と花火を一時停止しました。';}
 }
 // A scheduled duration is a lower bound. User-launched shells may outlive the programme.
-function musicCanFinish(){return time>=MUSIC_PLAN.showDuration&&!fireworks.length&&!triggerEmbers.count&&!comets.groups&&!burstQueue.length&&!fanQueue.length;}
+function musicCanFinish(){return time>=MUSIC_PLAN.showDuration&&!soundEngine?.openingCodaActive&&!fireworks.length&&!triggerEmbers.count&&!comets.groups&&!burstQueue.length&&!fanQueue.length;}
 function advanceMusic(dt){
  time=music.currentTime;updateMusicFxQuiet();
  advanceEmbers(dt);updateFireworkEvents();
@@ -1172,7 +1182,7 @@ function drawMusicTimeline(){
  $('musicTime').textContent=time<=MUSIC_PLAN.duration?time.toFixed(1)+' / '+MUSIC_PLAN.duration.toFixed(1)+'秒':'曲終わり · 花火の余韻 '+(time-MUSIC_PLAN.duration).toFixed(1)+'秒';
 }
 drawMusicTimeline();
-window.__musicStudy={get state(){return{time,transport:music.currentTime,running,pending:burstQueue.length,active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),sourceActive:!!music.source,contextState:audio?.state,clicks:music.clicks.size,log:musicLog};},get plan(){return MUSIC_PLAN;}};
+window.__musicStudy={get state(){return{time,transport:music.currentTime,running,pending:burstQueue.length,active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),sourceActive:!!music.source,contextState:audio?.state,spatial:soundEngine?.spatialStats,clicks:music.clicks.size,log:musicLog};},get plan(){return MUSIC_PLAN;}};
 
 if($('candyCard')){
  town.rotation.set(0,0,0);town.scale.setScalar(1);camera.position.set(0,1.15,3.0);camera.lookAt(0,.72,-.12);scene.fog.density=.025;

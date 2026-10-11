@@ -15,15 +15,15 @@ export function createEarRow(seed,count=7,spacing=.28){
  const random=stream((seed^0x51ea70b3)>>>0);
  return Array.from({length:count},(_,i)=>({x:(i-(count-1)/2)*spacing+(random()-.5)*.07,z:(random()-.5)*.05,heightOffset:(random()-.5)*.07,earSeed:(seed+i*313)>>>0}));
 }
-function trajectory(star,radius,t){
+function trajectory(star,radius,t,out){
  const drag=.30,travel=-Math.expm1(-drag*t)/drag,settling=Math.max(0,t-2.8);
  // Keep the opening and horizontal momentum; deepen only the descending arc
  // after the rise. No inward return, and no translation of the root.
- return {side:radius*star.vx*.68*travel,y:radius*(star.vy*.70*travel-.2214285714*(t-travel)/drag-.045*settling*settling),velocity:radius*star.vx*.68*Math.exp(-drag*t),travel};
+ out.side=radius*star.vx*.68*travel;out.y=radius*(star.vy*.70*travel-.2214285714*(t-travel)/drag-.045*settling*settling);out.velocity=radius*star.vx*.68*Math.exp(-drag*t);out.travel=travel;return out;
 }
-export function earPoint(star,radius,age,trail){
+export function earPoint(star,radius,age,trail,out={}){
  const head=trail===0,birth=head?age:EAR_PROFILE.burn*(1-(trail-1)/(EAR_PROFILE.trails-2));
- const t=Math.min(age,birth),elapsed=Math.max(0,age-t),p=trajectory(star,radius,t);
+ const t=Math.min(age,birth),elapsed=Math.max(0,age-t),p=trajectory(star,radius,t,out);
  const outwardDrift=head?0:p.velocity*elapsed*.06*(birth/EAR_PROFILE.burn);
  const side=p.side+outwardDrift;
  const fall=head?0:radius*.025*elapsed*elapsed*(birth/EAR_PROFILE.burn);
@@ -35,7 +35,7 @@ export function earPoint(star,radius,age,trail){
   (age>=birth?.72*star.glow*(.45+.55*birth/EAR_PROFILE.burn)*fade:0);
  // Old sparks cool first. The birth-zero root stays at the original break
  // until it goes dark; later sparks retain their direction and gently fall.
- return {x:side*Math.cos(star.yaw),y:p.y-fall,z:side*Math.sin(star.yaw)+radius*star.depth*p.travel,brightness};
+ out.x=side*Math.cos(star.yaw);out.y=p.y-fall;out.z=side*Math.sin(star.yaw)+radius*star.depth*p.travel;out.brightness=brightness;return out;
 }
 
 // Separate ignition stream: seven close reports, rather than one fused sound.

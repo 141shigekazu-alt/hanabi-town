@@ -10,7 +10,7 @@ export class XRControls{
   this.diorama=false;this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.grabs=new Map();this.triggerDown=new Set();this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.target=new T.Vector3();this.facing=new T.Object3D();this.rotation=new T.Quaternion();this.up=new T.Vector3(0,1,0);
   for(const e of entries){
    e.controller.addEventListener('selectstart',()=>this.select(e));
-   e.controller.addEventListener('selectend',()=>{this.triggerDown.delete(e.controller);this.sidebar.release(e.controller);});
+   e.controller.addEventListener('selectend',()=>{this.triggerDown.delete(e.controller);for(const panel of this.panels)panel.release?.(e.controller);});
    e.controller.addEventListener('squeezestart',()=>this.squeeze(e));
    e.controller.addEventListener('squeezeend',()=>this.release(e.controller));
    e.controller.addEventListener('disconnected',()=>{this.release(e.controller);this.triggerDown.delete(e.controller);this.edges=new WeakMap();});
@@ -27,7 +27,7 @@ export class XRControls{
  select(e){
   if(!this.active||!e.source||(!e.source.hand&&!this.tracked.has(e.source))||this.triggerDown.has(e.controller))return;
   this.triggerDown.add(e.controller);
-  if(this.grabs.size||this.sidebar.sliderDrag||this.panels.some(p=>p.grab))return;
+  if(this.grabs.size||this.sidebar.sliderDrag||this.panels.some(p=>p.grab||p.sliderDrag))return;
   // A trigger shortly after a physical menu touch must not launch a shell.
   if(e.controller===this.wrist.ignoreController&&performance.now()<this.wrist.ignoreUntil)return;
   const hit=this.panelHit(e.controller);
@@ -37,7 +37,7 @@ export class XRControls{
   this.fire(e.source.handedness,this.origin.clone().addScaledVector(this.direction,.055),this.direction.clone());
  }
  squeeze(e){
-  if(!this.active||!e.source||e.source.hand||!this.tracked.has(e.source)||this.grabs.has(e.controller)||this.sidebar.sliderDrag)return;
+  if(!this.active||!e.source||e.source.hand||!this.tracked.has(e.source)||this.grabs.has(e.controller)||this.panels.some(p=>p.sliderDrag))return;
   const hit=this.panelHit(e.controller);let panel=hit?.panel;
   if(hit&&hit.object===(panel.grabTarget??panel.bar)){
    if(panel.grab||[...this.grabs.values()].some(g=>g.panel===panel))return;
@@ -60,10 +60,10 @@ export class XRControls{
    this.tracked.add(s);
    if(gp?.mapping==='xr-standard'){
     const now=[!!gp.buttons[4]?.pressed,!!gp.buttons[5]?.pressed],before=this.edges.get(s);this.edges.set(s,now);
-    if(before){if(now[0]&&!before[0]){if(s.handedness==='left')this.wrist.toggle(viewer);else if(s.handedness==='right')this.sidebar.toggle();}if(now[1]&&!before[1]&&s.handedness==='right')this.pause();}
+    if(before){if(now[0]&&!before[0]){if(s.handedness==='left')this.wrist.toggle(viewer);else if(s.handedness==='right'){for(const [controller,grab] of this.grabs)if(grab.panel===this.sidebar)this.release(controller);this.sidebar.toggle();}}if(now[1]&&!before[1]&&s.handedness==='right')this.pause();}
    }
    const g=this.grabs.get(e.controller);
-   if(!g&&s.handedness==='left'&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.panels.some(p=>p.grab))this.bridge.move(stickValue(gp.axes[2]),stickValue(gp.axes[3]),dt,viewer);
+   if(!g&&s.handedness==='left'&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.panels.some(p=>p.grab||p.sliderDrag))this.bridge.move(stickValue(gp.axes[2]),stickValue(gp.axes[3]),dt,viewer);
    if(g){
     const x=stickValue(gp?.axes[2]),y=stickValue(gp?.axes[3]);
     if(g.town){

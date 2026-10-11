@@ -29,12 +29,12 @@ export class FingerTouch{
   s.armed=false;const mix=(prev.point.z-.012)/(prev.point.z-point.z);return prev.point.clone().lerp(point,mix);
  }
 }
-const W=512,H=646;
+const W=512,H=732;
 const CHAINS=[['wrist','thumb-metacarpal','thumb-phalanx-proximal','thumb-phalanx-distal','thumb-tip'],...['index','middle','ring','pinky'].map(f=>['wrist',`${f}-finger-metacarpal`,`${f}-finger-phalanx-proximal`,`${f}-finger-phalanx-intermediate`,`${f}-finger-phalanx-distal`,`${f}-finger-tip`])];
 const LINKS=CHAINS.flatMap(chain=>chain.slice(1).map((name,i)=>[chain[i],name]));
 export class WristMenu{
- constructor({scene,entries,read,choose,readInfo=()=>false,readDiorama=()=>false,readBoat=()=>false,readCruiseStarted=()=>false,beforeOpen=()=>{}}){
-  Object.assign(this,{scene,entries,read,choose,readInfo,readDiorama,readBoat,readCruiseStarted,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';this.ignoreController=null;this.ignoreUntil=0;
+ constructor({scene,entries,read,choose,readTC=()=>false,readInfo=()=>false,readDiorama=()=>false,readBoat=()=>false,readCruiseStarted=()=>false,beforeOpen=()=>{}}){
+  Object.assign(this,{scene,entries,read,choose,readTC,readInfo,readDiorama,readBoat,readCruiseStarted,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';this.ignoreController=null;this.ignoreUntil=0;
   for(const e of entries){e.touchTip=new T.Mesh(new T.SphereGeometry(.007,10,8),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));e.touchTip.position.z=-.05;e.touchTip.renderOrder=1006;e.touchTip.visible=false;e.controller.add(e.touchTip);}
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
@@ -103,9 +103,9 @@ export class WristMenu{
   c.textBaseline='middle';c.font='25px system-ui,sans-serif';c.fillStyle='#f2dfb5';c.fillText('クルッとパネル',24,38);
   const views=[{id:'miniature',label:'街を見下ろす'},{id:'bridge',label:'橋の上から見上げる'},{id:'boat',label:'屋形船から見上げる'}];
   if(this.readCruiseStarted())views.push({id:'boat-start',label:'出航位置に戻る'});
-  views.push({id:'diorama',label:'ジオラマサイズで観る'},{id:'show-info',label:this.readInfo()?'時間と玉名を隠す':'時間と玉名を表示'});
+  views.push({id:'diorama',label:'ジオラマサイズで観る'},{id:'show-info',label:this.readInfo()?'時間と玉名を隠す':'時間と玉名を表示'},{id:'tc-panel',label:this.readTC()?'TCパネルを隠す':'TCパネルを出す'});
   const buttons=[{id:'close',label:'×',x:444,y:12,w:52,h:52},...views.map((b,i)=>({...b,x:20,y:85+i*86,w:472,h:72}))];
-  for(const b of buttons){const selected=b.id==='show-info'?this.readInfo():b.id===(active?(this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?'#405568':selected?'#554931':'#1a2e40';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.textAlign='center';c.font='25px system-ui,sans-serif';c.fillStyle='#e8eef1';c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
-  c.font='17px system-ui,sans-serif';c.fillStyle='#a9c2cf';c.fillText('右の指 / コントローラー先端でタッチ',24,626);this.texture.needsUpdate=true;
+  for(const b of buttons){const selected=b.id==='tc-panel'?this.readTC():b.id==='show-info'?this.readInfo():b.id===(active?(this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?'#405568':selected?'#554931':'#1a2e40';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.textAlign='center';c.font='25px system-ui,sans-serif';c.fillStyle='#e8eef1';c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
+  c.font='17px system-ui,sans-serif';c.fillStyle='#a9c2cf';c.fillText('右の指 / コントローラー先端でタッチ',24,H-20);this.texture.needsUpdate=true;
  }
 }

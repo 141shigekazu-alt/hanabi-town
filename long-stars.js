@@ -29,22 +29,22 @@ export function createLongStars(size,seed){
 }
 // Preserve the accepted flight paths and duration; coloured heads fade with gold.
 const REFERENCE_LIFE=7.4;
-export function longStarPoint(star,radius,elapsed,trail,trails=LONG_STAR_PROFILE.trails,life=LONG_STAR_PROFILE.life){
- const age=elapsed*REFERENCE_LIFE/life;
- const outer=star.layer===0,fine=star.layer===2,history=Math.min(Math.max(0,age),outer?1.12:1.35);
- // Shrink both gold layers around the burst centre; the large heads retain their paths.
+export function prepareLongStarPoint(star,radius,elapsed,trails=LONG_STAR_PROFILE.trails,life=LONG_STAR_PROFILE.life,out={}){
+ const age=elapsed*REFERENCE_LIFE/life,outer=star.layer===0,fine=star.layer===2;
  radius*=outer?1:LONG_STAR_PROFILE.coreScale;
+ let profile=star.longTrailProfile;
+ if(!profile||profile.trails!==trails){profile={trails,weight:Float64Array.from({length:trails},(_,j)=>Math.pow(1-j/trails,1.35))};star.longTrailProfile=profile;}
+ Object.assign(out,{age,outer,fine,radius,history:Math.min(Math.max(0,age),outer?1.12:1.35),fade:1-smooth(outer?4.0:3.5,REFERENCE_LIFE,age),lit:Math.min(1,Math.max(0,age)/.085),wake:outer?1-smooth(star.headLife-.55,star.headLife,age):0,flicker:.38+.62*Math.pow(Math.max(0,Math.sin(age*(12.5+star.speed*3)+star.phase)),2),fineGlow:fine?.22+.52*smooth(1.3,3.5,age):1,profile});return out;
+}
+export function longStarPoint(star,radius,elapsed,trail,trails=LONG_STAR_PROFILE.trails,life=LONG_STAR_PROFILE.life,out={},prepared=null){
+ const frame=prepared??prepareLongStarPoint(star,radius,elapsed,trails,life);
+ const {age,outer,fine,history,fade,lit,wake,flicker,fineGlow,profile}=frame;radius=frame.radius;
  const lag=history*trail/(trails-1),t=Math.max(0,age-lag);
  const travel=radius*star.speed*((1-Math.exp(-(outer?.60:fine?.65:.93)*t))+(outer?.026:.020)*t);
  const drop=radius*(outer?.0035:.0025)*t*t;
  const x=star.direction[0]*travel,y=star.direction[1]*travel+radius*.024*t-drop,z=star.direction[2]*travel;
- const fade=1-smooth(outer?4.0:3.5,REFERENCE_LIFE,age);
- const lit=Math.min(1,Math.max(0,age)/.085),weight=Math.pow(1-trail/trails,1.35);
- // Keep each large head's hue through extinction; its short coloured wake follows.
- // The original warm-tail light and the separate fine gold flower are retained.
- const head=outer?fade:0,wake=outer?(1-smooth(star.headLife-.55,star.headLife,age)):0;
+ const head=outer?fade:0,weight=profile.weight[trail];
  const blue=outer?(trail===0?1:Math.max(0,1-lag/.36)):0;
- const flicker=.38+.62*Math.pow(Math.max(0,Math.sin(age*(12.5+star.speed*3)+star.phase)),2);
- const brightness=lit*weight*(outer?(trail===0?1.12*head:.58*fade*(.30+.70*wake)):(trail===0?.92:.42)*fade*(fine?.22+.52*smooth(1.3,3.5,age):1)*(.64+.36*flicker));
- return {x,y,z,brightness,blue};
+ const brightness=lit*weight*(outer?(trail===0?1.12*head:.58*fade*(.30+.70*wake)):(trail===0?.92:.42)*fade*fineGlow*(.64+.36*flicker));
+ out.x=x;out.y=y;out.z=z;out.brightness=brightness;out.blue=blue;return out;
 }

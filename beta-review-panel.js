@@ -27,20 +27,28 @@ export function attachBetaPanelDrag(panel,handle,viewport){
  return {resize(){if(moved&&!panel.hidden){const box=panel.getBoundingClientRect();place(box.left,box.top);}},get dragging(){return !!grab;}};
 }
 
-const W=768,H=240,WIDTH=.42;
+const W=768,H=344,WIDTH=.42;
 export class BetaReviewPanel extends ShowInfoPanel{
- constructor({scene,click}){
-  super({scene,timer:{},names:{},overlay:{},entries:[]});this.click=click;
+ constructor({scene,click,set=()=>{}}){
+  super({scene,timer:{},names:{},overlay:{},entries:[]});this.click=click;this.set=set;
   this.surface.height=H;this.mesh.geometry.dispose();this.mesh.geometry=new T.PlaneGeometry(WIDTH,WIDTH*H/W);
   this.bar.position.y=-WIDTH*H/W/2-.018;this.grabTarget.position.copy(this.bar.position);
-  this.controls=[];this.touches=new WeakMap();this.state=null;
+  this.controls=[];this.touches=new WeakMap();this.state=null;this.sliderDrag=null;this.sliderPlane=new T.Plane();this.sliderPoint=new T.Vector3();this.sliderValue=0;
  }
  end(){super.end();this.touches=new WeakMap();}
+ release(controller=null){
+  if(this.sliderDrag&&(!controller||this.sliderDrag.controller===controller)){
+   const value=this.sliderValue;this.sliderDrag=null;
+   if(this.state?.musicActive)this.set(value,true);
+  }
+  super.release(controller);
+ }
  update(state,transform,xr=false,xrVisible=true){
-  this.enabled=!!state.active;this.mesh.visible=this.enabled&&xr&&xrVisible&&!!transform;
+  this.state=state;this.enabled=!!state.active;this.mesh.visible=this.enabled&&xr&&xrVisible&&!!transform;
+  if(!state.musicActive)this.release();
   if(!this.enabled){this.release();this.anchored=false;return;}
   if(this.mesh.visible&&!this.anchored)this.anchor(transform);
-  const key=[state.current,state.duration,state.tail,state.running,state.busy].join('|');this.state=state;
+  const key=[state.current,state.duration,state.tail,state.running,state.busy,state.musicActive,state.seek].join('|');
   if(key!==this.key){this.key=key;this.drawReview();}
  }
  drawReview(){
@@ -48,18 +56,48 @@ export class BetaReviewPanel extends ShowInfoPanel{
   c.fillStyle='rgba(12,27,42,.90)';c.beginPath();c.roundRect(2,2,W-4,H-4,22);c.fill();c.strokeStyle='rgba(220,201,155,.6)';c.lineWidth=2;c.stroke();
   c.textAlign='left';c.textBaseline='middle';c.font='bold 66px system-ui,sans-serif';c.fillStyle='#ffe7ad';c.fillText(s.current,28,62);
   const next=28+c.measureText(s.current).width+15;c.font='35px system-ui,sans-serif';c.fillStyle='#b8c8d7';c.fillText('/ '+s.duration,next,66);
-  c.font='24px system-ui,sans-serif';c.fillStyle='#c3d2dc';c.fillText(s.tail||'曲の時刻',28,110);
-  this.controls=[['betaFloatBack10','10秒戻る'],['betaFloatBack5','5秒戻る'],['betaFloatPause',s.running?'一時停止':'再開'],['betaFloatForward5','5秒進む']].map(([id,label],i)=>{
-   const b={id,x:18+i*186,y:140,w:174,h:78};c.fillStyle=s.busy?'#16212b':'#21384b';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();
-   c.textAlign='center';c.font='29px system-ui,sans-serif';c.fillStyle=s.busy?'#788895':'#edf3f8';c.fillText(label,b.x+b.w/2,b.y+b.h/2);return b;
-  });this.texture.needsUpdate=true;
+  c.font='24px system-ui,sans-serif';c.fillStyle='#c3d2dc';c.fillText(!s.musicActive?'曲の開始前 · 再生後に操作できます':s.tail||'曲の時刻',28,110);
+  this.controls=[['betaFloatBack10','10秒戻る'],['betaFloatBack5','5秒戻る'],['betaFloatPause',!s.musicActive?'再生前':s.running?'一時停止':'再開'],['betaFloatForward5','5秒進む']].map(([id,label],i)=>{
+   const b={id,x:18+i*186,y:140,w:174,h:78};c.fillStyle=(s.busy||!s.musicActive)?'#16212b':'#21384b';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();
+   c.textAlign='center';c.font='29px system-ui,sans-serif';c.fillStyle=(s.busy||!s.musicActive)?'#788895':'#edf3f8';c.fillText(label,b.x+b.w/2,b.y+b.h/2);return b;
+  });
+  const disabled=s.busy||!s.musicActive,value=Math.max(0,Math.min(1,this.sliderDrag?this.sliderValue:s.seek??0)),trackX=46,trackW=676;
+  c.fillStyle=disabled?'#283744':'#3b5264';c.beginPath();c.roundRect(trackX,262,trackW,12,6);c.fill();
+  c.fillStyle=disabled?'#667789':'#ddc695';c.beginPath();c.roundRect(trackX,262,Math.max(1,value*trackW),12,6);c.fill();
+  c.fillStyle=disabled?'#788895':'#ffe7ad';c.beginPath();c.arc(trackX+value*trackW,268,17,0,Math.PI*2);c.fill();
+  c.font='23px system-ui,sans-serif';c.textAlign='left';c.fillStyle='#c3d2dc';c.fillText('はじめ',28,313);c.textAlign='center';c.fillText('曲の再生位置',W/2,313);c.textAlign='right';c.fillText('曲末',W-28,313);
+  this.controls.push({id:'betaMusicSeek',slider:true,x:18,y:234,w:W-36,h:65,trackX,trackW});this.texture.needsUpdate=true;
  }
  controlAt(x,y){return this.controls.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);}
+ slideLocal(local){
+  const control=this.controls.find(c=>c.slider);if(!control)return;
+  const x=(local.x/WIDTH+.5)*W,value=Math.max(0,Math.min(1,(x-control.trackX)/control.trackW));
+  if(value===this.sliderValue)return;this.sliderValue=value;this.set(value,false);this.drawReview();
+ }
+ slideRay(){
+  this.mesh.updateMatrixWorld(true);this.sliderPlane.setFromNormalAndCoplanarPoint(new T.Vector3(0,0,1).applyQuaternion(this.mesh.quaternion),this.mesh.position);
+  if(this.ray.ray.intersectPlane(this.sliderPlane,this.sliderPoint))this.slideLocal(this.mesh.worldToLocal(this.sliderPoint));
+ }
+ beginSlider(owner,local=null){
+  this.sliderValue=-1;this.sliderDrag=owner;if(local)this.slideLocal(local);else this.slideRay();
+ }
+ controllerRay(controller){
+  controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);
+  this.point.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.point,this.direction);
+ }
+ drag(stamp,frame,referenceSpace){
+  if(this.sliderDrag?.controller){
+   const entry=this.entries.find(e=>e.controller===this.sliderDrag.controller);
+   if(!this.mesh.visible||!frame||!entry?.source||!frame.getPose(entry.source.targetRaySpace,referenceSpace)){this.release();return;}
+   this.controllerRay(entry.controller);this.slideRay();return;
+  }
+  if(!this.sliderDrag)super.drag(stamp,frame,referenceSpace);
+ }
  select(controller){
   if(!this.mesh.visible)return false;controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);
-  this.point.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.point,this.direction);
+  if(this.sliderDrag)return true;this.controllerRay(controller);
   const hit=this.ray.intersectObject(this.mesh,false)[0];if(!hit)return false;
-  const button=this.controlAt(hit.uv.x*W,(1-hit.uv.y)*H);if(button&&!this.state.busy&&!this.grab&&!this.controllerGrabbed)this.click(button.id);return true;
+  const button=this.controlAt(hit.uv.x*W,(1-hit.uv.y)*H);if(button&&!this.state.busy&&this.state.musicActive&&!this.grab&&!this.controllerGrabbed){if(button.slider)this.beginSlider({controller});else this.click(button.id);}return true;
  }
  touch(stamp,frame,referenceSpace,busy=false){
   if(!this.mesh.visible||!frame||busy||this.grab||this.controllerGrabbed){this.touches=new WeakMap();return;}
@@ -67,9 +105,12 @@ export class BetaReviewPanel extends ShowInfoPanel{
    const source=entry.source;if(source?.handedness!=='right')continue;let position;
    if(source.hand){const joint=source.hand.get('index-finger-tip');const pose=joint&&frame.getJointPose(joint,referenceSpace);if(pose)position=new T.Vector3(pose.transform.position.x,pose.transform.position.y,pose.transform.position.z);}
    else if(frame.getPose(source.targetRaySpace,referenceSpace)){entry.controller.updateWorldMatrix(true,false);position=entry.controller.localToWorld(new T.Vector3(0,0,-.045));}
-   if(!position){this.touches.delete(source);continue;}this.mesh.updateMatrixWorld(true);const local=this.mesh.worldToLocal(position),button=Math.abs(local.z)<.018?this.controlAt((local.x/WIDTH+.5)*W,(.5-local.y/(WIDTH*H/W))*H):null;
+   if(!position){this.touches.delete(source);if(this.sliderDrag?.source===source)this.release();continue;}this.mesh.updateMatrixWorld(true);const local=this.mesh.worldToLocal(position);
+   if(this.sliderDrag){if(this.sliderDrag.source===source){if(Math.abs(local.z)>.045)this.release();else this.slideLocal(local);}continue;}
+   const button=Math.abs(local.z)<.018?this.controlAt((local.x/WIDTH+.5)*W,(.5-local.y/(WIDTH*H/W))*H):null;
    const before=this.touches.get(source);this.touches.set(source,{id:button?.id,stamp});
-   if(button&&!this.state.busy&&(!before||before.id!==button.id||stamp-before.stamp>150))this.click(button.id);
+   if(button&&!this.state.busy&&this.state.musicActive&&(!before||before.id!==button.id||stamp-before.stamp>150)){if(button.slider)this.beginSlider({source},local);else this.click(button.id);}
   }
+  if(this.sliderDrag?.source&&!this.entries.some(e=>e.source===this.sliderDrag.source))this.release();
  }
 }

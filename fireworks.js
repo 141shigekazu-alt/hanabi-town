@@ -1,4 +1,4 @@
-import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.20';
+import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.27';
 import {SUNFLOWER_PROFILE,SPIRAL_PROFILE} from './sunflower-motion.js?v=1.1.16';
 import {CANDY_PALETTES} from './candy-colors.js?v=1.1.16';
 import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';

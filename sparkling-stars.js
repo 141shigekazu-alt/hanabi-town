@@ -34,17 +34,25 @@ export function createSparkleStars(size,seed){
 }
 // 9.5 is an observed reference span, not a measured extinction time.
 const REFERENCE_SPAN=9.5;
-export function sparklePoint(star,radius,elapsed,trail,trails=SPARKLE_PROFILE.trails,life=SPARKLE_PROFILE.life){
- const age=Math.max(0,elapsed)*REFERENCE_SPAN/life,outer=star.layer<2,head=outer;
+// Shared values are calculated once per star per frame. Trails reuse output.
+export function prepareSparklePoint(star,radius,elapsed,trails=SPARKLE_PROFILE.trails,life=SPARKLE_PROFILE.life,out={}){
+ const age=Math.max(0,elapsed)*REFERENCE_SPAN/life,outer=star.layer<2;
  radius*=outer?1:SPARKLE_PROFILE.coreScale;
- const history=Math.min(age,outer?2.75:1.05),lag=history*Math.pow(trail/(trails-1),outer?1+.10*Math.sin(star.phase):1),t=Math.max(0,age-lag);
+ let profile=star.sparkleTrailProfile;
+ if(!profile||profile.trails!==trails){
+  const exponent=outer?1+.10*Math.sin(star.phase):1;
+  profile={trails,lag:Float64Array.from({length:trails},(_,j)=>Math.pow(j/(trails-1),exponent)),weight:Float64Array.from({length:trails},(_,j)=>Math.pow(1-j/trails,1.05))};star.sparkleTrailProfile=profile;
+ }
+ Object.assign(out,{age,outer,radius,history:Math.min(age,outer?2.75:1.05),fade:1-smooth(outer?5.0:2.7,outer?REFERENCE_SPAN:5.0,age),lit:Math.min(1,age/.11),profile});return out;
+}
+export function sparklePoint(star,radius,elapsed,trail,trails=SPARKLE_PROFILE.trails,life=SPARKLE_PROFILE.life,out={},prepared=null){
+ const frame=prepared??prepareSparklePoint(star,radius,elapsed,trails,life);
+ const {age,outer,history,fade,lit,profile}=frame;radius=frame.radius;
+ const lag=history*profile.lag[trail],t=Math.max(0,age-lag);
  const travel=radius*star.speed*((1-Math.exp(-(outer?.64:.95)*t))+(outer?.018:.012)*t);
  const x=star.direction[0]*travel,y=star.direction[1]*travel+radius*.030*t-radius*(outer?.009:.005)*t*t,z=star.direction[2]*travel;
- const fade=1-smooth(outer?5.0:2.7,outer?REFERENCE_SPAN:5.0,age),lit=Math.min(1,age/.11),weight=Math.pow(1-trail/trails,1.05);
- // Leave readable continuous strands with unsynchronised points of stronger light.
- const pulse=Math.pow(Math.max(0,Math.sin(age*(10.7+star.speed*2)+star.phase-trail*.79)),6);
- const sparkle=.46+.54*pulse;
+ const weight=profile.weight[trail],pulse=Math.pow(Math.max(0,Math.sin(age*(10.7+star.speed*2)+star.phase-trail*.79)),6),sparkle=.46+.54*pulse;
  const brightness=lit*fade*weight*(outer?(trail===0?1.25:.85*(.75+.25*pulse)):(trail===0?.88:.30)*(.55+.45*sparkle));
- const blue=head?(trail===0?1:Math.max(0,1-lag/.28)):0;
- return {x,y,z,brightness,blue};
+ const blue=outer?(trail===0?1:Math.max(0,1-lag/.28)):0;
+ out.x=x;out.y=y;out.z=z;out.brightness=brightness;out.blue=blue;return out;
 }

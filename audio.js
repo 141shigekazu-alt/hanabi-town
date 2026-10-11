@@ -1,3 +1,4 @@
+import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.27';
 import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.2.0';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
@@ -142,7 +143,7 @@ export function reverbBuffer(context,opening=false){
  return buffer;
 }
 export class FireworkAudio{
- constructor(context,volume){this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=6;this.limiter.ratio.value=12;this.limiter.attack.value=.001;this.limiter.release.value=.15;
+ constructor(context,volume){this.spatialMode="full";this.hrtfPanners=new Set();this.peakHRTF=0;this.lightPanners=0;this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=6;this.limiter.ratio.value=12;this.limiter.attack.value=.001;this.limiter.release.value=.15;
  // A compressor can overshoot at a sharp report. Guard the final mix, including
  // music, with an identity curve below .94 and a smooth bounded shoulder above.
  this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();const curve=new Float32Array(65537);
@@ -170,6 +171,7 @@ export class FireworkAudio{
   this.recordedOnsets.set(key,onset);const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
   if(OPENING_VARIANTS[5].includes(key))buffer.copyToChannel(fiveGoOpeningDecay(data,rate,onset),0);
  }
+ this.openingCodaBuffers=new Map(OPENING_VARIANTS[20].map(key=>[key,twoShakuCodaBuffer(context,key)]));this.openingCodas=new Set();
  this.openingLevels=new Map();
  for(const [size,keys] of Object.entries(OPENING_VARIANTS)){
   const reference=attackRms.get(keys[0]);for(const key of keys)this.openingLevels.set(key,Math.min(1.2,reference/Math.max(.0001,attackRms.get(key))));
@@ -186,13 +188,23 @@ export class FireworkAudio{
  if(offset>0)source.start(at,offset);else source.start(at);
  }
  cancelScheduled(){
+ for(const voice of this.openingCodas??[]){voice.dry.gain.setTargetAtTime(0,this.context.currentTime,.006);voice.source.stop(this.context.currentTime+.03);}
  for(const [source,{dry,at}] of this.whistles){const started=at<=this.context.currentTime;if(started)dry.gain.setTargetAtTime(0,this.context.currentTime,.004);source.stop(started?this.context.currentTime+.015:this.context.currentTime);}
  for(const entry of this.pending)if(this.whistles.has(entry.source)||entry.at>this.context.currentTime){if(!this.whistles.has(entry.source))entry.source.stop();this.pending.delete(entry);}
  this.whistles.clear();
  }
- spatialPan(x,position){
+ setSpatialMode(mode){this.spatialMode=mode==='adaptive'?'adaptive':'full';}
+ disconnectPan(pan){this.hrtfPanners?.delete(pan);pan.disconnect();}
+ get spatialStats(){return {mode:this.spatialMode,hrtf:this.hrtfPanners.size,peakHRTF:this.peakHRTF,lightPanners:this.lightPanners,openingCodas:this.openingCodas?.size??0};}
+ spatialPan(x,position,detail=false){
  if(!position){const p=this.context.createStereoPanner();p.pan.value=Math.max(-.85,Math.min(.85,x/1.5));return p;}
- const p=this.context.createPanner();p.panningModel='HRTF';p.distanceModel='inverse';p.rolloffFactor=0;
+ const p=this.context.createPanner();
+ // Dense ground/tail detail retains head-relative direction with equal-power
+ // panning. Up to eight reports/whistles retain HRTF, bounding audio-thread work.
+ const light=this.spatialMode==='adaptive'&&(detail||this.hrtfPanners.size>=8);
+ p.panningModel=light?'equalpower':'HRTF';p.distanceModel='inverse';p.rolloffFactor=0;
+ if(light){this.lightPanners++;for(const axis of ['X','Y','Z'])if(p['position'+axis])p['position'+axis].automationRate='k-rate';}
+ else{this.hrtfPanners.add(p);this.peakHRTF=Math.max(this.peakHRTF,this.hrtfPanners.size);}
  if(p.positionX){p.positionX.value=position.x;p.positionY.value=position.y;p.positionZ.value=position.z;}else p.setPosition(position.x,position.y,position.z);
  return p;
  }
@@ -203,7 +215,7 @@ export class FireworkAudio{
  if(!this.cache.has(key)){const data=senrinChildSamples(this.context.sampleRate),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain(),send=this.context.createGain();source.buffer=this.cache.get(key);dry.gain.value=.50;send.gain.value=.18;
  source.connect(pan);pan.connect(dry).connect(this.master);pan.connect(send).connect(this.reverb);
- source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send.disconnect();};this.startSource(source,when);
+ source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();send.disconnect();};this.startSource(source,when);
  }
  playCrackle(cross=false){
  if(this.context.state!=='running')return;
@@ -246,7 +258,7 @@ export class FireworkAudio{
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();source.buffer=this.cache.get('recorded-whistle-'+choice.key);
  dry.gain.value=.75*(6/this.fxBoost.gain.value)*(choice.size===20?.95:.80)*(this.whistleLevels.get(choice.key)??1)*choice.variation.gain;
  source.connect(pan);const color=this.varyVoice(source,pan,choice.variation);color.node.connect(dry).connect(this.master);const at=Math.max(this.context.currentTime,when??this.context.currentTime);if(offset>0){const level=dry.gain.value;dry.gain.setValueAtTime(0,at);dry.gain.linearRampToValueAtTime(level,at+.008);}this.whistles.set(source,{dry,at});
- source.onended=()=>{this.whistles.delete(source);source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when,offset*choice.variation.rate);return source;
+ source.onended=()=>{this.whistles.delete(source);source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();};this.startSource(source,when,offset*choice.variation.rate);return source;
  }
  chooseSoundVariation(role,size=10){
  const random=()=>this.nextSoundRandom();
@@ -269,7 +281,7 @@ export class FireworkAudio{
  playRecordedCrackle(x,when,position=null,role='large-tail',key=this.nextRecordedCrackle(),variation=null,size=10){
  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
  variation??=this.chooseSoundVariation(role,size);
- const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();
  const textured=role==='senrin-children'||role.endsWith('-crackle'),original=this.cache.get('recorded-opening-'+key),short=role==='small-tail';
  if(textured)source.buffer=this.textureBuffer(key,variation.index,role==='silver-crackle'?1.5:1);
  else{
@@ -285,32 +297,44 @@ export class FireworkAudio{
  dry.gain.value=level*variation.gain*volumeScale;
  source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
  let send=null;if(variation.send){send=this.context.createGain();send.gain.value=variation.send*variation.gain*volumeScale;color.node.connect(send).connect(this.recordedReverb);}
- source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ source.onended=()=>{source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
  }
  playSilverCrackle(x,when,position=null,size=10,variation=null){return this.playOpeningCrackle(x,when,position,'silver',size,variation);}
  playOpeningCrackle(x,when,position=null,kind='silver',size=10,variation=null){return this.playRecordedCrackle(x,when,position,kind+'-crackle','Crack_A_03',variation,size);}
- playRecorded(explosion,x,size,when,position=null,openingKey=null,variation=null){
+ playRecorded(explosion,x,size,when,position=null,openingKey=null,variation=null,openingTail=null){
  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
  const key=explosion?(openingKey??this.chooseOpening(size)):this.chooseLaunch(size);if(!key)return;
  variation??=this.chooseSoundVariation(explosion?'opening':'launch',size);
- const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,size===2),dry=this.context.createGain();
  source.buffer=this.cache.get((explosion?'recorded-opening-':'recorded-launch-')+key);
  const level=explosion?({3:.40,5:.50,10:.65,20:.80})[size]*(this.openingLevels.get(key)??1):({2:.375,3:.75,5:1,10:1.15,20:1.65})[size];dry.gain.value=level*variation.gain;
  source.connect(pan);const color=this.varyVoice(source,pan,variation);let presence=null,node=color.node;if(size>=5){presence=this.context.createBiquadFilter();presence.type='highshelf';presence.frequency.value=1800;presence.gain.value=1.5;node.connect(presence);node=presence;}node.connect(dry).connect(this.master);
  // Feed only the quiet, later part of the recording into the short coda.
- let send=null;if(explosion&&size>=5){
+ const longCoda=explosion&&size===20&&openingTail==='two-shaku-long'&&this.openingCodaBuffers?.get(key);
+ if(longCoda)this.playOpeningCoda(x,when,position,key,variation,level);
+ let send=null;if(explosion&&size>=5&&!longCoda){
   send=this.context.createGain();const at=Math.max(this.context.currentTime,when??this.context.currentTime),delay=(this.recordedOnsets.get(key)+({5:.55,10:.65,20:.75})[size])/variation.rate;
   send.gain.setValueAtTime(0,at);send.gain.setValueAtTime(0,at+delay);send.gain.linearRampToValueAtTime(level*(size>=10?.20:.10)*variation.gain,at+delay+.25/variation.rate);node.connect(send).connect(size>=10?this.outdoorReverb:this.lateReverb);
  }
- source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();presence?.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ source.onended=()=>{source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();presence?.disconnect();send?.disconnect();};this.startSource(source,when);return source;
+ }
+ // One cached, pre-rendered coda replaces the long real-time convolution feed.
+ // Its light 3D panner leaves the report's HRTF slot budget unchanged.
+ get openingCodaActive(){return (this.openingCodas?.size??0)>0;}
+ playOpeningCoda(x,when,position,key,variation,level){
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();
+ source.buffer=this.openingCodaBuffers.get(key);const color=this.varyVoice(source,pan,variation),presence=this.context.createBiquadFilter();presence.type='highshelf';presence.frequency.value=1800;presence.gain.value=1.5;
+ dry.gain.value=level*.20*variation.gain;source.connect(pan);color.node.connect(presence).connect(dry).connect(this.master);
+ const voice={source,dry};this.openingCodas.add(voice);
+ source.onended=()=>{this.openingCodas.delete(voice);source.disconnect();this.disconnectPan(pan);color.disconnect();presence.disconnect();dry.disconnect();};this.startSource(source,when);return source;
  }
  playComet(x,when,position=null,mode='recorded',small=false){
  if(mode==='recorded'){
   if(this.context.state!=='running'&&!('startRendering' in this.context))return;
-  const key=this.chooseLaunch(3),source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();
+  const key=this.chooseLaunch(3),source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();
   const variation=this.chooseSoundVariation('launch',small?2:3);source.buffer=this.cache.get('recorded-launch-'+key);dry.gain.value=(small?.22:.40)*variation.gain;
   source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
-  source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();};this.startSource(source,when);return source;
+  source.onended=()=>{source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();};this.startSource(source,when);return source;
  }
  if(this.context.state!=='running')return;
  const key='realistic-false-3';
@@ -318,19 +342,19 @@ export class FireworkAudio{
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain(),send=this.context.createGain();
  source.buffer=this.cache.get(key);dry.gain.value=.095;send.gain.value=.025;
  source.connect(pan);pan.connect(dry).connect(this.master);pan.connect(send).connect(this.reverb);
- source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send.disconnect();};this.startSource(source,when);
+ source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();send.disconnect();};this.startSource(source,when);
  }
  playEar(explosion,x,when,position=null){
  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
  const key=explosion?'ear-pop':'realistic-false-3';
  if(!this.cache.has(key)){const data=explosion?earPopSamples(this.context.sampleRate):realisticSamples(this.context.sampleRate,false,3),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
- const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();source.buffer=this.cache.get(key);dry.gain.value=explosion?.18:.14;
+ const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();source.buffer=this.cache.get(key);dry.gain.value=explosion?.18:.14;
  source.connect(pan);pan.connect(dry).connect(this.master);
  // Ear openings are dry. Launches retain only the small space used by the comets.
  let send=null;if(!explosion){send=this.context.createGain();send.gain.value=.025;pan.connect(send).connect(this.reverb);}
- source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);
+ source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();send?.disconnect();};this.startSource(source,when);
  }
- play(explosion,x,z,size,mode='original',when,position=null,openingKey=null,variation=null){if(size===2){if(mode==='recorded')return explosion?this.playRecordedCrackle(x,when,position,'golden-ear',openingKey??this.nextRecordedCrackle(),variation,size):this.playRecorded(false,x,size,when,position,null,variation);return this.playEar(explosion,x,when,position);}if(mode==='recorded')return this.playRecorded(explosion,x,size,when,position,openingKey,variation);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
- const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.spatialPan(x,position);const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();pan.disconnect();dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
+ play(explosion,x,z,size,mode='original',when,position=null,openingKey=null,variation=null,openingTail=null){if(size===2){if(mode==='recorded')return explosion?this.playRecordedCrackle(x,when,position,'golden-ear',openingKey??this.nextRecordedCrackle(),variation,size):this.playRecorded(false,x,size,when,position,null,variation);return this.playEar(explosion,x,when,position);}if(mode==='recorded')return this.playRecorded(explosion,x,size,when,position,openingKey,variation,openingTail);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.spatialPan(x,position);const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
  }
 }

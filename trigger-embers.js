@@ -1,5 +1,5 @@
-import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.20';
-import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.20';
+import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.27';
+import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.27';
 import {isSenrin} from './fireworks.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 
