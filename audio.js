@@ -281,9 +281,10 @@ export class FireworkAudio{
   source.buffer=this.cache.get(cacheKey);
  }
  const level=role==='senrin-children'?(size===20?.36:.22):({'golden-ear':.06,'small-tail':.028,'large-tail':.055,'silver-crackle':.24,'willow-crackle':.22})[role];
- dry.gain.value=level*variation.gain;
+ const volumeScale=role==='golden-ear'?.6:1;
+ dry.gain.value=level*variation.gain*volumeScale;
  source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
- let send=null;if(variation.send){send=this.context.createGain();send.gain.value=variation.send*variation.gain;color.node.connect(send).connect(this.recordedReverb);}
+ let send=null;if(variation.send){send=this.context.createGain();send.gain.value=variation.send*variation.gain*volumeScale;color.node.connect(send).connect(this.recordedReverb);}
  source.onended=()=>{source.disconnect();pan.disconnect();color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
  }
  playSilverCrackle(x,when,position=null,size=10,variation=null){return this.playOpeningCrackle(x,when,position,'silver',size,variation);}

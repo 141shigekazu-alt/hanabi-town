@@ -1,29 +1,34 @@
-import {viewBoatPose} from './boat-cruise.js?v=1.2.0';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.0';
-import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.2.0';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.0';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.0';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.0';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.0';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.20';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.20';
+import {rainEarSequence} from './rain-ears.js?v=1.2.20';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint} from './sparkling-stars.js?v=1.2.20';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint} from './long-stars.js?v=1.2.20';
+import {viewBoatPose} from './boat-cruise.js?v=1.2.20';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.20';
+import {sunflowerPoint,spiralPoint} from './sunflower-motion.js?v=1.2.20';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.20';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.20';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.20';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.2.20';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.0';
+import {createProgram,programCue,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.20';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.0';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.0';
-import {FireworkAudio} from './audio.js?v=1.2.0';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.0';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.0';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.0';
-import {TowerLighting} from './tower-lighting.js?v=1.2.0';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.0';
-import {ShowInfoPanel} from './show-info.js?v=1.2.0';
-import {WristMenu} from './wrist-menu.js?v=1.2.0';
-import {XRControls} from './xr-controls.js?v=1.2.0';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.0';
-import {EntryTip} from './entry-tip.js?v=1.2.0';
-const BUILD_VERSION='1.2.0';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.20';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.20';
+import {FireworkAudio} from './audio.js?v=1.2.20';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.20';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.20';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.20';
+import {TowerLighting} from './tower-lighting.js?v=1.2.20';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.20';
+import {ShowInfoPanel} from './show-info.js?v=1.2.20';
+import {WristMenu} from './wrist-menu.js?v=1.2.20';
+import {XRControls} from './xr-controls.js?v=1.2.20';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.20';
+import {EntryTip} from './entry-tip.js?v=1.2.20';
+const BUILD_VERSION='1.2.20';
 let candyFreezeAt=null;
-const SMALL_STYLE_LABELS={...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
+const SMALL_STYLE_LABELS={...Object.fromEntries(TORA_MOUNTAIN_COLORS.map(c=>[c.id,c.label+'の星・'+(c.id==='mountain-gold'?'金':'銀')+'の尾'])),'tora-row-mix':'桃・水色・緑の列',...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -37,6 +42,9 @@ const town=new T.Group();scene.add(town);const light=new T.AmbientLight(0x8da9d9
 const bridgeView=new BridgeView(town,camera);
 let dioramaSaved=null;
 const showInfo=new ShowInfoPanel({scene,timer:$('infoTime'),names:$('infoNames'),overlay:$('showInfoPanel')});
+const betaReviewPanel=new BetaReviewPanel({scene,click:id=>$(id).click()});
+const betaPanelDrag=attachBetaPanelDrag($('betaReviewBar'),$('betaReviewHandle'),()=>({width:innerWidth,height:innerHeight}));
+addEventListener('resize',()=>betaPanelDrag.resize());
 let seed=141;function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
 const box=new T.BoxGeometry(1,1,1), mats=[0x172431,0x24303d,0x1b2934,0x303540].map(c=>new T.MeshStandardMaterial({color:c,roughness:.9}));
 function cube(x,y,z,w,h,d,mat){const m=new T.Mesh(box,mat);m.position.set(x,y,z);m.scale.set(w,h,d);town.add(m);return m;}
@@ -191,27 +199,37 @@ function updateRoofLights(seconds){
 }
 let showPlan=null,showNumber=0,showCompleted=false;
 let selectedMusic=MUSIC_SHOWS[0],MUSIC_PLAN=selectedMusic.plan;
+let musicFxQuiet=false;
+function resetMusicFxQuiet(){if(musicFxQuiet){soundEngine?.fxHeadroom?.gain?.setValueAtTime(.88,soundEngine.context.currentTime);musicFxQuiet=false;}}
+function updateMusicFxQuiet(){const quiet=(MUSIC_PLAN.fxSilenceWindows??[]).some(w=>time>=w.start&&time<w.end);if(quiet!==musicFxQuiet){musicFxQuiet=quiet;soundEngine?.fxHeadroom?.gain?.setValueAtTime(quiet?0:.88,soundEngine.context.currentTime);}}
 let music=new MusicTransport(selectedMusic.src,{autoload:false});
 $('musicTrack').replaceChildren(...MUSIC_SHOWS.map(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.title;return option;}));$('musicTrack').value=selectedMusic.id;
 function syncMusicScenes(){
- $('musicScene').replaceChildren(...MUSIC_PLAN.sections.filter(q=>q.at<MUSIC_PLAN.duration).map(q=>{const option=document.createElement('option');option.value=q.previewStart??Math.max(0,q.at-5);option.textContent=Math.floor(q.at/60)+':'+String(Math.floor(q.at%60)).padStart(2,'0')+' · '+q.label;return option;}));
+ $('musicScene').replaceChildren(...MUSIC_PLAN.sections.filter(q=>q.at<MUSIC_PLAN.duration).map(q=>{const option=document.createElement('option');option.value=q.previewStart??Math.max(0,q.at-5);const fraction=Math.round((q.at-Math.floor(q.at))*100);option.textContent=Math.floor(q.at/60)+':'+String(Math.floor(q.at%60)).padStart(2,'0')+(fraction?'.'+String(fraction).padStart(2,'0').replace(/0$/,''):'')+' · '+q.label;return option;}));
 }
 syncMusicScenes();
 let musicSequence=null;
 let musicRequest=0,musicBusy=false,candyPeakAt=null,candyPeakLabel='キャンディー全開の瞬間です。';
 let musicLog=[],musicLastUI=-1;
+let betaRebuilding=false,betaDragging=false,betaResumeAfterDrag=false,betaTCEnabled=false;
+function betaClock(seconds){const t=Math.max(0,Math.round(seconds*10));return Math.floor(t/600)+":"+String(Math.floor(t/10)%60).padStart(2,"0")+"."+t%10;}
+function betaTimeLabel(value){return betaClock(Math.min(value,MUSIC_PLAN.duration))+' / '+betaClock(MUSIC_PLAN.duration)+(value>MUSIC_PLAN.duration?' · 余韻＋'+(value-MUSIC_PLAN.duration).toFixed(1)+'秒':'');}
+function betaRandom(seed){let n=seed>>>0;return()=>((n=(Math.imul(n,1664525)+1013904223)>>>0)/4294967296);}
+function betaSeed(index){let seed=0x141718;for(const c of selectedMusic.id)seed=(Math.imul(seed,31)+c.charCodeAt(0))>>>0;return(seed+Math.imul(index+1,2654435761))>>>0;}
 
 function prepareProgram(){showCompleted=false;const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalEarSequence(seed,.8,3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,intro.finishAt);$('programInfo').textContent=showPlan.name; }
 function prepareMusicProgram(){
  showCompleted=false;
  showPlan={name:'音楽付き · '+selectedMusic.title,music:true};
  const shift=Number($('musicOffset').value)/1000;
- burstQueue=MUSIC_PLAN.shots.map(s=>({...s,at:s.at+shift,opening:s.opening+shift,position:{...s.position,startAt:s.at+shift}}));
- fanQueue=MUSIC_PLAN.fans.map(f=>({...f,at:f.at+shift}));
+ burstQueue=MUSIC_PLAN.shots.map((s,i)=>({...s,at:s.at+shift,opening:s.opening+shift,position:{...s.position,startAt:s.at+shift,reviewSeed:betaSeed(s.reviewIndex??i),longStarSeed:betaSeed(s.reviewIndex??i),sparkleSeed:betaSeed(s.reviewIndex??i)}}));
+ fanQueue=MUSIC_PLAN.fans.map((f,i)=>({...f,at:f.at+shift,options:{...f.options,reviewSeed:betaSeed(i+10000)}}));
  musicLog=[];$('musicState').textContent=selectedMusic.title+' · '+MUSIC_PLAN.duration.toFixed(1)+'秒';
 }
-function cancelMusicRequest(){candyPeakAt=null;musicRequest++;musicBusy=false;syncShowButtons();}
+function cancelMusicRequest(){betaDragging=false;resetMusicFxQuiet();candyPeakAt=null;musicRequest++;musicBusy=false;syncShowButtons();}
 function syncShowButtons(){
+ syncBetaReview();
+ for(const id of ['rainMusicPeak','rainMusicFirstPeak','rainMusicFinalSnapshot'])if($(id))$(id).hidden=selectedMusic.id!=='mou-ichido-dake';
  for(const id of ['candyPeak','candyQuiet','candySenrin'])if($(id))$(id).hidden=selectedMusic.id!=='pastel-parasite';
  $('play').textContent=showPlan?.music?'曲なしの大会へ':running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';
  $('musicShow').disabled=musicBusy;$('musicAll').disabled=musicBusy;
@@ -227,7 +245,7 @@ async function beginMusicShow(){
  musicBusy=false;startLoadedMusicShow();
 }
 function clearMusicSequence(){
- musicSequence=null;$('musicSequenceState').textContent='花火の夜 → 夏の名残 → パステル・パラサイト。余韻まで観て、次の曲へ。';
+ musicSequence=null;$('musicSequenceState').textContent='花火の夜 → 夏の名残 → パステル・パラサイト → もう一度だけ。余韻まで観て、次の曲へ。';
 }
 function selectMusic(chosen,transport=new MusicTransport(chosen.src,{autoload:false})){
  music.stop();selectedMusic=chosen;MUSIC_PLAN=chosen.plan;music=transport;
@@ -245,9 +263,9 @@ async function beginMusicSequence(){
  if(musicBusy)return;
  stopShow();ensureAudio();
  const request=++musicRequest;musicBusy=true;syncShowButtons();
- $('musicSequenceState').textContent='３曲を準備中…';
+ $('musicSequenceState').textContent='４曲を準備中…';
  // Prepare all tracks under the user's start action so each change is immediate.
- const tracks=['hanabi-no-yoru','natsu-no-nagori','pastel-parasite'].map(id=>MUSIC_SHOWS.find(item=>item.id===id)).map(item=>({item,transport:item.id===selectedMusic.id?music:new MusicTransport(item.src,{autoload:false})}));
+ const tracks=['hanabi-no-yoru','natsu-no-nagori','pastel-parasite','mou-ichido-dake'].map(id=>MUSIC_SHOWS.find(item=>item.id===id)).map(item=>({item,transport:item.id===selectedMusic.id?music:new MusicTransport(item.src,{autoload:false})}));
  try{await Promise.all(tracks.map(({transport})=>transport.load()));}
  catch(e){if(request!==musicRequest)return;musicBusy=false;for(const {transport} of tracks)if(!transport.loaded)transport.ready=null;clearMusicSequence();syncShowButtons();$('musicSequenceState').textContent='曲を読み込めませんでした。「全てを続けて見る」でお試しください。';return;}
  if(request!==musicRequest)return;
@@ -259,7 +277,7 @@ function advanceMusicSequence(){
 }
 function beginNormalShow(){stopShow();prepareProgram();running=true;ensureAudio();syncShowButtons();$('status').textContent='稲穂の横一列から、曲なしの花火大会を始めます。';}
 
-function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0,openingKey=null,variation=null){const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,position,openingKey,variation);}
+function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0,openingKey=null,variation=null){if(groundStudySilent)return;const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,position,openingKey,variation);}
 function soundDelayFor(f){return bridgeView.active?bridgeView.delay(f.x,f.y,f.z,latestViewerTransform):({2:.18,3:.2,5:.5,10:1,20:1.5})[f.size]??0;}
 function isWhistleShell(f){return [10,20].includes(f.size)&&['double','triple','quad','penta'].includes(f.kind);}
 const WHISTLE_LAUNCH_DELAY=.5;
@@ -275,18 +293,21 @@ let earSerial=0;
 function launch(kind='core',size=5,position=null){
  if(kind==='candysenrin'&&size!==10)return false;
  if(kind==='candy'&&![3,5,10].includes(size))return false;
- if(kind==='candyburst'&&size!==5&&size!==10)return false;
+ if((kind==='candyburst'||kind==='longstar')&&size!==5&&size!==10)return false;
+ if(kind==='sparklelarge'&&![5,10,20].includes(size))return false;
  if(kind==='ear'&&size!==2||size===2&&kind!=='ear')return false;
  const activeUpper=fireworks.filter(f=>f.kind!=='ear').length;
- if(kind==='ear'){if(fireworks.filter(f=>f.kind==='ear').length>=14)return false;}
- else if(!position?.manual&&(activeUpper>=(showPlan?.music&&selectedMusic.id==='pastel-parasite'?14:position?.wide||position?.musicNine?9:8)||(triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
+ if(kind==='ear'){if(fireworks.filter(f=>f.kind==='ear').length>=(showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?28:14))return false;}
+ else if(!position?.manual&&(activeUpper>=(showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='pastel-parasite'?14:position?.wide||position?.musicNine?9:8)||(triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
  if(kind==='kiku'&&size!==3)return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
- if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
+ if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='sparklelarge'&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
+ const shellRandom=position?.reviewSeed===undefined?rand:betaRandom(position.reviewSeed);
  let spec=TYPES[kind];const scale=SIZES[size];if(!spec||!scale)return false;
- const z=position?.z??(rand()*1.6-.85),x=position?.x??(riverCenter(z)+(rand()>.5?1:-1)*(.12+rand()*.7));
- const y=scale.height+(position?.heightOffset??0),r=scale.radius*(kind==='candyburst'?1.22:1),trailCount=kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
- const silverSeed=kind==='silver'?rand()*1000:0;
+ if(kind==='longstar'||kind==='sparklelarge'){const life=kind==='sparklelarge'?sparkleLife(size):longStarLife(size);spec={...spec,life,fadeStart:life};}
+ const z=position?.z??(shellRandom()*1.6-.85),x=position?.x??(riverCenter(z)+(shellRandom()>.5?1:-1)*(.12+shellRandom()*.7));
+ const y=scale.height+(position?.heightOffset??0),r=scale.radius*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
+ const silverSeed=kind==='silver'?shellRandom()*1000:0;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
  for(let layer=0;layer<spec.radii.length;layer++){
  const count=Math.round(scale.stars*(position?.wide?.72:1)*(spec.layerWeights?.[layer]??(layer===0?1:layer===1?.6:.35)));
@@ -294,9 +315,9 @@ function launch(kind='core',size=5,position=null){
  }
  if(kind==='silver'){
  // Sample once per shell; every frame and tail point keeps the same trajectory.
- const rotation=new T.Quaternion().setFromEuler(new T.Euler(rand()*Math.PI*2,rand()*Math.PI*2,rand()*Math.PI*2));
+ const rotation=new T.Quaternion().setFromEuler(new T.Euler(shellRandom()*Math.PI*2,shellRandom()*Math.PI*2,shellRandom()*Math.PI*2));
  // Consume the previous stretch draws so existing placement/timing randomness stays intact.
- rand();rand();rand();
+ shellRandom();shellRandom();shellRandom();
  for(const dir of directions)dir.applyQuaternion(rotation);
  }
  if(kind==='spiral'){
@@ -315,7 +336,7 @@ function launch(kind='core',size=5,position=null){
  if(kind==='sunflower'||kind==='spiral'){
  // One uniform 3D orientation per shell, shared by all stars and their tails.
  // Keep orientation randomness separate from the existing town/silver stream.
- const u=Math.random(),a=Math.random()*Math.PI*2,b=Math.random()*Math.PI*2;
+ const random=position?.reviewSeed===undefined?Math.random:shellRandom;const u=random(),a=random()*Math.PI*2,b=random()*Math.PI*2;
  const rotation=new T.Quaternion(Math.sqrt(1-u)*Math.sin(a),Math.sqrt(1-u)*Math.cos(a),Math.sqrt(u)*Math.sin(b),Math.sqrt(u)*Math.cos(b));
  for(const dir of directions)dir.applyQuaternion(rotation);
  }
@@ -330,8 +351,12 @@ function launch(kind='core',size=5,position=null){
  }
  const bigStars=kind==='candyburst'?createCandyBigStars(size,position?.candySeed??(0x141716+Math.floor(time*1000))):null;
  if(bigStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of bigStars){directions.push(new T.Vector3(...star.direction));shells.push(star.radius);starLayers.push(star.layer);starColors.push(star.layer===0?scheme[0]:new T.Color(0xffdfa0));}}
+ const longStars=kind==='longstar'?createLongStars(size,position?.longStarSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
+ if(longStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of longStars){directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(star.layer===0?scheme[0]:scheme[1]);}}
+ const sparkleStars=kind==='sparklelarge'?createSparkleStars(size,position?.sparkleSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
+ if(sparkleStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of sparkleStars){directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(star.layer<2?scheme[0]:scheme[1]);}}
  const earStars=kind==='ear'?createEarStars(position?.earSeed??((++earSerial*0x9e3779b9)>>>0)):null;
- const shape=kind==='ear'||kind==='candyburst'?{level:0}:sampleShellShape(kind,size);
+ const shape=kind==='ear'||kind==='candyburst'||kind==='longstar'||kind==='sparklelarge'?{level:0}:(position?.reviewSeed===undefined?sampleShellShape(kind,size):createShellShapeSampler(shellRandom)(kind,size));
  for(let i=0;i<directions.length;i++)deformShellVector(directions[i],shape,isSenrin(kind)?.35:shells[i]<.75?.65:1);
  for(const center of clusterCenters)deformShellVector(center,shape);
  if(kind==='candy'){const seed=position?.candySeed??(0x141715+Math.floor(time*1000));for(let i=0;i<starColors.length;i++)starColors[i]=new T.Color(starLayers[i]===0?candyColor(i,seed,scheme.map(c=>c.getHex())):scheme.length===1?scheme[0].getHex():0xffeec7);}
@@ -340,7 +365,14 @@ function launch(kind='core',size=5,position=null){
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- const m=new T.PointsMaterial({size:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ const m=new T.PointsMaterial({size:(kind==='longstar'||kind==='sparklelarge')?.010:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ if(longStars){
+  const pointSizes=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)pointSizes[i*trailCount+j]=longStars[i].layer===0?(j===0?1.9:1.15):.82;
+  g.setAttribute('longStarSize',new T.BufferAttribute(pointSizes,1));
+  m.onBeforeCompile=shader=>{shader.vertexShader='attribute float longStarSize;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * longStarSize;');};
+  m.customProgramCacheKey=()=> 'long-star-sizes-v1';
+ }
+ if(sparkleStars){const pointSizes=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)pointSizes[i*trailCount+j]=sparkleStars[i].layer<2?(j===0?2.1:1.12):.72;g.setAttribute('sparkleSize',new T.BufferAttribute(pointSizes,1));m.onBeforeCompile=shader=>{shader.vertexShader='attribute float sparkleSize;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * sparkleSize;');};m.customProgramCacheKey=()=> 'sparkle-large-sizes-v1';}
  const color=scheme[0],refl=new T.Mesh(riverRibbon(-1.04,1.36,1,.006),reflectionMaterial(color,scheme[1]||color,spec.ignition?{radii:spec.radii,colors:scheme}:null));town.add(refl);
  const baseAscent=kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
  const ignitionDelay=position?.ignitionDelay??sampleIgnitionDelays(1)[0],ascent=baseAscent+ignitionDelay;
@@ -354,31 +386,31 @@ function launch(kind='core',size=5,position=null){
   if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
  }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- const f={x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,bigStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false};if(isWhistleShell(f)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);sound(false,x,z,size);
+ const f={x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,trailCount,positions,colors,directions,shells,starColors,clusterCenters,clusterDelays,starLayers,earStars,bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,hideAscent:!!position?.hideAscent};if(!f.hideAscent&&isWhistleShell(f)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,x,z,size);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
 }
-function clearFireworks(){triggerEmbers.clear();soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
+function clearFireworks(){resetMusicFxQuiet();triggerEmbers.clear();soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
 // Free expired launch slots and fire sounds before queued shots, without computing points.
 function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime;for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  if(t>=0&&!f.burst){f.burst=true;if(f.kind==='ear')bridgeView.point(f.m,null,EAR_PROFILE.pointSize);else if(f.kind==='candyburst')bridgeView.point(f.m,null,.020);}
- if(f.whistle&&age>=f.whistleVisualAt&&!f.whistlePlayed){
+ if(!groundStudySilent&&f.whistle&&age>=f.whistleVisualAt&&!f.whistlePlayed){
   f.whistleEndDue=f.whistleDue+f.whistle.duration;f.whistlePlayed=true;
   const offset=Math.max(0,f.whistleResumeOffset??0,age-f.whistleDue);if(offset<f.whistle.duration)soundEngine?.playWhistle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.whistleDue-age),whistlePositionFor(f),f.whistle,offset);
  }
  const soundDelay=soundDelayFor(f);
  if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.size);f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.size);}sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation);}
- if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;if(f.soundMode==='recorded')f.childVariation??=soundEngine?.chooseSoundVariation?.('senrin-children',f.size);soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.soundMode??$('audioMode').value,f.size,f.childVariation);}
+ if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;if(f.soundMode==='recorded')f.childVariation??=soundEngine?.chooseSoundVariation?.('senrin-children',f.size);(!groundStudySilent)&&soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.soundMode??$('audioMode').value,f.size,f.childVariation);}
  const afterDelay=tailCrackleDelayFor(f);
- if(['silver','willow'].includes(f.kind)&&f.soundMode==='recorded'&&t>=afterDelay&&!f.afterSoundPlayed){f.afterSoundPlayed=true;f.afterSoundDue=soundDelay+afterDelay;f.afterVariation??=soundEngine?.chooseSoundVariation?.(f.kind+'-crackle',f.size);soundEngine?.playOpeningCrackle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.afterSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.kind,f.size,f.afterVariation);}
+ if(['silver','willow'].includes(f.kind)&&f.soundMode==='recorded'&&t>=afterDelay&&!f.afterSoundPlayed){f.afterSoundPlayed=true;f.afterSoundDue=soundDelay+afterDelay;f.afterVariation??=soundEngine?.chooseSoundVariation?.(f.kind+'-crackle',f.size);(!groundStudySilent)&&soundEngine?.playOpeningCrackle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.afterSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.kind,f.size,f.afterVariation);}
  if(t>f.spec.life){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
 } }
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
- const fade=f.kind==='ear'||f.kind==='sunflower'||f.kind==='spiral'||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
+ const fade=f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||f.kind==='sunflower'||f.kind==='spiral'||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
  let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
  const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
  const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
@@ -390,11 +422,15 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   for(let j=0;j<f.trailCount;j++){const lag=j*f.spec.tail,at=Math.max(0,t-lag),k=j*4;f.candyTrailCache[k]=1-Math.exp(-1.9*at);f.candyTrailCache[k+1]=.085*at;f.candyTrailCache[k+2]=f.spec.gravity*at*at;f.candyTrailCache[k+3]=(t>=lag?1:0)*Math.pow(1-j/f.trailCount,1.7);}
  }
  for(let i=0;i<f.n;i++)for(let j=0;j<f.trailCount;j++){
- const index=(i*f.trailCount+j)*3;let x,y,z,brightness;
+ const index=(i*f.trailCount+j)*3;let x,y,z,brightness,longBlue=0;
  if(t<0){
  const trail=(i%24)*.003+j*.004,riseAge=f.kind==='silver'?Math.max(0,age-j*.03):age;
  x=f.x;y=Math.max(.02,f.y*(f.size<10?Math.pow(riseAge/f.ascent,.85):(1-Math.pow(1-Math.min(1,riseAge/(f.ascent-(f.size===20?.6:.28))),2)))-(f.kind==='silver'?0:trail));z=f.z;
- brightness=f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
+ brightness=f.hideAscent?0:f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
+ }
+ else if(f.kind==='sparklelarge'){const v=sparklePoint(f.sparkleStars[i],f.r,t,j,f.trailCount,f.spec.life);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;}
+ else if(f.kind==='longstar'){
+ const v=longStarPoint(f.longStars[i],f.r,t,j,f.trailCount,f.spec.life);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;
  }
  else if(f.kind==='candyburst'){
  const v=candyBigStarPoint(f.bigStars[i],f.r,t,j,f.trailCount);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
@@ -450,7 +486,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
- const col=f.starColors[i];if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
+ const col=f.starColors[i];if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
  f.reflectionGain=0;f.reflectionRadius=0;
@@ -463,24 +499,25 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  }
 } }
 let fanQueue=[],cometFinishAt=null,cometCompleted=false;
+let groundStudySilent=false,toraSceneMode='mountain-twins',toraSceneLength=4.5,toraSceneSeed=0x141712;
 const cometSoundSlots=new Map();
 const cometTailSounds=new Map();
 const comets=new CometField({town,bridge:bridgeView,map:sprite,headMaps:fireworkMaps,onLaunch:(s,now)=>{
  // One quiet launch voice per firing position and instant; no invented crackle.
  const key=s.group+':'+s.x.toFixed(2)+':'+Math.round(s.at/.06);
- if(cometSoundSlots.has(key)||!soundEngine||!audio)return;
+ if(groundStudySilent||cometSoundSlots.has(key)||!soundEngine||!audio)return;
  cometSoundSlots.set(key,now);
  const delay=bridgeView.active?bridgeView.delay(s.x,s.y,s.z,latestViewerTransform):.12;
  const position=bridgeView.active?bridgeView.position(s.x,s.y,s.z):null;
  soundEngine.playComet(s.x,audio.currentTime+Math.max(0,delay-(now-s.at)),position,$('audioMode').value,!!s.small);
  if($('audioMode').value==='recorded')cometTailSounds.set(key,{x:s.x,small:!!s.small,visualAt:s.at+.10,due:s.at+.10+delay,position,key:soundEngine.nextRecordedCrackle(),played:false,variation:soundEngine.chooseSoundVariation(s.small?'small-tail':'large-tail')});
 }});
-function clearFans(){for(const e of cometTailSounds.values())if(e.played&&e.due>time)try{e.source?.stop();}catch{}cometTailSounds.clear();comets.clear();cometSoundSlots.clear();cometFinishAt=null;cometCompleted=false;}
-function launchFans(mode='fan',startAt=time,style=mode==='cross'?'silver':'gold'){
- return comets.launch(mode,style,startAt);
+function clearFans(){if($('toraSceneCard'))$('toraSceneCard').hidden=true;for(const e of cometTailSounds.values())if(e.played&&e.due>time)try{e.source?.stop();}catch{}cometTailSounds.clear();comets.clear();cometSoundSlots.clear();cometFinishAt=null;cometCompleted=false;}
+function launchFans(mode='fan',startAt=time,style=mode==='cross'?'silver':'gold',options={}){
+ return comets.launch(mode,style,startAt,options);
 }
 function updateFans(){
- while(fanQueue.length&&fanQueue[0].at<=time){const cue=fanQueue.shift();if(time-cue.at>.35)continue;launchFans(cue.mode,cue.at,cue.style);}
+ while(fanQueue.length&&fanQueue[0].at<=time){const cue=fanQueue.shift();if(time-cue.at>.35)continue;launchFans(cue.mode,cue.at,cue.style,cue.options);}
  comets.update(time);
  for(const [key,e] of cometTailSounds){
   if(time>e.due+3.5){cometTailSounds.delete(key);continue;}
@@ -591,6 +628,7 @@ function restart(){
 }
 
 function beginPreview(){
+ if($('toraSceneCard'))$('toraSceneCard').hidden=true;
  clearMusicSequence();cancelMusicRequest();music.stop();
  running=false;previewing=true;previewPaused=false;showPlan=null;time=0;cueIndex=0;nextLaunch=.8;
  clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();
@@ -664,14 +702,14 @@ $('cometShow').onclick=()=>beginCometStudy();
 $('cometNext').onclick=()=>{const options=[...$('cometPattern').options];const i=options.findIndex(o=>o.value===$('cometPattern').value);$('cometPattern').value=options[(i+1)%options.length].value;$('cometPattern').onchange();beginCometStudy();};
 $('cometSequence').onclick=beginCometSequence;
 $('cometPause').onclick=()=>{if(previewing)pauseShow();};
-$('cometPattern').onchange=()=>{const small=$('cometPattern').value.startsWith('small-');$('cometSequence').textContent=small?($('cometPattern').value.endsWith('-tight')?'すぼめた子トラの演出 · 約26秒':'子トラの演出を観る · 約26秒'):(['sweep','sweep-reverse','sweep-cross','sweep-cross-high'].includes($('cometPattern').value)?'左右の掛け合いを観る · 約18秒':'大トラの演出を観る · 約34秒');$('cometDescription').textContent=COMET_PATTERNS.find(p=>p.id===$('cometPattern').value)?.description??'';for(const option of $('cometStyle').options){option.disabled=!small&&!COMET_STYLES[option.value];option.textContent=small?SMALL_STYLE_LABELS[option.value]:(COMET_STYLES[option.value]?.label??SMALL_STYLE_LABELS[option.value]);}if(!small&&!COMET_STYLES[$('cometStyle').value])$('cometStyle').value='gold';mrPanel.draw();};
+$('cometPattern').onchange=()=>{const small=$('cometPattern').value.startsWith('small-');$('cometSequence').textContent=small?($('cometPattern').value.endsWith('-tight')?'すぼめた子トラの演出 · 約26秒':'子トラの演出を観る · 約26秒'):(['sweep','sweep-reverse','sweep-cross','sweep-cross-high'].includes($('cometPattern').value)?'左右の掛け合いを観る · 約18秒':'大トラの演出を観る · 約34秒');$('cometDescription').textContent=COMET_PATTERNS.find(p=>p.id===$('cometPattern').value)?.description??'';for(const option of $('cometStyle').options){option.disabled=(!small&&!COMET_STYLES[option.value])||(option.value==='tora-row-mix'&&$('cometPattern').value!=='small-color-row');option.textContent=small?SMALL_STYLE_LABELS[option.value]:(COMET_STYLES[option.value]?.label??SMALL_STYLE_LABELS[option.value]);}if((!small&&!COMET_STYLES[$('cometStyle').value])||($('cometStyle').value==='tora-row-mix'&&$('cometPattern').value!=='small-color-row'))$('cometStyle').value='gold';mrPanel.draw();};
 
 $('fans').onclick=()=>beginCometStudy();
 $('big').onclick=()=>{beginPreview();launch('triple',20,{x:0,z:-.1});};
 $('finale').onclick=()=>{beginPreview();startStarmine(true,false);};
 $('wideFinale').onclick=()=>{beginPreview();startStarmine(true,true);$('status').textContent='特別な締め：5号5発 → 0.6秒後に尺玉3発 → 頂上の二尺玉1発。';};
 $('starmine').onclick=()=>{beginPreview();if($('program').value==='random')startRandomStarmine(createProgram('random',crypto.getRandomValues(new Uint32Array(1))[0]));else startStarmine(false,false);};
-$('sample').onclick=()=>{beginPreview();syncSize();const ok=launch($('type').value,Number($('size').value),{x:0,z:.05,palette:$('palette').value});$('status').textContent=ok?'選んだ一玉を打ち上げています。'+(['silver','willow'].includes($('type').value)?' 尾のバラバラ音は、開花音の'+(Number($('size').value)===20?'2':'1.5')+'秒後です。':''):'この組み合わせを上げられません。種類と号数を確認してください。';};$('status').textContent='川と橋のある街へ、ようこそ。';
+$('sample').onclick=()=>{if($('rainEarCard'))$('rainEarCard').hidden=true;beginPreview();syncSize();const ok=launch($('type').value,Number($('size').value),{x:0,z:.05,palette:$('palette').value});$('status').textContent=ok?'選んだ一玉を打ち上げています。'+(['silver','willow'].includes($('type').value)?' 尾のバラバラ音は、開花音の'+(Number($('size').value)===20?'2':'1.5')+'秒後です。':''):'この組み合わせを上げられません。種類と号数を確認してください。';};$('status').textContent='川と橋のある街へ、ようこそ。';
 $('program').onchange=()=>{$('status').textContent=showPlan?'次の大会から「'+PROGRAM_NAMES[$('program').value]+'」で始まります。「大会を最初から」で今すぐ切り替えられます。':'「'+PROGRAM_NAMES[$('program').value]+'」を選びました。';};
 $('audioMode').onchange=()=>{$('status').textContent=({'recorded':'録音素材の花火音です。玉ごとに音が変わります。','realistic':'リアル寄せ合成の花火音です。','original':'従来の合成音です。'})[$('audioMode').value];};
 function syncFireworkVolume(){
@@ -719,8 +757,8 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onpointercancel=()=>{drag=null;if(panelPreview)mrPanel.release();};canvas.onwheel=e=>{if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){if(kind==='candysenrin')return value==='10';if(kind==='candyburst')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(kind==='candyburst'&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
+function allowedSize(kind,value){if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label;return option;}));
@@ -753,7 +791,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={betaMusicReview:true,betaTCEnabled,betaMusicClock:betaTimeLabel(betaDragging?Number($('betaMusicSeek').value):time),betaMusicCurrent:betaClock(Math.min(betaDragging?Number($('betaMusicSeek').value):time,MUSIC_PLAN.duration)),betaMusicDuration:betaClock(MUSIC_PLAN.duration),betaMusicSeek:{value:(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration},diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',options:[...el.options].map(o=>({value:o.value,disabled:o.disabled}))};
  }
@@ -770,6 +808,7 @@ function adjustPanel(id,direction){
  el.dispatchEvent(new Event('input'));el.dispatchEvent(new Event('change'));
 }
 function setPanelRange(id,value,commit=false){
+ if(id==='betaMusicSeek'){const el=$(id);el.value=String(Math.max(0,Math.min(1,value))*MUSIC_PLAN.duration);el.dispatchEvent(new Event('input'));if(commit)el.dispatchEvent(new Event('change'));return;}
  if(bridgeView.active&&id==='roomBrightness')return;
  const el=$(id);el.value=String(clampBrightness(value));el.dispatchEvent(new Event('input'));
  if(commit)el.dispatchEvent(new Event('change'));
@@ -781,7 +820,7 @@ async function exitMRToPage(){
 }
 const entryTip=new EntryTip(scene);
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab});
-for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;
+for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;betaReviewPanel.entries=mrPanel.controllers;
 const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',readCruiseStarted:()=>boatStarted,choose:mode=>{if(mode==='boat-start'){$('boatStart').click();return;}if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
 function toggleShowInfo(){showInfo.setEnabled(!showInfo.enabled);$('showInfo').textContent=showInfo.enabled?'時間と玉名を隠す':'時間と玉名を表示';wristMenu.draw();}
 $('showInfo').onclick=toggleShowInfo;
@@ -799,7 +838,7 @@ function preparedShellName(shell){const label=shell&&paletteOptions(shell.kind).
 function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=shellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
 let preparation=null;
 const prepareFields=['kind','size','palette'];
-const preparedKinds=['willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin'];
+const preparedKinds=['willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin','longstar','sparklelarge'];
 function prepareOptions(){
  const {draft,tab}=preparation;
  if(tab===0)return preparedKinds.map(value=>({value,label:TYPES[value].label.replace('（軽量テスト）',''),disabled:false}));
@@ -860,7 +899,7 @@ const PANEL_PAGES=[0,4,1,2,3];
 for(const [index,i] of PANEL_PAGES.entries()){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=PANEL_PAGES[e.key==='Home'?0:e.key==='End'?PANEL_PAGES.length-1:(index+(e.key==='ArrowRight'?1:PANEL_PAGES.length-1))%PANEL_PAGES.length];setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
 
 const townGrabTarget=new T.Mesh(new T.BoxGeometry(3.2,.10,2.1),new T.MeshBasicMaterial({side:T.DoubleSide}));townGrabTarget.position.y=ground.position.y;townGrabTarget.visible=false;town.add(townGrabTarget);
-const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
+const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo,betaReviewPanel],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
  $('scale').value=String(town.scale.x);$('height').value=String(Math.max(0,town.position.y+groundBottomY*town.scale.y));
  if(latestViewerTransform){const p=latestViewerTransform.position;$('distance').value=String(Math.hypot(town.position.x-p.x,town.position.z-p.z));}
  if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}
@@ -927,7 +966,7 @@ function finishMR(){
  cancelMusicRequest();
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();}
  entryTip.end();cancelPreparation();
- triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();pendingDiorama=false;pendingPlace=false;pendingViewMode=null;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();mrDimming.end();town.visible=true;
+ triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();pendingDiorama=false;pendingPlace=false;pendingViewMode=null;pendingPanelOpen=false;pendingBridge=false;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();wristMenu.end();showInfo.end();betaReviewPanel.end();mrDimming.end();town.visible=true;
  if(running){if(showPlan?.music)time=music.pause();running=false;syncShowButtons();}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
  applyViewBackground();town.scale.setScalar(Number($('scale').value));town.position.set(0,0,0);town.rotation.y=0;camera.position.copy(desktopCamera.position);camera.quaternion.copy(desktopCamera.quaternion);camera.fov=desktopCamera.fov;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();previous=0;
@@ -941,7 +980,7 @@ async function startXR(mode,bridge=false){
   ensureAudio();if(bridgeView.active)leaveBridge();if(dioramaSaved){toggleDiorama();pendingDiorama=true;}desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,{requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking']});
   session.addEventListener('end',finishMR,{once:true});
-  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();wristMenu.gesture.reset();}});
+  session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();betaReviewPanel.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
   applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;previous=0;$('mrExport').disabled=false;
@@ -999,13 +1038,16 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  $('cometPause').textContent=previewPaused?'試し打ちを再開':'試し打ちを一時停止';$('cometPause').disabled=!previewing;
  const updateStart=performance.now();
  manualBudget.observe(stamp,!!frame&&xrVisible&&(running||(previewing&&!previewPaused)));
- if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt*($('candyCard')?Number($('candySpeed').value):1));
+ if((running||(previewing&&!previewPaused))&&xrVisible)advance(dt*(previewing&&$('toraSceneCard')&&!$('toraSceneCard').hidden?Number($('toraSceneSpeed').value):previewing&&$('rainEarCard')&&!$('rainEarCard').hidden?Number($('rainEarSpeed').value):$('longStarCard')&&!$('longStarCard').hidden?Number($('longStarSpeed').value):$('candyCard')?Number($('candySpeed').value):1));
  if(candyPeakAt!==null&&running&&time>=candyPeakAt){candyPeakAt=null;time=music.pause();running=false;cancelFutureSounds();syncShowButtons();$('status').textContent=candyPeakLabel+'「再開」で続きも観られます。';}
  if($('candyCard')&&candyFreezeAt!==null&&$('candyFreeze').checked&&time>=candyFreezeAt){previewPaused=true;candyFreezeAt=null;cancelFutureSounds();$('candyPause').textContent='再開';}
+ if($('toraSceneCard')&&!$('toraSceneCard').hidden){$('toraSceneClock').textContent='打ち上げから '+(time/Number($('toraSceneSpeed').value||1)).toFixed(2)+'秒'+(previewPaused?' · 一時停止':'');if(previewing)$('toraSceneSeek').value=String(Math.min(toraSceneLength,time)/Number($('toraSceneSpeed').value||1));}
+ if($('rainEarCard')&&!$('rainEarCard').hidden){const age=time-rainEarFirst;$('rainEarClock').textContent=!previewing?'雨の幕を選んで再生':age<0?'打ち上げ中':'最初の開花から '+Math.max(0,age).toFixed(2)+'秒'+(previewPaused?' · 一時停止':'');if(previewing&&age>=0)$('rainEarSeek').value=String(Math.min(rainEarLength,age));}
+ if($('longStarCard')&&!$('longStarCard').hidden){const f=fireworks.find(f=>f.kind===($('longStarCard').dataset.kind||'longstar')),age=f?time-f.start-f.ascent:null;$('longStarClock').textContent=age===null?'次の一玉を待つ':age<0?'打ち上げ中':'開花から '+age.toFixed(2)+'秒'+(previewPaused?' · 一時停止':'');if(f&&age>=0&&!longStarScrubbing)$('longStarSeek').value=String(Math.min(f.spec.life,age));}
  if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
- if(!renderer.xr.isPresenting){const lookYaw=yaw-(bridgeView.active&&bridgeView.mode==='boat'?boatPose.angle:0);const target=bridgeView.active?new T.Vector3(Math.sin(lookYaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(lookYaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*(dioramaSaved?.25:1.2),(dioramaSaved?.88:.55)+pitch,0);camera.lookAt(target);}
+ if(!renderer.xr.isPresenting){const lookYaw=yaw-(bridgeView.active&&bridgeView.mode==='boat'?boatPose.angle:0);const target=bridgeView.active?new T.Vector3(Math.sin(lookYaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(lookYaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*(dioramaSaved?.25:1.2),(dioramaSaved?.88:new URLSearchParams(location.search).has('rainMusicTrial')?1.15:$('toraSceneCard')&&!$('toraSceneCard').hidden?.70:$('rainEarCard')&&!$('rainEarCard').hidden?.70:(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial'))?1.04:.55)+pitch,0);camera.lookAt(target);}
  if(!session&&bridgeView.active)bridgeView.move((walkKeys.has('KeyD')?1:0)-(walkKeys.has('KeyA')?1:0),(walkKeys.has('KeyS')?1:0)-(walkKeys.has('KeyW')?1:0),dt);bridgeView.listener(audio,pose?.transform);
- if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('candyCard')||new URLSearchParams(location.search).has('candyShow'))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible)mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);else if(panelPreview)mrPanel.update(stamp,null,null,null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled&&!!showPlan?.music,current:betaClock(Math.min(time,MUSIC_PLAN.duration)),duration:betaClock(MUSIC_PLAN.duration),tail:time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else betaReviewPanel.release();if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});
   if(row)$('mrInfo').textContent='MR計測：'+row.fps+'fps ／ p95 '+row.p95FrameMs+'ms ／ 花火 '+row.particles.toLocaleString()+'点';
@@ -1048,7 +1090,50 @@ async function beginMusicExcerpt(start,label){
  burstQueue=burstQueue.filter(s=>s.at>=time-.02);fanQueue=fanQueue.filter(s=>s.at>=time-.02);ensureAudio();music.play(audio,time,soundEngine?.mixInput);running=true;syncShowButtons();$('status').textContent=label;
 }
 
-function beginMusicFinale(){return beginMusicExcerpt(MUSIC_PLAN.finalPreviewStart??MUSIC_PLAN.duration-12,'曲が収まる前の大輪と、花火の音だけの余韻を観ます。');}
+
+function syncBetaReview(){
+ const active=!!showPlan?.music;
+ $('betaReviewBar').hidden=!active||!!renderer.xr.getSession();
+ const value=betaDragging?Number($('betaMusicSeek').value):active?time:0;
+ const current=betaClock(Math.min(value,MUSIC_PLAN.duration)),total=' / '+betaClock(MUSIC_PLAN.duration),tail=value>MUSIC_PLAN.duration?'余韻＋'+(value-MUSIC_PLAN.duration).toFixed(1)+'秒':'';
+ for(const [id,text] of [['betaCurrentTime',current],['betaPanelCurrent',current],['betaTotalTime',total],['betaPanelTotal',total],['betaTailTime',tail],['betaPanelTail',tail]])$(id).textContent=text;
+ $('betaMusicSeek').max=String(MUSIC_PLAN.duration);if(!betaDragging)$('betaMusicSeek').value=String(Math.min(value,MUSIC_PLAN.duration));
+ $('betaMusicSeek').setAttribute('aria-valuetext',betaClock(value));$('betaMusicSeek').disabled=musicBusy;
+ for(const id of ['betaBack10','betaBack5','betaForward5','betaFloatBack10','betaFloatBack5','betaFloatForward5','betaFloatPause'])$(id).disabled=musicBusy||!active;
+ $('betaFloatPause').textContent=running?'一時停止':showCompleted?'最初から再生':'再開';
+}
+async function seekBetaMusic(target,resume=running){
+ const value=Math.max(0,Math.min(MUSIC_PLAN.duration,Number(target)||0));
+ betaDragging=false;const transport=music,request=++musicRequest;
+ clearMusicSequence();music.pause();running=false;cancelFutureSounds();musicBusy=true;syncShowButtons();
+ try{await transport.load();}catch(e){if(request!==musicRequest)return;musicBusy=false;transport.ready=null;syncShowButtons();$('status').textContent='曲を読み込めませんでした。もう一度お試しください。';return;}
+ if(request!==musicRequest||music!==transport)return;
+ musicBusy=false;music.stop();clearFireworks();clearFans();burstQueue=[];fanQueue=[];burstSlots.clear();previewing=false;previewPaused=false;
+ // Thirty seconds includes the longest existing ascent, flower and ground sequence.
+ time=Math.max(0,value-30);prepareMusicProgram();burstQueue=burstQueue.filter(q=>q.at>=time-1e-8);fanQueue=fanQueue.filter(q=>q.at>=time-1e-8);music.offset=time;
+ groundStudySilent=true;betaRebuilding=true;
+ try{while(time<value-1e-8){music.offset=Math.min(value,time+.025);advanceMusic(.025);}time=value;music.offset=value;updateFireworks();}
+ finally{groundStudySilent=false;betaRebuilding=false;}
+ cancelFutureSounds();updateMusicFxQuiet();musicLastUI=-1;
+ if(resume&&!document.hidden){ensureAudio();music.play(audio,value,soundEngine?.mixInput);running=true;}else running=false;
+ syncShowButtons();drawMusicTimeline();mrPanel.draw();$('status').textContent=betaClock(value)+'へ移動しました。'+(running?'音楽と花火を再生中。':'この場面で一時停止。');
+}
+function betaPreviewSeek(){
+ if(!betaDragging){betaDragging=true;betaResumeAfterDrag=running;if(showPlan?.music&&running){time=music.pause();running=false;cancelFutureSounds();}}
+ syncBetaReview();
+}
+$('betaMusicSeek').oninput=betaPreviewSeek;
+$('betaMusicSeek').onchange=()=>{const resume=betaDragging?betaResumeAfterDrag:running;return seekBetaMusic(Number($('betaMusicSeek').value),resume);};
+$('betaMusicSeek').addEventListener('pointercancel',()=>{const resume=betaResumeAfterDrag;betaDragging=false;syncBetaReview();if(resume&&!document.hidden&&showPlan?.music&&!running)toggle();});
+for(const [id,offset] of [['betaBack10',-10],['betaBack5',-5],['betaForward5',5],['betaFloatBack10',-10],['betaFloatBack5',-5],['betaFloatForward5',5]])$(id).onclick=()=>seekBetaMusic(Math.min(music.currentTime,MUSIC_PLAN.duration)+offset,running);
+$('betaFloatPause').onclick=()=>{if(showPlan?.music)toggle();};
+$('betaToggleTC').onclick=()=>{betaTCEnabled=!betaTCEnabled;if(betaTCEnabled)betaReviewPanel.reanchor();else{betaReviewPanel.end();for(const [controller,grab] of controls.grabs)if(grab.panel===betaReviewPanel)controls.release(controller);}$('betaToggleTC').textContent=betaTCEnabled?'TCパネルを隠す':'TCパネルを出す';mrPanel.draw();};
+
+async function beginRainMusicSnapshot(target){if(selectedMusic.id==='mou-ichido-dake')await seekBetaMusic(target,false);}
+$('rainMusicFirstPeak').onclick=()=>beginRainMusicSnapshot(57.9);
+$('rainMusicPeak').onclick=()=>beginRainMusicSnapshot(196.25);
+$('rainMusicFinalSnapshot').onclick=()=>beginRainMusicSnapshot(238);
+function beginMusicFinale(){return beginMusicExcerpt(MUSIC_PLAN.finalPreviewStart??MUSIC_PLAN.duration-12,selectedMusic.id==='mou-ichido-dake'?'静かなピアノから、最後の水色二尺を一輪観ます。':'曲が収まる前の大輪と、花火の音だけの余韻を観ます。');}
 function musicMiddleStart(){return MUSIC_PLAN.middlePreviewStart??MUSIC_PLAN.pyramidAt-5;}
 function beginMusicPyramid(){return beginMusicExcerpt(musicMiddleStart(),'中盤から観ます。');}
 function pauseMusicForVisibility(){
@@ -1059,7 +1144,7 @@ function pauseMusicForVisibility(){
 // A scheduled duration is a lower bound. User-launched shells may outlive the programme.
 function musicCanFinish(){return time>=MUSIC_PLAN.showDuration&&!fireworks.length&&!triggerEmbers.count&&!comets.groups&&!burstQueue.length&&!fanQueue.length;}
 function advanceMusic(dt){
- time=music.currentTime;
+ time=music.currentTime;updateMusicFxQuiet();
  advanceEmbers(dt);updateFireworkEvents();
  while(burstQueue.length&&burstQueue[0].at<=time){
   const s=burstQueue.shift();
@@ -1067,7 +1152,7 @@ function advanceMusic(dt){
   if(time-s.at>.35){musicLog.push({skipped:true,scheduled:s.at,actual:time});continue;}
   if(!launch(s.kind,s.size,s.position))musicLog.push({skipped:true,capacity:true,scheduled:s.at,actual:time});
  }
- updateFans();updateFireworks();music.updateClicks(MUSIC_PLAN.beats);
+ updateFans();if(!betaRebuilding)updateFireworks();music.updateClicks(MUSIC_PLAN.beats);
  if(Math.floor(time*8)!==musicLastUI){musicLastUI=Math.floor(time*8);drawMusicTimeline();}
  const section=MUSIC_PLAN.sections.filter(s=>s.at<=time).at(-1);
  $('chapter').textContent=(section?.label??selectedMusic.title)+' · '+Math.floor(time/60)+':'+String(Math.floor(time%60)).padStart(2,'0');
@@ -1076,13 +1161,14 @@ function advanceMusic(dt){
   music.pause();cancelFutureSounds();
   if(advanceMusicSequence())return;
   const allFinished=!!musicSequence;showCompleted=true;running=false;musicSequence=null;
-  if(allFinished)$('musicSequenceState').textContent='３曲の連続鑑賞が終わりました。';
-  drawMusicTimeline();syncShowButtons();mrPanel.draw();$('status').textContent=(allFinished?'３曲の花火大会が終わりました。':'花火の余韻とともに、大会が終わりました。')+(bridgeView.active&&bridgeView.mode==='boat'?'屋形船は周回を続けます。':'');
+  if(allFinished)$('musicSequenceState').textContent='４曲の連続鑑賞が終わりました。';
+  drawMusicTimeline();syncShowButtons();mrPanel.draw();$('status').textContent=(allFinished?'４曲の花火大会が終わりました。':'花火の余韻とともに、大会が終わりました。')+(bridgeView.active&&bridgeView.mode==='boat'?'屋形船は周回を続けます。':'');
  }
 }
 function drawMusicTimeline(){
  const c=$('musicTimeline'),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);
  g.fillStyle='#354c60';g.fillRect(0,0,w,h);g.fillStyle='#e8c987';g.fillRect(0,0,Math.min(1,time/MUSIC_PLAN.duration)*w,h);
+ syncBetaReview();
  $('musicTime').textContent=time<=MUSIC_PLAN.duration?time.toFixed(1)+' / '+MUSIC_PLAN.duration.toFixed(1)+'秒':'曲終わり · 花火の余韻 '+(time-MUSIC_PLAN.duration).toFixed(1)+'秒';
 }
 drawMusicTimeline();
@@ -1123,3 +1209,79 @@ if($("candyPeak"))$("candyPeak").onclick=async()=>{candyPeakLabel="銀かむろ�
 
 if($("candySenrin"))$("candySenrin").onclick=async()=>{candyPeakLabel="左右のキャンディー千輪です。";await beginMusicExcerpt(160,"左右のキャンディー千輪を観ます。");if(showPlan?.music&&selectedMusic.id==='pastel-parasite'&&running)candyPeakAt=168.5;};
 if($("candyQuiet"))$("candyQuiet").onclick=async()=>{candyPeakLabel="足元だけで溜める間奏です。";await beginMusicExcerpt(126.8,"間奏は足元だけで溜めます。");if(showPlan?.music&&selectedMusic.id==='pastel-parasite'&&running)candyPeakAt=132.7;};
+
+// Local review controls use the same shell renderer as trial shots and XR.
+let longStarScrubbing=false;
+if((new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial'))){
+ const reviewKind=new URLSearchParams(location.search).has('sparkleTrial')?'sparklelarge':'longstar';
+ $('longStarCard').dataset.kind=reviewKind;
+ if(reviewKind==='sparklelarge'){$('longStarTitle').textContent='キラキラ大玉 · 水色と青';$('longStarDescription').textContent='５本の親星が１束で伸び、金の尾を引いて垂れながらキラキラ。５本とも先端は最後まで色を残します。５号2.8秒・尺玉4.0秒・二尺4.6秒。';}
+ $('longStarCard').hidden=false;setPanelTab(1);town.rotation.set(0,0,0);town.scale.setScalar(1);town.position.set(0,0,0);yaw=0;pitch=0;
+ camera.position.set(0,1.18,2.50);camera.lookAt(0,1.04,.05);scene.fog.density=.025;
+ $('type').value=reviewKind;$('size').value='5';syncSize();syncPalette();
+ $('longStarColor').replaceChildren(...paletteOptions(reviewKind).map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));$('longStarColor').value=$('palette').value;
+ const shoot=(size,seek=null)=>{
+  beginPreview();$('type').value=reviewKind;$('size').value=String(size);syncSize();syncPalette();
+  camera.position.set(0,size===20?1.75:1.18,size===20?3.6:2.50);pitch=size===20?.70:0;
+  launch(reviewKind,size,{x:0,z:.05,ignitionDelay:.02,silent:seek!==null,palette:$('palette').value,longStarSeed:0x141711+size*71,sparkleSeed:0x141729+size*71});
+  $('longStarColor').value=$('palette').value;$('longStarCard').dataset.size=String(size);$('longStarSeek').max=String(reviewKind==='sparklelarge'?sparkleLife(size):longStarLife(size));$('longStarSeek').value=String(seek??0);$('longStarPause').textContent='一時停止';
+  if(seek!==null){const f=fireworks[0];time=f.ascent+seek;cancelFutureSounds();f.soundPlayed=true;updateFireworks();previewPaused=true;$('longStarPause').textContent='再開';}
+  $('status').textContent=(size===5?'５号':size===20?'二尺玉':'尺玉')+(reviewKind==='sparklelarge'?'のキラキラ大玉 · ':'の大星 · ')+shellPalette(reviewKind,$('palette').value).label+'。大星は最後まで色を保ち、金のキラと一緒に消えます。';
+ };
+ const changeColor=()=>{const size=Number($('longStarCard').dataset.size||5),seek=previewing&&previewPaused?Number($('longStarSeek').value):null;$('palette').value=$('longStarColor').value;shoot(size,seek);};
+ $('longStarColor').onchange=changeColor;
+ $('longStarNext').onclick=()=>{const choices=paletteOptions(reviewKind),index=choices.findIndex(p=>p.id===$('longStarColor').value);$('longStarColor').value=choices[(index+1)%choices.length].id;changeColor();};
+ $('palette').addEventListener('change',()=>{if($('type').value===reviewKind)$('longStarColor').value=$('palette').value;});
+ if(reviewKind==='sparklelarge'){$('sparkle20').hidden=false;$('sparkle20').onclick=()=>shoot(20);}
+ $('longStar5').onclick=()=>shoot(5);$('longStar10').onclick=()=>shoot(10);
+ $('longStarPause').onclick=()=>{if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();$('longStarPause').textContent=previewPaused?'再開':'一時停止';}};
+ $('longStarSeek').oninput=()=>{longStarScrubbing=true;shoot(Number($('longStarCard').dataset.size||5),Number($('longStarSeek').value));longStarScrubbing=false;};
+}
+
+// Colour variants share the accepted low tuft geometry and recorded sound.
+let rainEarSeed=0x141740,rainEarMode='alternating',rainEarFirst=1.65,rainEarLength=7;
+function beginRainEarStudy(mode='alternating',seek=null,seed=null){
+ if(seed!==null)rainEarSeed=seed>>>0;else if(!new URLSearchParams(location.search).has('rainEarTrial'))rainEarSeed=crypto.getRandomValues(new Uint32Array(1))[0];
+ rainEarMode=mode;beginPreview();
+ if($('longStarCard'))$('longStarCard').hidden=true;$('rainEarCard').hidden=false;
+ $('type').value='ear';$('size').value='2';syncSize();syncPalette();$('palette').value=mode==='gold'?'original':mode==='blue'?'ear-blue':'ear-aqua';
+ const plan=rainEarSequence(rainEarSeed,mode);rainEarFirst=plan.firstOpening;rainEarLength=plan.lastExtinction-plan.firstOpening;
+ burstQueue=plan.shots.map(s=>({...s,position:{...s.position,silent:seek!==null}}));
+ if(!renderer.xr.isPresenting&&!bridgeView.active){town.rotation.set(0,0,0);town.scale.setScalar(1);town.position.set(0,0,0);yaw=0;pitch=0;camera.position.set(0,.90,2.7);camera.lookAt(0,.70,-.7);scene.fog.density=.025;}
+ $('rainEarSeek').max=String(rainEarLength);$('rainEarSeek').value=String(seek??0);$('rainEarPause').textContent='一時停止';
+ if(seek!==null){time=rainEarFirst+seek;advanceStarmine();cancelFutureSounds();for(const f of fireworks)f.soundPlayed=true;updateFireworks();previewPaused=true;$('rainEarPause').textContent='再開';}
+ $('status').textContent=({alternating:'水色と青が交互に並ぶ雨の幕。',aqua:'水色の穂を横一列に。',blue:'青の穂を横一列に。',gold:'元の金の穂と同じ並びで比較。'})[mode]+' 細い尾まで色を保ち、垂れながら消えます。';
+}
+$('rainEarShow').onclick=()=>beginRainEarStudy();
+for(const [id,mode] of [['rainAlternating','alternating'],['rainAqua','aqua'],['rainBlue','blue'],['rainGold','gold']])$(id).onclick=()=>beginRainEarStudy(mode,previewing&&previewPaused?Number($('rainEarSeek').value):null,rainEarSeed);
+$('rainNew').onclick=()=>beginRainEarStudy(rainEarMode,null,crypto.getRandomValues(new Uint32Array(1))[0]);
+$('rainEarPause').onclick=()=>{if(previewing){pauseShow();$('rainEarPause').textContent=previewPaused?'再開':'一時停止';}};
+$('rainEarSeek').oninput=()=>beginRainEarStudy(rainEarMode,Number($('rainEarSeek').value),rainEarSeed);
+if(new URLSearchParams(location.search).has('rainEarTrial')){$('rainEarCard').hidden=false;setPanelTab(1);town.rotation.set(0,0,0);town.scale.setScalar(1);town.position.set(0,0,0);yaw=0;pitch=0;camera.position.set(0,.90,2.7);camera.lookAt(0,.70,-.7);scene.fog.density=.025;$('type').value='ear';$('size').value='2';syncSize();syncPalette();}
+
+const isToraMountainScene=mode=>['small-mountain-bundles','small-mountain-triple','mountain-chorus-twins','mountain-chorus-triple'].includes(mode);
+const toraMountainFrontMode=mode=>mode==='mountain-chorus-triple'?'small-mountain-triple':mode==='mountain-chorus-twins'?'small-mountain-bundles':mode;
+function beginToraScene(mode='mountain-twins',seek=null,seed=toraSceneSeed){
+ toraSceneMode=mode;toraSceneSeed=seed>>>0;beginPreview();
+ if($('rainEarCard'))$('rainEarCard').hidden=true;if($('longStarCard'))$('longStarCard').hidden=true;
+ $('toraSceneCard').hidden=false;if(mode!=='sequence'&&mode!=='stream-sequence'){$('cometPattern').value=toraMountainFrontMode(mode);$('cometStyle').value=mode==='small-color-row'?'tora-row-mix':isToraMountainScene(mode)?($('toraMountainColor').value||'mountain-white'):'silver';$('cometPattern').dispatchEvent(new Event('change'));}comets.seed=toraSceneSeed;comets.bundles.seed=toraSceneSeed^0x9e3779b9;
+ const options={interval:Number($('toraStreamInterval').value)||.24,rate:Number($('toraSceneSpeed').value)||.75,mountainStyle:$('toraMountainColor').value||'mountain-white'},cues=toraSceneCues(mode,options);fanQueue.push(...cues);toraSceneLength=toraSceneEnd(mode,options);
+ cometFinishAt=toraSceneLength;$('toraSceneSeek').max=String(toraSceneLength/options.rate);$('toraSceneSeek').value=String(seek??0);$('toraScenePause').textContent='一時停止';
+ if(!renderer.xr.isPresenting&&!bridgeView.active){town.rotation.set(0,0,0);town.scale.setScalar(1);town.position.set(0,0,0);yaw=0;pitch=0;camera.position.set(0,1.08,2.8);camera.lookAt(0,.70,0);scene.fog.density=.025;}
+ if(seek!==null){groundStudySilent=true;try{updateFans();while(time<seek*options.rate-1e-8){time=Math.min(seek*options.rate,time+.025);updateFans();}}finally{groundStudySilent=false;}cancelFutureSounds();previewPaused=true;$('toraScenePause').textContent='再開';}
+ const labels={'small-mountain-triple':'子トラ · 左・中・右の三山','mountain-chorus-twins':'子トラ二山 ＋ 真後ろの大トラ同時吹上','mountain-chorus-triple':'子トラ三山 ＋ 真後ろの大トラ同時吹上','small-mountain-upright':'子トラ · 高さ違いの細い二山','small-mountain-bundles':'子トラ · すぼまった束の二山','small-mountain-twins':'子トラの二山 · 頂上で消える','small-stream-right':'子トラ · 左から右へ','small-stream-left':'子トラ · 右から左へ','small-stream-cross':'子トラ · 両端から交差して外へ','stream-sequence':'左 → 右 → 両端クロス','mountain-twins':'二つの山から空へ','woven-cross':'白銀の網を横一面に','grand-fan-cross':'左右の大扇と中央クロス','small-color-row':'色の細い横一列',sequence:'子トラ → 網 → 二山 → 大扇と子トラ'};
+ $('chapter').textContent='トラの演出 · '+labels[mode];$('last').textContent=labels[mode];$('status').textContent='連続写真からの試作。伸びる途中の形と、尾の余韻を見比べられます。';
+}
+$('toraSceneShow').onclick=()=>beginToraScene('mountain-chorus-triple');
+for(const [id,mode] of [['toraSmallTripleMountain','small-mountain-triple'],['toraChorusTwins','mountain-chorus-twins'],['toraChorusTriple','mountain-chorus-triple'],['toraUprightMountain','small-mountain-upright'],['toraSmallBundleMountain','small-mountain-bundles'],['toraSmallMountain','small-mountain-twins'],['toraStreamRight','small-stream-right'],['toraStreamLeft','small-stream-left'],['toraStreamCross','small-stream-cross'],['toraStreamSequence','stream-sequence'],['toraMountain','mountain-twins'],['toraWoven','woven-cross'],['toraGrandFan','grand-fan-cross'],['toraColorRow','small-color-row'],['toraSequence','sequence']])$(id).onclick=()=>beginToraScene(mode);
+$('toraScenePause').onclick=()=>{if(previewing){pauseShow();$('toraScenePause').textContent=previewPaused?'再開':'一時停止';}};
+$('toraSceneSeek').oninput=()=>beginToraScene(toraSceneMode,Number($('toraSceneSeek').value));
+function changeToraMountainColor(){const mode=isToraMountainScene(toraSceneMode)?toraSceneMode:'small-mountain-bundles',seek=isToraMountainScene(toraSceneMode)&&previewPaused?time/Number($('toraSceneSpeed').value||.75):null;beginToraScene(mode,seek);}
+$('toraMountainColor').onchange=changeToraMountainColor;
+$('toraMountainNextColor').onclick=()=>{const colors=TORA_MOUNTAIN_COLORS,i=colors.findIndex(c=>c.id===$('toraMountainColor').value);$('toraMountainColor').value=colors[(i+1)%colors.length].id;changeToraMountainColor();};
+$('toraMountainNew').onclick=()=>beginToraScene(isToraMountainScene(toraSceneMode)?toraSceneMode:'small-mountain-bundles',previewPaused?(isToraMountainScene(toraSceneMode)?time/Number($('toraSceneSpeed').value||.75):1.30):null,(toraSceneSeed+0x9e3779b9)>>>0);
+$('toraStreamInterval').onchange=()=>beginToraScene(toraSceneMode);
+$('toraSceneSpeed').onchange=()=>beginToraScene(toraSceneMode);
+if(new URLSearchParams(location.search).has('toraSceneTrial')){setPanelTab(1);beginToraScene('mountain-chorus-triple',1.30);}
+
+if(new URLSearchParams(location.search).has("rainMusicTrial")){setPanelTab(4);selectMusic(MUSIC_SHOWS.find(item=>item.id==="mou-ichido-dake"));syncShowButtons();drawMusicTimeline();town.scale.setScalar(1);camera.position.set(0,1.45,3.5);camera.lookAt(0,1.15,0);scene.fog.density=.025;}

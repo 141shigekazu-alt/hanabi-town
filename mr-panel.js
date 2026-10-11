@@ -158,12 +158,12 @@ export class MRPanel{
  }
  slider(id,label,y,state){
   const c=this.ctx,value=Math.max(0,Math.min(1,state.value)),trackX=60,trackW=680;
-  this.text(label,32,y,28,'#e0eaf0');this.text(Math.round(value*100)+'%',660,y,32,'#ffe0a3');
+  this.text(label,32,y,28,'#e0eaf0');if(id!=='betaMusicSeek')this.text(Math.round(value*100)+'%',660,y,32,'#ffe0a3');
   c.fillStyle='#3b5264';c.beginPath();c.roundRect(trackX,y+54,trackW,12,6);c.fill();
   c.fillStyle='#ddc695';c.beginPath();c.roundRect(trackX,y+54,Math.max(1,value*trackW),12,6);c.fill();
   c.fillStyle=this.hover===id?'#fff0cf':'#e7d1a5';c.beginPath();c.arc(trackX+value*trackW,y+60,21,0,Math.PI*2);c.fill();
   this.controls.push({id,x:28,y:y+27,w:744,h:70,slider:true,trackX,trackW});
-  this.text('暗い',32,y+115,23,'#aabecb');this.text('明るい',687,y+115,23,'#aabecb');
+  this.text(id==='betaMusicSeek'?'はじめ':'暗い',32,y+115,23,'#aabecb');this.text(id==='betaMusicSeek'?'曲末':'明るい',687,y+115,23,'#aabecb');
  }
  wrap(text,x,y,maxWidth,lines=3){
   const c=this.ctx;c.font='23px system-ui,sans-serif';let line='',row=0;
@@ -174,9 +174,10 @@ export class MRPanel{
   const p=s.preparing,hand=p.hand==='left'?'左':'右',fields=['kind','size','palette'];
   this.text(hand+'トリガーに仕込む',32,258,34,'#ffe0a3');
   ['種類','大きさ','配色'].forEach((label,i)=>this.button('prepareTab'+i,label,28+i*254,304,236,54,()=>this.prepareTab(i),{selected:p.tab===i}));
-  s.prepareOptions.forEach((o,i)=>{const x=28+(i%2)*384,y=390+Math.floor(i/2)*66;
+  const compact=s.prepareOptions.length>12,rowPitch=compact?54:66,choiceHeight=compact?46:54;
+  s.prepareOptions.forEach((o,i)=>{const x=28+(i%2)*384,y=390+Math.floor(i/2)*rowPitch;
    if(o.disabled){this.text(o.label+'（対象外）',x+20,y+27,23,'#657986');return;}
-   this.button('prepareChoice'+i,o.label,x,y,360,54,()=>this.prepareChoose(o.value),{selected:String(p.draft[fields[p.tab]])===o.value});
+   this.button('prepareChoice'+i,o.label,x,y,360,choiceHeight,()=>this.prepareChoose(o.value),{selected:String(p.draft[fields[p.tab]])===o.value});
   });
   this.text(s.preparing.summary,32,786,25,'#ffe0a3',736);
   this.text(s.loadedLeft?'左：'+s.loadedLeft:'',32,824,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,854,20,'#b8c9d4',736);
@@ -215,12 +216,13 @@ export class MRPanel{
    this.button('musicAll','全てを続けて見る',28,438,744,54,()=>this.click('musicAll'),{selected:s.musicSequence});
    this.button('musicStop','大会を止める',28,516,360,54,()=>this.click('musicStop'));
    this.button('musicRestart','最初から観る',412,516,360,54,()=>this.click('musicRestart'));
-   this.wrap(s.musicSequenceState,32,610,736,2);
-   this.wrap(s.musicState??'花火の夜 · 約２分',32,682,736,2);
-   this.range('musicVolume','音楽と花火のバランス · 音楽の音量',736,s.musicVolume);
-   for(const [id,label,amount,x] of [['musicMixFireworks','花火を聴く',.20,28],['musicMixDefault','標準',.35,280],['musicMixMusic','音楽を聴く',.55,532]])this.button(id,label,x,846,240,54,()=>this.click(id),{selected:Math.abs(s.musicVolume.value-amount)<.001});
-   this.range('volume','花火の音量',940,s.volume);
-   this.wrap(s.musicDescription+' 曲の後は花火の音と光の余韻へ。',32,1058,736,2);
+   this.text(s.betaMusicCurrent??'',32,600,35,'#ffe0a3',195);this.text('/ '+(s.betaMusicDuration??''),240,600,21,'#b8c8d7',260);
+   for(const [id,label,x] of [['betaBack10','10秒戻る',28],['betaBack5','5秒戻る',218],['betaFloatPause',s.running?'一時停止':'再開',408],['betaForward5','5秒進む',598]])this.button(id,label,x,620,174,48,()=>this.click(id));
+   this.slider('betaMusicSeek','曲の再生位置',682,s.betaMusicSeek??{value:0});
+   this.range('musicVolume','音楽の音量',810,s.musicVolume);
+   for(const [id,label,amount,x] of [['musicMixFireworks','花火を聴く',.20,28],['musicMixDefault','標準',.35,280],['musicMixMusic','音楽を聴く',.55,532]])this.button(id,label,x,900,240,42,()=>this.click(id),{selected:Math.abs(s.musicVolume.value-amount)<.001});
+   this.range('volume','花火の音量',967,s.volume);
+   this.button('betaToggleTC',s.betaTCEnabled?'TCパネルを隠す':'TCパネルを出す',28,1067,744,42,()=>this.click('betaToggleTC'),{selected:s.betaTCEnabled});
   }else if(this.page===1){
    this.button('upperStudy','上空の花火',28,238,360,54,()=>{this.groundStudy=false;},{selected:!this.groundStudy});
    this.button('groundStudy','大トラ・子トラ',412,238,360,54,()=>{this.groundStudy=true;},{selected:this.groundStudy});
@@ -241,7 +243,8 @@ export class MRPanel{
     this.button('loadLeft','左トリガーに仕込む',28,687,360,48,()=>this.click('loadLeft'));
     this.button('loadRight','右トリガーに仕込む',412,687,360,48,()=>this.click('loadRight'));
     this.text('左：'+s.loadedLeft,32,756,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,786,20,'#b8c9d4',736);
-    this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',28,816,744,48,()=>this.click('starmine'));
+    this.button('starmine',s.program.value==='random'?'おまかせの連続打ち':'スターマイン',28,816,s.type.value==='ear'?360:744,48,()=>this.click('starmine'));
+    if(s.type.value==='ear')this.button('rainEarShow','水色と青の雨の幕',412,816,360,48,()=>this.click('rainEarShow'));
     this.button('big','二尺玉の三重芯',28,877,360,48,()=>this.click('big'));
     this.button('finale','銀かむろの締め',412,877,360,48,()=>this.click('finale'));
     this.button('wideFinale','空いっぱいのかむろを見る',28,938,744,36,()=>this.click('wideFinale'));

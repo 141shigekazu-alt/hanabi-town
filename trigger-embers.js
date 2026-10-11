@@ -1,8 +1,12 @@
+import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.20';
+import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.20';
 import {isSenrin} from './fireworks.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 
 export function manualPointCost(kind,size,sizes,types){
  const spec=types[kind],scale=sizes[size];if(!spec||!scale)return Infinity;
+ if(kind==='sparklelarge'){if(![5,10,20].includes(size))return Infinity;const c=sparkleCounts(size);return (c.large+c.companions+c.core)*SPARKLE_PROFILE.trails;}
+ if(kind==='longstar'){if(size!==5&&size!==10)return Infinity;const c=longStarCounts(size);return (c.large+c.gold)*LONG_STAR_PROFILE.trails;}
  const stars=kind==='sunflower'?232:isSenrin(kind)?720:spec.radii.reduce((sum,_,i)=>sum+Math.round(scale.stars*(spec.layerWeights?.[i]??(i===0?1:i===1?.6:.35))),0);
  return stars*(kind==='ear'?48:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10);
 }

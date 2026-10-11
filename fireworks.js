@@ -1,3 +1,4 @@
+import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.20';
 import {SUNFLOWER_PROFILE,SPIRAL_PROFILE} from './sunflower-motion.js?v=1.1.16';
 import {CANDY_PALETTES} from './candy-colors.js?v=1.1.16';
 import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';
@@ -7,6 +8,8 @@ export const SIZES={2:{label:'2号玉（目安）',radius:.14,height:.66,stars:2
 export const TYPES={ear:{label:'金の穂',radii:[1],colors:[0xffcb7c],life:EAR_PROFILE.life,fadeStart:5.85,tail:.02,gravity:.004},senrin:{label:'彩色千輪（軽量テスト）',radii:[1],colors:[0xff419b,0xffd52e,0x42cfff,0x48f5a5,0xbb65ff],life:6.2,tail:.045,gravity:.022},triple:{label:'三重芯',radii:[1,.74,.48,.23],colors:[0xffd38c,0xff749d,0x9bd9ff,0xc8f5ab],life:8,tail:.08,gravity:.014},spiral:{label:'渦巻き',radii:[1],colors:[0xffc34c],life:SPIRAL_PROFILE.life,fadeStart:SPIRAL_PROFILE.fadeStart,tail:.11,gravity:0},sunflower:{label:'ひまわり',radii:[1,.51],colors:[0xffbf55,0xff3925],life:SUNFLOWER_PROFILE.life,fadeStart:SUNFLOWER_PROFILE.fadeStart,tail:.035,gravity:0},silver:{label:'銀かむろ',radii:[1,.55],colors:[0xffd18a,0xffd18a],life:6.2,fadeStart:4.6,tail:.06,gravity:.035},core:{label:'芯入り',radii:[1,.48],colors:[0xff718c,0xffe4a0],life:3.5,tail:.04,gravity:.045},double:{label:'八重芯',radii:[1,.66,.32],colors:[0x9ecfff,0xff788d,0xffe399],life:3.9,tail:.045,gravity:.035},willow:{label:'しだれ柳',radii:[1],colors:[0xffd08a],life:5.5,tail:.14,gravity:.065}};
 export const isSenrin=kind=>kind==='senrin'||kind==='candysenrin';
 TYPES.candysenrin={...TYPES.senrin,label:'キャンディー千輪',colors:CANDY_PALETTES.find(p=>p.id==='candy-mix').colors};
+TYPES.sparklelarge={label:'キラキラ大玉',radii:[1,.65],colors:[LONG_STAR_PROFILE.headColor,LONG_STAR_PROFILE.goldColor],life:4.0,fadeStart:4.0,tail:.03,gravity:.01};
+TYPES.longstar={label:'大星とキラ',radii:[1,.72],colors:[LONG_STAR_PROFILE.headColor,LONG_STAR_PROFILE.goldColor],life:LONG_STAR_PROFILE.life,fadeStart:LONG_STAR_PROFILE.life,tail:.03,gravity:.01};
 TYPES.candyburst={label:'キャンディー大星',radii:[1,.24],colors:[0xff28cf],life:3.7,fadeStart:2.8,tail:.035,gravity:.050};
 TYPES.candy={label:'キャンディー玉',radii:[1,.28],layerWeights:[.72,.28],colors:[0xff28cf,0x22cfff,0xa33aff,0x68ff24,0xffe629],life:3.1,fadeStart:1.55,tail:.040,gravity:.042};
 // A single shell: all stars use one color and leave a longer chrysanthemum tail.
@@ -38,7 +41,8 @@ export const KIKU_PALETTES=[
  {id:'white',label:'白',colors:[0xf0f6ff]},
  {id:'aqua',label:'水色',colors:[0x66ddff]}
 ];
-export function paletteOptions(kind){return kind==='candyburst'?CANDY_PALETTES.filter(p=>p.colors.length===1):(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
+export const RAIN_EAR_PALETTES=Object.freeze([{id:'original',label:'金の穂',colors:[TYPES.ear.colors[0]]},{id:'ear-aqua',label:'水色の穂',colors:[LONG_STAR_PROFILE.headColor]},{id:'ear-blue',label:'青の穂',colors:[LONG_STAR_PALETTES.find(p=>p.id==='long-blue').colors[0]]}].map(p=>Object.freeze({...p,colors:Object.freeze(p.colors)})));
+export function paletteOptions(kind){return kind==='ear'?RAIN_EAR_PALETTES:(kind==='longstar'||kind==='sparklelarge')?LONG_STAR_PALETTES:kind==='candyburst'?CANDY_PALETTES.filter(p=>p.colors.length===1):(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
 export function shellPalette(kind,id='original'){
  return paletteOptions(kind).find(p=>p.id===id)??{id:'original',label:'',colors:TYPES[kind]?.colors??[]};
 }

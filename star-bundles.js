@@ -1,3 +1,4 @@
+import {TORA_SMALL_PATTERNS,createToraSmallPattern,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.17';
 import {candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 
@@ -6,6 +7,8 @@ const TAIL_POINTS=10;
 export const STAR_BUNDLE_TIME_SCALE=1.3;
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
 export const STAR_BUNDLE_EXTRA_STYLES={
+ ...Object.fromEntries(TORA_MOUNTAIN_COLORS.map(c=>[c.id,{label:c.label+'の星・'+(c.id==='mountain-gold'?'金':'銀')+'の尾',head:c.head,tail:c.tail}])),
+ 'tora-row-mix':{label:'桃・水色・緑の列',head:0xff73c8,tail:0xdbeeff},
  'pink-silver':{label:'桃の星・銀の尾',head:0xff73c8,tail:0xdbeeff},
  'aqua-gold':{label:'水色の星・金の尾',head:0x66ddff,tail:0xffbd65},
  green:{label:'緑の星・金の尾',head:0x32ff70,tail:0xffbd65},
@@ -16,6 +19,7 @@ export const STAR_BUNDLE_EXTRA_STYLES={
  'green-silver':{label:'緑の星・銀の尾',head:0x32ff70,tail:0xdbeeff}
 };
 export const STAR_BUNDLE_PATTERNS=[
+ ...TORA_SMALL_PATTERNS,
  {id:'small-hop-left',label:'子トラ · 左の小さな跳ね',description:'左の２か所を細い束で跳ねさせます。'},
  {id:'small-hop-right',label:'子トラ · 右の小さな跳ね',description:'右の２か所が左に応えます。'},
  {id:'small-hop-center',label:'子トラ · 中央の小さな跳ね',description:'中央に短いリズムを置きます。'},
@@ -25,7 +29,8 @@ export const STAR_BUNDLE_PATTERNS=[
  {id:'small-cross',label:'子トラ · 星の束をクロス',description:'左右から斜めに吹き上がる星の束が、空の下で交差します。'},
  {id:'small-fan',label:'子トラ · 星の束を扇に',description:'３か所から５方向へ。小さな星の束が扇になって広がります。'}
 ];
-export function createStarBundlePattern(id,style='gold',seed=1){
+export function createStarBundlePattern(id,style='gold',seed=1,options={}){
+ if(TORA_SMALL_PATTERNS.some(p=>p.id===id))return createToraSmallPattern(id,style,seed,options);
  const shots=[],random=randomFrom(seed),tight=id.endsWith('-tight');
  if(tight)id=id.slice(0,-6);
  const add=(x,angles,count,height,at=0)=>shots.push({x,y:.035,z:-.68,angles,count,height,at,style,seed:Math.floor(random()*0xffffffff),small:true,...(tight?{tight:true}: {})});
@@ -36,18 +41,31 @@ export function createStarBundlePattern(id,style='gold',seed=1){
  return shots;
 }
 export function bundleStarPosition(star,t){
+ if(star.summitTarget){const p=Math.min(1,Math.max(0,t/star.stopAt));return {x:star.x+(star.summitTarget.x-star.x)*p,y:star.y+(star.summitTarget.y-star.y)*p,z:star.z};}
+ if(star.stopAt!==undefined)t=Math.min(t,star.stopAt);
  const q=(1-Math.exp(-star.drag*t))/star.drag;
  return {x:star.x+star.vx*q,y:star.y+star.vy*q-star.gravity*(t-q)/star.drag,z:star.z+star.vz*q};
 }
 export function makeStarBundle(shot,start,style){
- const random=randomFrom(shot.seed),stars=[],span=.32,timeScale=shot.timeScale??STAR_BUNDLE_TIME_SCALE;
+ const random=randomFrom(shot.seed),stars=[],span=shot.span??.32,timeScale=shot.timeScale??STAR_BUNDLE_TIME_SCALE;
  for(const angle of shot.angles)for(let i=0;i<Math.ceil(shot.count*(style.bundleCountScale??1));i++){
   const drag=.25+random()*.035,gravity=.90,peak=1.03+random()*.18;
   const height=shot.height*(shot.tight?(.83+random()*.11):(.64+random()*.42)),q=(1-Math.exp(-drag*peak))/drag;
-  const vy=(height+gravity*(peak-q)/drag)/q,spread=(shot.tight?.045:.16)*Math.sqrt(random()),azimuth=random()*Math.PI*2;
+  const vy=(height+gravity*(peak-q)/drag)/q,spread=(shot.tight?.045:.16)*(shot.spreadScale??1)*Math.sqrt(random()),azimuth=random()*Math.PI*2;
   stars.push({x:shot.x+(random()-.5)*.010,y:shot.y,z:shot.z+(random()-.5)*.010,
    vx:vy*Math.tan(angle+Math.cos(azimuth)*spread+(style.colorSpread??0)*((i%5)-2)/2),vy,vz:vy*Math.sin(azimuth)*spread,
    drag,gravity,at:random()*.035,life:1.40+random()*.48,gain:.84+random()*.40});
+ }
+ // Separate stars stay on the same narrow axis, with small differences along it.
+ if(shot.bundlePeak)for(const star of stars){
+  const end=shot.bundlePeak.at+(random()-.5)*.10;
+  const extent=.86+random()*.14;star.at=random()*.12;star.stopAt=end;
+  star.summitTarget={x:shot.x+((shot.bundlePeak.x??shot.x)-shot.x)*extent+(random()-.5)*.004,y:shot.y+shot.bundlePeak.height*extent};
+  star.life=end+.24;star.fadeDuration=.24;star.gain*=.72;
+ }
+ if(shot.summit)for(const star of stars){
+  const end=shot.summit.at+(random()-.5)*.045,q=(1-Math.exp(-star.drag*end))/star.drag,targetX=shot.summit.x+(random()-.5)*.010;
+  star.vx=(targetX-star.x)/q;star.vy=(shot.summit.height+(random()-.5)*.008+star.gravity*(end-q)/star.drag)/q;star.vz=0;star.stopAt=end;star.summitTarget={x:targetX,y:star.y+shot.summit.height+(random()-.5)*.008};star.life=end+.18;star.fadeDuration=.18;star.gain*=.62;
  }
  if(style.headPalette)for(let i=0;i<stars.length;i++){const color=candyColor(i,shot.seed,style.headPalette);stars[i].headColor=new T.Color(color);stars[i].tailColor=new T.Color(color);}
  return {...shot,start,stars,span,timeScale,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:(Math.max(...stars.map(s=>s.at+s.life))+span)*timeScale};
@@ -66,14 +84,14 @@ export class StarBundleField{
   this.heads=new T.Points(this.headGeometry,this.headMaterial);this.tails=new T.Points(this.tailGeometry,this.tailMaterial);this.glow=new T.Points(this.headGeometry,this.glowMaterial);
   for(const p of [this.tails,this.glow,this.heads]){p.frustumCulled=false;p.visible=false;town.add(p);}
  }
- launch(pattern,style,at){
-  const shots=createStarBundlePattern(pattern,style,this.seed=(this.seed+0x9e3779b9)>>>0);
+ launch(pattern,style,at,options={}){
+  const shots=createStarBundlePattern(pattern,style,options.reviewSeed??(this.seed=(this.seed+0x9e3779b9)>>>0),options);
   if(!shots.length||!this.styles[style])return false;
   const total=s=>s.angles.length*s.count;
   const used=this.active.reduce((n,s)=>n+s.stars.length,0)+this.pending.reduce((n,s)=>n+total(s),0);
   if(used+shots.reduce((n,s)=>n+total(s),0)>this.capacity){this.dropped++;return false;}
   const group='small-'+(++this.group);
-  for(const shot of shots)this.pending.push({...shot,at:at+shot.at,group,timeScale:this.timeScale});
+  for(const shot of shots)this.pending.push({...shot,at:at+shot.at,group,timeScale:this.timeScale/Math.max(.25,Math.min(2,Number(options.motionRate)||1))});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
  update(time){
@@ -86,7 +104,7 @@ export class StarBundleField{
   let heads=0,tails=0;
   for(const bundle of this.active)for(const star of bundle.stars){
    const age=(time-bundle.start)/bundle.timeScale-star.at;if(age<0)continue;
-   const gain=t=>star.gain*clamp(t/.030,0,1)*Math.pow(clamp((star.life-t)/.42,0,1),1.25);
+   const gain=t=>star.gain*clamp(t/.030,0,1)*Math.pow(clamp((star.life-t)/(star.fadeDuration??.42),0,1),1.25);
    if(age<star.life){
     const p=bundleStarPosition(star,age),light=gain(age)*bundle.headGain,headColor=star.headColor??bundle.headColor;
     if(p.y>.012){this.headPositions.set([p.x,p.y,p.z],heads*3);this.headColors.set([headColor.r*light,headColor.g*light,headColor.b*light],heads*3);heads++;}

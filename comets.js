@@ -1,3 +1,4 @@
+import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.20';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.16';
@@ -27,10 +28,12 @@ export const COMET_PATTERNS=[
  {id:'inward',label:'両端から中央へ',description:'左右が呼び合って、中央に集まる打ち方です。'},
  {id:'curtain',label:'高さの違う二段打ち',description:'低い列から高い列へ。尾が重なって幕になります。'},
  {id:'guide',label:'トラから尺玉へ',description:'手前の星、奥を昇る尺玉、上空の開花へとつなぎます。'},
+ ...TORA_LARGE_PATTERNS,
  ...STAR_BUNDLE_PATTERNS
 ];
 const TYPES=new Set(COMET_PATTERNS.map(p=>p.id));
 export function createCometPattern(id='fan',style='gold',seed=1){
+ if(TORA_LARGE_PATTERNS.some(p=>p.id===id))return createToraLargePattern(id,COMET_STYLES[style]?style:'silver',seed);
  if(id.startsWith('small-'))return createStarBundlePattern(id,style,seed);
  if(!TYPES.has(id))id='fan';if(!COMET_STYLES[style])style='gold';
  const shots=[],random=randomFrom(seed),add=(x,angle,height,at=0,z=-.72)=>shots.push({x,y:.035,z,angle,height,at,style,seed:Math.floor(random()*0xffffffff)});
@@ -58,12 +61,14 @@ export function cometPosition(shot,t){
 }
 export function makeComet(shot,start){
  const random=randomFrom(shot.seed),style=COMET_STYLES[shot.style]??COMET_STYLES.gold;
- const burn=style.burn*(.96+random()*.08),angle=shot.angle+(random()-.5)*.025,drag=.19+random()*.025,gravity=.48;
+ let burn=style.burn*(.96+random()*.08),angle=shot.angle+(random()-.5)*.025,drag=.19+random()*.025,gravity=.48;
+ if(shot.motion){burn=shot.motion.burn;drag=shot.motion.drag;gravity=shot.motion.gravity;}
  // The star is still climbing as its fuel runs out.
  const q=(1-Math.exp(-drag*burn))/drag;
- const vy=(shot.height*(.975+random()*.05)+gravity*(burn-q)/drag)/q;
- const tail=Array.from({length:80*style.lanes},(_,i)=>({at:(Math.floor(i/style.lanes)+random()*.85)/80*burn,dx:(random()-.5)*style.spread,dy:(random()-.5)*.025,dz:(random()-.5)*style.spread,life:style.afterglow*(.65+random()*.5),glint:.80+random()*.35}));
- const comet={...shot,start,burn,drag,gravity,vy,vx:Math.tan(angle)*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
+ const baseVy=(shot.height*(.975+random()*.05)+gravity*(burn-q)/drag)/q,vy=shot.motion?.vy??baseVy;
+ const samples=shot.motion?.tailSamples??80;
+ const tail=Array.from({length:samples*style.lanes},(_,i)=>({at:(Math.floor(i/style.lanes)+random()*.85)/samples*burn,dx:(random()-.5)*style.spread,dy:(random()-.5)*.025,dz:(random()-.5)*style.spread,life:(shot.motion?.afterglow??style.afterglow)*(.65+random()*.5),glint:.80+random()*.35}));
+ const comet={...shot,start,burn,drag,gravity,vy,vx:shot.motion?.vx??Math.tan(angle)*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
  for(const s of tail){const birth=cometPosition(comet,s.at),remaining=Math.exp(-drag*s.at);s.x=birth.x;s.y=birth.y;s.z=birth.z;s.dx+=comet.vx*remaining*.04;s.dy+=vy*remaining*.025;s.dz+=comet.vz*.05;}
  return comet;
 }
@@ -72,7 +77,7 @@ export class CometField{
  constructor({town,bridge,map,headMaps,onLaunch=()=>{},capacity=96}){
   this.town=town;this.bridge=bridge;this.capacity=capacity;this.onLaunch=onLaunch;this.active=[];this.pending=[];this.seed=0x141706;this.group=0;this.dropped=0;
   this.headPositions=new Float32Array(capacity*3);this.headColors=new Float32Array(capacity*3);
-  this.tailPositions=new Float32Array(capacity*240*3);this.tailColors=new Float32Array(capacity*240*3);
+  this.tailPositions=new Float32Array(capacity*360*3);this.tailColors=new Float32Array(capacity*360*3);
   this.headGeometry=this.geometry(this.headPositions,this.headColors);this.tailGeometry=this.geometry(this.tailPositions,this.tailColors);
   this.headMaterial=new T.PointsMaterial({color:0xffffff,size:.050,vertexColors:true,map:headMaps?.miniature??map,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
   this.tailMaterial=new T.PointsMaterial({color:0xffffff,size:.014,vertexColors:true,map,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
@@ -80,24 +85,24 @@ export class CometField{
   bridge.point(this.headMaterial,headMaps);bridge.point(this.tailMaterial);bridge.point(this.glowMaterial);
   this.heads=new T.Points(this.headGeometry,this.headMaterial);this.tails=new T.Points(this.tailGeometry,this.tailMaterial);this.glow=new T.Points(this.headGeometry,this.glowMaterial);
   for(const p of [this.tails,this.glow,this.heads]){p.frustumCulled=false;p.visible=false;town.add(p);}
-  this.bundles=new StarBundleField({town,bridge,map,headMaps,styles:SMALL_COMET_STYLES,onLaunch:(...args)=>this.onLaunch(...args)});
+  this.bundles=new StarBundleField({town,bridge,map,headMaps,capacity:1536,styles:SMALL_COMET_STYLES,onLaunch:(...args)=>this.onLaunch(...args)});
  }
  geometry(positions,colors){const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));g.setAttribute('color',new T.BufferAttribute(colors,3).setUsage(T.DynamicDrawUsage));g.setDrawRange(0,0);return g;}
- launch(pattern,style,at){
-  if(pattern.startsWith('small-'))return this.bundles.launch(pattern,style,at);
+ launch(pattern,style,at,options={}){
+  if(pattern.startsWith('small-'))return this.bundles.launch(pattern,style,at,options);
   const group=++this.group;this.seed=(this.seed+0x9e3779b9)>>>0;
-  const shots=createCometPattern(pattern,style,this.seed);
+  const shots=createCometPattern(pattern,style,options.reviewSeed??this.seed);
   if(this.active.length+this.pending.length+shots.length>this.capacity){this.dropped++;return false;}
-  for(const s of shots)this.pending.push({...s,at:at+s.at,group});
+  for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
  update(time){
   while(this.pending.length&&this.pending[0].at<=time){const s=this.pending.shift();if(time-s.at>.35)continue;const comet=makeComet(s,s.at);this.active.push(comet);this.onLaunch(s,time);}
-  this.active=this.active.filter(s=>time-s.start<s.end);
+  this.active=this.active.filter(s=>time-s.start<s.end*(s.timeScale??1));
   let heads=0,tails=0;
   for(const s of this.active){
-   const age=time-s.start;
-   if(age<s.burn){const p=cometPosition(s,age),fade=clamp((s.burn-age)/.16,0,1),ignite=clamp(age/.035,0,1),gain=fade*ignite*(s.styleData.headGain??1.65);
+   const age=(time-s.start)/(s.timeScale??1);
+   if(age<s.burn){const p=cometPosition(s,age),fade=clamp((s.burn-age)/.16,0,1),ignite=clamp(age/.035,0,1),gain=fade*ignite*(s.motion?.headGain??s.styleData.headGain??1.65);
     if(p.y>.012){this.headPositions.set([p.x,p.y,p.z],heads*3);this.headColors.set([s.headColor.r*gain,s.headColor.g*gain,s.headColor.b*gain],heads*3);heads++;}
    }
    for(const particle of s.tail){
