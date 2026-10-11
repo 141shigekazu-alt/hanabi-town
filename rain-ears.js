@@ -1,4 +1,4 @@
-import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.2.27';
+import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.2.28';
 // Colours follow spatial slots even though their ignition order is shuffled.
 // Closer tufts form a curtain; each tuft keeps the accepted gold trajectory.
 export function rainEarSequence(seed,mode='alternating',start=0){
