@@ -1,3 +1,4 @@
+import {drawPanelSurface} from './panel-surface.js';
 import * as T from './vendor/three.module.js';
 
 // A deliberate neutral -> palm-up motion; a held pose never repeats.
@@ -38,7 +39,7 @@ export class WristMenu{
   for(const e of entries){e.touchTip=new T.Mesh(new T.SphereGeometry(.007,10,8),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));e.touchTip.position.z=-.05;e.touchTip.renderOrder=1006;e.touchTip.visible=false;e.controller.add(e.touchTip);}
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
-  this.mesh=new T.Mesh(new T.PlaneGeometry(.40,.40*H/W),new T.MeshBasicMaterial({map:this.texture,depthTest:false,depthWrite:false,side:T.FrontSide}));this.mesh.visible=false;this.mesh.renderOrder=1005;scene.add(this.mesh);
+  this.mesh=new T.Mesh(new T.PlaneGeometry(.40,.40*H/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.FrontSide}));this.mesh.visible=false;this.mesh.renderOrder=1005;scene.add(this.mesh);
   this.bar=new T.Mesh(new T.PlaneGeometry(.20,.012),new T.MeshBasicMaterial({color:0xf2f5f8,depthTest:false,depthWrite:false,side:T.DoubleSide}));this.bar.position.y=-.40*H/W/2-.023;this.bar.renderOrder=1006;this.mesh.add(this.bar);
   this.grabTarget=new T.Mesh(new T.PlaneGeometry(.30,.055),new T.MeshBasicMaterial({side:T.DoubleSide}));this.grabTarget.position.copy(this.bar.position);this.grabTarget.visible=false;this.mesh.add(this.grabTarget);
   this.cursor=new T.Mesh(new T.SphereGeometry(.004,8,6),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));this.cursor.visible=false;this.cursor.renderOrder=1006;scene.add(this.cursor);
@@ -99,7 +100,7 @@ export class WristMenu{
   const hover=touching?.control.id??this.control(nearest)?.id??'';if(hover!==this.hover){this.hover=hover;this.draw();}
  }
  draw(){
-  const c=this.ctx,active=this.read();this.controls=[];c.fillStyle='#0d1722';c.fillRect(0,0,W,H);c.strokeStyle='#ddc695';c.lineWidth=3;c.strokeRect(1.5,1.5,W-3,H-3);
+  const c=this.ctx,active=this.read();this.controls=[];drawPanelSurface(c,W,H,{radius:26,border:'#ddc69585'});
   c.textBaseline='middle';c.font='25px system-ui,sans-serif';c.fillStyle='#f2dfb5';c.fillText('クルッとパネル',24,38);
   const views=[{id:'miniature',label:'街を見下ろす'},{id:'bridge',label:'橋の上から見上げる'},{id:'boat',label:'屋形船から見上げる'}];
   if(this.readCruiseStarted())views.push({id:'boat-start',label:'出航位置に戻る'});

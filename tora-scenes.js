@@ -43,11 +43,11 @@ export function createToraSmallPattern(id,style,seed,options={}){
  const random=rng(seed),shots=[],interval=Math.max(.08,Math.min(.6,Number(options.interval)||.24)),rate=Math.max(.25,Math.min(2,Number(options.rate)||1));
  const add=(x,angle,at,height=.46,count=28,extra={})=>shots.push({x,y:.18,z:-.63,angles:[angle],count,height,at,style,seed:Math.floor(random()*0xffffffff),small:true,tight:true,spreadScale:.5,...extra});
  if(id==='small-mountain-bundles')for(const center of [-.55,.55])for(let i=0;i<11;i++){
-  const u=(i-5)/5,peakX=center+(random()-.5)*.060,peakHeight=.50*(.94+random()*.14),peakAt=.74+.55*Math.abs(u)+(random()-.5)*.080;
-  add(center+u*.37,0,0,.50,36,{y:.22,spreadScale:.12,bundlePeak:{x:peakX,height:peakHeight,at:peakAt},span:.40});
+  const u=(i-5)/5,peakX=center+(random()-.5)*.060,peakHeight=.50*(.965+random()*.07),peakAt=.74+.55*Math.abs(u)+(random()-.5)*.080;
+  add(center+u*.37,0,0,.50,36,{y:.22,spreadScale:.12,bundlePeak:{x:peakX,height:peakHeight,at:peakAt},span:.40,burnOnRise:true});
  }
  if(id==='small-mountain-triple')for(const center of [-.68,0,.68])for(let i=0;i<11;i++){
-  const u=(i-5)/5,peakX=center+(random()-.5)*.060,peakHeight=.50*(.94+random()*.14),peakAt=.74+.55*Math.abs(u)+(random()-.5)*.080;
+  const u=(i-5)/5,peakX=center+(random()-.5)*.060,peakHeight=.50*(.965+random()*.07),peakAt=.74+.55*Math.abs(u)+(random()-.5)*.080;
   add(center+u*.37,0,0,.50,36,{y:.22,spreadScale:.12,bundlePeak:{x:peakX,height:peakHeight,at:peakAt},span:.40});
  }
  if(id==='small-mountain-upright')for(const center of [-.55,.55])for(let i=0;i<11;i++){
@@ -55,7 +55,7 @@ export function createToraSmallPattern(id,style,seed,options={}){
   add(center+u*.37,0,0,height,36,{y:.22,spreadScale:.12,bundlePeak:{height,at:1.02},span:.36});
  }
  if(id==='small-mountain-twins')for(const center of [-.55,.55])for(let i=0;i<11;i++){
-  const u=(i-5)/5;add(center+u*.37,0,0,.50,20,{y:.22,summit:{x:center,height:.50,at:.74+.55*Math.abs(u)},span:.52});
+  const u=(i-5)/5;add(center+u*.37,0,0,.50,20,{y:.22,summit:{x:center,height:.50,at:.74+.55*Math.abs(u)},span:.52,burnOnRise:true});
  }
  if(id==='small-stream-right'||id==='small-stream-left')for(let i=0;i<9;i++)add((id==='small-stream-left'?-1:1)*(i-4)*.21,0,i*interval*rate);
  if(id==='small-stream-cross')for(let i=0;i<9;i++)for(const sign of [-1,1])add(-sign*(i-4)*.21,0,i*interval*rate,.46,28);

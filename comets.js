@@ -1,4 +1,6 @@
-import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.28';
+import {variationRandom,centeredVariation} from './flower-variation.js';
+import {flowerGroundShots} from './flower-scenes.js';
+import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.76';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.16';
@@ -8,6 +10,7 @@ function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+101
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const COMET_STYLES={
  ...CANDY_COMET_STYLES,
+ 'flower-green':{label:'緑の星・緑の尾',head:0x32ff70,tail:0x32cf61,burn:1.5,afterglow:1.15,spread:.024,lanes:3,coloredTail:true,headPalette:[0x32ff70]},
  pink:{label:'桃の星・銀の尾',head:0xff73c8,tail:0xdbeeff,burn:1.02,afterglow:.78,spread:.030,lanes:2},
  aqua:{label:'水色の星・金の尾',head:0x66ddff,tail:0xffbd65,burn:1.02,afterglow:.95,spread:.030,lanes:2},
  gold:{label:'金の太い尾',head:0xffefc2,tail:0xffbd65,burn:1.28,afterglow:1.65,spread:.045,lanes:3},
@@ -32,7 +35,8 @@ export const COMET_PATTERNS=[
  ...STAR_BUNDLE_PATTERNS
 ];
 const TYPES=new Set(COMET_PATTERNS.map(p=>p.id));
-export function createCometPattern(id='fan',style='gold',seed=1){
+export function createCometPattern(id='fan',style='gold',seed=1,options={}){
+ if(id==='flower-stem-large')return flowerGroundShots(id,seed,options);
  if(TORA_LARGE_PATTERNS.some(p=>p.id===id))return createToraLargePattern(id,COMET_STYLES[style]?style:'silver',seed);
  if(id.startsWith('small-'))return createStarBundlePattern(id,style,seed);
  if(!TYPES.has(id))id='fan';if(!COMET_STYLES[style])style='gold';
@@ -61,14 +65,16 @@ export function cometPosition(shot,t){
 }
 export function makeComet(shot,start){
  const random=randomFrom(shot.seed),style=COMET_STYLES[shot.style]??COMET_STYLES.gold;
+ const individual=variationRandom(shot.seed,0x70aa60),character={height:1+centeredVariation(individual)*.12,lean:centeredVariation(individual)*.036,drag:.92+individual()*.16,gravity:.92+individual()*.16,burn:.94+individual()*.06};
  let burn=style.burn*(.96+random()*.08),angle=shot.angle+(random()-.5)*.025,drag=.19+random()*.025,gravity=.48;
- if(shot.motion){burn=shot.motion.burn;drag=shot.motion.drag;gravity=shot.motion.gravity;}
+ if(shot.motion){burn=shot.motion.burn*character.burn;drag=shot.motion.drag;gravity=shot.motion.gravity;}
+ drag*=character.drag;gravity*=character.gravity;angle+=character.lean;
  // The star is still climbing as its fuel runs out.
  const q=(1-Math.exp(-drag*burn))/drag;
- const baseVy=(shot.height*(.975+random()*.05)+gravity*(burn-q)/drag)/q,vy=shot.motion?.vy??baseVy;
+ const baseVy=(shot.height*character.height*(.975+random()*.05)+gravity*(burn-q)/drag)/q,vy=shot.motion?.vy===undefined?baseVy:shot.motion.vy*character.height;
  const samples=shot.motion?.tailSamples??80;
  const tail=Array.from({length:samples*style.lanes},(_,i)=>({at:(Math.floor(i/style.lanes)+random()*.85)/samples*burn,dx:(random()-.5)*style.spread,dy:(random()-.5)*.025,dz:(random()-.5)*style.spread,life:(shot.motion?.afterglow??style.afterglow)*(.65+random()*.5),glint:.80+random()*.35}));
- const comet={...shot,start,burn,drag,gravity,vy,vx:shot.motion?.vx??Math.tan(angle)*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
+ const comet={...shot,start,character,burn,drag,gravity,vy,vx:shot.motion?.vx===undefined?Math.tan(angle)*vy:shot.motion.vx*Math.sqrt(character.height)+character.lean*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
  for(const s of tail){const birth=cometPosition(comet,s.at),remaining=Math.exp(-drag*s.at);s.x=birth.x;s.y=birth.y;s.z=birth.z;s.dx+=comet.vx*remaining*.04;s.dy+=vy*remaining*.025;s.dz+=comet.vz*.05;}
  return comet;
 }
@@ -91,7 +97,7 @@ export class CometField{
  launch(pattern,style,at,options={}){
   if(pattern.startsWith('small-'))return this.bundles.launch(pattern,style,at,options);
   const group=++this.group;this.seed=(this.seed+0x9e3779b9)>>>0;
-  const shots=createCometPattern(pattern,style,options.reviewSeed??this.seed);
+  const shots=createCometPattern(pattern,style,options.reviewSeed??this.seed,options);
   if(this.active.length+this.pending.length+shots.length>this.capacity){this.dropped++;return false;}
   for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
   this.pending.sort((a,b)=>a.at-b.at);return true;

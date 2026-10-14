@@ -1,3 +1,6 @@
+import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
+import {TYPES} from './fireworks.js?v=1.2.76';
+import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';
 export const PROGRAM_NAMES={one:'プログラム1 · 一玉を味わう',two:'プログラム2 · 街の競演',random:'おまかせ'};
@@ -8,27 +11,34 @@ export function createProgram(mode='one',seed=1){
  const slots=mode==='two'?[35,75,185,225,250,270]:mode==='random'?[40+Math.floor(random()*12),185+Math.floor(random()*12),235+Math.floor(random()*6),270]:[45,200,250,270];
  const patternOrder=mode==='random'?Object.keys(RANDOM_PATTERNS):[];
  for(let i=patternOrder.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[patternOrder[i],patternOrder[j]]=[patternOrder[j],patternOrder[i]];}
- return {mode,seed:mode==='random'?seed:mode==='two'?202:101,name:PROGRAM_NAMES[mode],slots,bigAt:130,senrinAt:[105,165],patternOrder};
+ return {programmeStyle:drawProgrammeStyle(seed),mode,seed:mode==='random'?seed:mode==='two'?202:101,name:PROGRAM_NAMES[mode],slots,bigAt:130,senrinAt:[105,165],patternOrder};
 }
 export function programCue(plan,time,index,lively=false){
  const c=baseCue(time,index,lively);if(!c)return null;
  const random=randomStream((plan.seed+Math.imul(index+1,2654435761))>>>0),part=chapter(time);
  if(plan.mode==='random'){
- const kinds=['core','double','willow','sunflower','spiral'];c.kind=kinds[Math.floor(random()*kinds.length)];
+ const kinds=['core','double','willow','sunflower','petalflower'];c.kind=kinds[Math.floor(random()*kinds.length)];
  c.size=part==='幕開け'?[3,3,5][Math.floor(random()*3)]:part==='一玉を味わう'?10:[3,5,5,10][Math.floor(random()*4)];
  if(c.kind==='double'&&c.size!==10)c.kind='core';
  c.interval*=.85+random()*.3;
  }else if(plan.mode==='two'){
- c.kind=['core','sunflower','willow','double','spiral','core'][index%6];
+ c.kind=['core','sunflower','willow','double','petalflower','core'][index%6];
  if(c.kind==='double'&&c.size!==10)c.kind='core';
  if(part!=='一玉を味わう')c.interval*=.88;
  }
  const z=-.45+random()*.8;
  const x=plan.mode==='two'?(index%2===0?-.65:.65):-.8+random()*1.6;
  if(plan.mode==='random'&&c.size===3&&c.kind==='core')c.kind='kiku';
- const palettes=c.kind==='core'?CORE_PALETTES:c.kind==='kiku'?KIKU_PALETTES:null;
+ const palettes=c.kind==='core'?CORE_PALETTES:c.kind==='kiku'?KIKU_PALETTES:c.kind==='petalflower'?FLOWER_COLORS:null;
  const palette=palettes?.[(index+plan.seed)%palettes.length].id;
- return {...c,position:{x,z,...(palette?{palette}:{})}};
+ let result={...c,position:{x,z,...(palette?{palette}:{})}};
+ if(plan.programmeStyle&&part!=='大フィナーレ'&&time<235){
+  const style=plan.programmeStyle;result.kind=styleKind(style,c.size,index)??c.kind;
+  if(c.size>=5&&index%9===6)result.kind=['butterfly','planet','drum'][(styleHash(style.seed)+Math.floor(index/9))%3];
+  result.position=stylePosition(style,result.position,index);result.position.palette=stylePalette(style,result.kind,index);
+  if(['butterfly','planet','drum'].includes(result.kind))result.interval=Math.max(result.interval,3.2+TYPES[result.kind].life+.8);
+ }
+ return result;
 }
 
 export const RANDOM_PATTERNS={sweep:'七色の流し打ち',mirror:'両岸の掛け合い',carpet:'菊の横一列と大玉',tiers:'上下二段の彩り',gold:'金の菊と柳'};
@@ -65,8 +75,9 @@ export function randomStarmine(plan,time,index=0,lively=false){
   fans.push({at:time,mode:'fan'});
  }
  fans.splice(0,fans.length,...normalGroundCues('random',plan.seed,index,time,false));
+ if(plan.programmeStyle&&time<235)for(const [i,s] of shots.entries()){s.kind=styleKind(plan.programmeStyle,s.size,index*10+i)??s.kind;s.position.palette=stylePalette(plan.programmeStyle,s.kind,index*10+i);}
  shots.sort((a,b)=>a.at-b.at);
- const lastFade=Math.max(...shots.map(s=>s.at+ascent(s.size)+(s.kind==='willow'?5.5:s.kind==='kiku'?3.2:3.5)));
+ const lastFade=Math.max(...shots.map(s=>s.at+ascent(s.size)+TYPES[s.kind].life));
  return {key,label:RANDOM_PATTERNS[key],shots,fans,nextLaunch:lastFade+2.4};
 }
 

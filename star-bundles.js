@@ -1,3 +1,5 @@
+import {variationRandom,centeredVariation} from './flower-variation.js';
+import {flowerGroundShots} from './flower-scenes.js';
 import {TORA_SMALL_PATTERNS,createToraSmallPattern,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.17';
 import {candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
@@ -30,6 +32,7 @@ export const STAR_BUNDLE_PATTERNS=[
  {id:'small-fan',label:'子トラ · 星の束を扇に',description:'３か所から５方向へ。小さな星の束が扇になって広がります。'}
 ];
 export function createStarBundlePattern(id,style='gold',seed=1,options={}){
+ if(id==='small-flower-stem'||id==='small-flower-leaves')return flowerGroundShots(id,seed,options);
  if(TORA_SMALL_PATTERNS.some(p=>p.id===id))return createToraSmallPattern(id,style,seed,options);
  const shots=[],random=randomFrom(seed),tight=id.endsWith('-tight');
  if(tight)id=id.slice(0,-6);
@@ -41,34 +44,44 @@ export function createStarBundlePattern(id,style='gold',seed=1,options={}){
  return shots;
 }
 export function bundleStarPosition(star,t){
- if(star.summitTarget){const p=Math.min(1,Math.max(0,t/star.stopAt));return {x:star.x+(star.summitTarget.x-star.x)*p,y:star.y+(star.summitTarget.y-star.y)*p,z:star.z};}
- if(star.stopAt!==undefined)t=Math.min(t,star.stopAt);
+ if(star.stopAt!==undefined&&!star.burnOnRise)t=Math.min(t,star.stopAt);
  const q=(1-Math.exp(-star.drag*t))/star.drag;
  return {x:star.x+star.vx*q,y:star.y+star.vy*q-star.gravity*(t-q)/star.drag,z:star.z+star.vz*q};
 }
 export function makeStarBundle(shot,start,style){
  const random=randomFrom(shot.seed),stars=[],span=shot.span??.32,timeScale=shot.timeScale??STAR_BUNDLE_TIME_SCALE;
+ const individual=variationRandom(shot.seed,0x70aa61),character={height:1+centeredVariation(individual)*.12,lean:centeredVariation(individual)*.036,drag:.92+individual()*.16,gravity:.94+individual()*.12,arrival:.97+individual()*.06};
  for(const angle of shot.angles)for(let i=0;i<Math.ceil(shot.count*(style.bundleCountScale??1));i++){
-  const drag=.25+random()*.035,gravity=.90,peak=1.03+random()*.18;
-  const height=shot.height*(shot.tight?(.83+random()*.11):(.64+random()*.42)),q=(1-Math.exp(-drag*peak))/drag;
+  const drag=(.25+random()*.035)*character.drag,gravity=.90*character.gravity,peak=(1.03+random()*.18)*character.arrival;
+  const height=shot.height*character.height*(shot.tight?(.83+random()*.11):(.64+random()*.42)),q=(1-Math.exp(-drag*peak))/drag;
   const vy=(height+gravity*(peak-q)/drag)/q,spread=(shot.tight?.045:.16)*(shot.spreadScale??1)*Math.sqrt(random()),azimuth=random()*Math.PI*2;
   stars.push({x:shot.x+(random()-.5)*.010,y:shot.y,z:shot.z+(random()-.5)*.010,
-   vx:vy*Math.tan(angle+Math.cos(azimuth)*spread+(style.colorSpread??0)*((i%5)-2)/2),vy,vz:vy*Math.sin(azimuth)*spread,
+   vx:vy*Math.tan(angle+character.lean+Math.cos(azimuth)*spread+(style.colorSpread??0)*((i%5)-2)/2),vy,vz:vy*Math.sin(azimuth)*spread,
    drag,gravity,at:random()*.035,life:1.40+random()*.48,gain:.84+random()*.40});
  }
  // Separate stars stay on the same narrow axis, with small differences along it.
  if(shot.bundlePeak)for(const star of stars){
-  const end=shot.bundlePeak.at+(random()-.5)*.10;
-  const extent=.86+random()*.14;star.at=random()*.12;star.stopAt=end;
+  const end=shot.bundlePeak.at*character.arrival+(random()-.5)*.10;
+  const extent=(.97+centeredVariation(random)*.085)*character.height;star.at=random()*.12;star.stopAt=end;
   star.summitTarget={x:shot.x+((shot.bundlePeak.x??shot.x)-shot.x)*extent+(random()-.5)*.004,y:shot.y+shot.bundlePeak.height*extent};
   star.life=end+.24;star.fadeDuration=.24;star.gain*=.72;
  }
  if(shot.summit)for(const star of stars){
-  const end=shot.summit.at+(random()-.5)*.045,q=(1-Math.exp(-star.drag*end))/star.drag,targetX=shot.summit.x+(random()-.5)*.010;
-  star.vx=(targetX-star.x)/q;star.vy=(shot.summit.height+(random()-.5)*.008+star.gravity*(end-q)/star.drag)/q;star.vz=0;star.stopAt=end;star.summitTarget={x:targetX,y:star.y+shot.summit.height+(random()-.5)*.008};star.life=end+.18;star.fadeDuration=.18;star.gain*=.62;
+  const end=shot.summit.at*character.arrival+(random()-.5)*.065,q=(1-Math.exp(-star.drag*end))/star.drag,targetX=shot.summit.x+character.lean*shot.summit.height+(random()-.5)*.018;
+  star.vx=(targetX-star.x)/q;star.vy=(shot.summit.height+(random()-.5)*.008+star.gravity*(end-q)/star.drag)/q;star.vz=0;star.stopAt=end;star.summitTarget={x:targetX,y:star.y+shot.summit.height*character.height*(1+centeredVariation(random)*.04)};star.life=end+.18;star.fadeDuration=.18;star.gain*=.62;
+ }
+ for(const star of stars)if(star.summitTarget){
+  if(shot.burnOnRise){star.burnOnRise=true;star.stopAt*=.78;star.life=star.stopAt+.055;star.fadeDuration=.09;}
+  const end=star.stopAt,q=(1-Math.exp(-star.drag*end))/star.drag;
+  // Hitting a height at T alone can put the ballistic apex before T.
+  // Bound gravity so the star is still rising at its individual summit time.
+  const height=star.summitTarget.y-star.y,decay=Math.exp(-star.drag*end);
+  const apexGravity=height*star.drag*decay/(q-end*decay);
+  star.gravity=Math.min(star.gravity,apexGravity*(star.burnOnRise?.55:.985));
+  star.vx=(star.summitTarget.x-star.x)/q;star.vy=(height+star.gravity*(end-q)/star.drag)/q;
  }
  if(style.headPalette)for(let i=0;i<stars.length;i++){const color=candyColor(i,shot.seed,style.headPalette);stars[i].headColor=new T.Color(color);stars[i].tailColor=new T.Color(color);}
- return {...shot,start,stars,span,timeScale,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:(Math.max(...stars.map(s=>s.at+s.life))+span)*timeScale};
+ return {...shot,start,character,stars,span:shot.burnOnRise?span*.6:span,timeScale,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:(Math.max(...stars.map(s=>s.at+s.life))+(shot.burnOnRise?0:span))*timeScale};
 }
 
 export class StarBundleField{
@@ -113,7 +126,8 @@ export class StarBundleField{
    for(let i=1;i<=TAIL_POINTS;i++){
     const history=i*bundle.span/TAIL_POINTS,t=age-history;if(t<0||t>=star.life)continue;
     const p=bundleStarPosition(star,t);if(p.y<=.012)continue;
-    const light=gain(t)*bundle.tailGain*(1-i/(TAIL_POINTS+1)),tailColor=star.tailColor??bundle.tailColor;
+    const burnFade=star.burnOnRise?clamp((star.life-age)/star.fadeDuration,0,1):1;
+    const light=gain(t)*bundle.tailGain*(1-i/(TAIL_POINTS+1))*burnFade,tailColor=star.tailColor??bundle.tailColor;
     this.tailPositions.set([p.x,p.y,p.z],tails*3);this.tailColors.set([tailColor.r*light,tailColor.g*light,tailColor.b*light],tails*3);tails++;
    }
   }
