@@ -1,8 +1,9 @@
+import {panelBarColor} from './panel-theme.js';
 import * as T from './vendor/three.module.js';
 
 export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(value)*(Math.abs(value)-.18)/.82;}
 
-// One owner per object, with acquisition only on a fresh grip press. Panels
+// One owner per object. Panel handles accept trigger or grip; town uses grip. Panels
 // stay in physical metres; the town alone uses miniature coordinates.
 export class XRControls{
  constructor({entries,town,townTarget,groundBottomY,panels,sidebar,wrist,bridge,fire,pause,changed=()=>{}}){
@@ -10,9 +11,9 @@ export class XRControls{
   this.diorama=false;this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.grabs=new Map();this.triggerDown=new Set();this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.target=new T.Vector3();this.facing=new T.Object3D();this.rotation=new T.Quaternion();this.up=new T.Vector3(0,1,0);
   for(const e of entries){
    e.controller.addEventListener('selectstart',()=>this.select(e));
-   e.controller.addEventListener('selectend',()=>{this.triggerDown.delete(e.controller);for(const panel of this.panels)panel.release?.(e.controller);});
+   e.controller.addEventListener('selectend',()=>{this.triggerDown.delete(e.controller);this.release(e.controller,'trigger');for(const panel of this.panels)panel.release?.(e.controller);});
    e.controller.addEventListener('squeezestart',()=>this.squeeze(e));
-   e.controller.addEventListener('squeezeend',()=>this.release(e.controller));
+   e.controller.addEventListener('squeezeend',()=>this.release(e.controller,'grip'));
    e.controller.addEventListener('disconnected',()=>{this.release(e.controller);this.triggerDown.delete(e.controller);this.edges=new WeakMap();});
   }
  }
@@ -31,28 +32,35 @@ export class XRControls{
   // A trigger shortly after a physical menu touch must not launch a shell.
   if(e.controller===this.wrist.ignoreController&&performance.now()<this.wrist.ignoreUntil)return;
   const hit=this.panelHit(e.controller);
-  if(hit){if(hit.object===hit.panel.mesh&&hit.panel!==this.panels[2])hit.panel.select(e.controller);return;}
+  if(hit){if(!e.source.hand&&hit.object===(hit.panel.grabTarget??hit.panel.bar))this.grabPanel(e,hit,'trigger');else if(hit.object===hit.panel.mesh&&hit.panel!==this.panels[2])hit.panel.select(e.controller);return;}
   if(e.source.hand)return;
   this.cast(e.controller);
   this.fire(e.source.handedness,this.origin.clone().addScaledVector(this.direction,.055),this.direction.clone());
+ }
+ grabPanel(e,hit,input){
+  const panel=hit.panel;if(panel.grab||[...this.grabs.values()].some(g=>g.panel===panel))return;
+  this.grabs.set(e.controller,{panel,input,distance:hit.distance,anchor:panel.mesh.worldToLocal(hit.point.clone())});panel.controllerGrabbed=true;panel.bar.material.color.setHex(panelBarColor(true));
+ }
+ refreshPanelBars(hits=null){
+  hits??=this.entries.filter(e=>e.source&&this.tracked.has(e.source)).map(e=>this.panelHit(e.controller));
+  for(const p of this.panels)if(p.bar?.material?.color)p.bar.material.color.setHex(panelBarColor(!!p.controllerGrabbed||hits.some(hit=>hit?.panel===p&&hit.object===(p.grabTarget??p.bar)))); 
  }
  squeeze(e){
   if(!this.active||!e.source||e.source.hand||!this.tracked.has(e.source)||this.grabs.has(e.controller)||this.panels.some(p=>p.sliderDrag))return;
   const hit=this.panelHit(e.controller);let panel=hit?.panel;
   if(hit&&hit.object===(panel.grabTarget??panel.bar)){
-   if(panel.grab||[...this.grabs.values()].some(g=>g.panel===panel))return;
-   const g={panel,distance:hit.distance,anchor:panel.mesh.worldToLocal(hit.point.clone())};this.grabs.set(e.controller,g);panel.controllerGrabbed=true;panel.bar.material.color.setHex(0xffdfa1);return;
+   this.grabPanel(e,hit,'grip');return;
   }
   if(hit||this.bridge.active||!this.town.visible||[...this.grabs.values()].some(g=>g.town))return;
   this.cast(e.controller);this.townTarget.updateWorldMatrix(true,false);const townHit=this.ray.intersectObject(this.townTarget,false)[0];if(!townHit)return;
   const floor=this.town.position.y+this.groundBottomY*this.town.scale.y;
-  this.grabs.set(e.controller,{town:true,lastPosition:e.controller.getWorldPosition(new T.Vector3()),floor});
+  this.grabs.set(e.controller,{town:true,input:'grip',lastPosition:e.controller.getWorldPosition(new T.Vector3()),floor});
  }
- release(controller=null){
-  for(const [c,g] of this.grabs){if(controller&&c!==controller)continue;if(g.panel){g.panel.controllerGrabbed=false;g.panel.bar.material.color.setHex(0xf2f5f8);g.panel.moved=true;}this.grabs.delete(c);if(g.town)this.changed(true);}
+ release(controller=null,input=null){
+  for(const [c,g] of this.grabs){if(controller&&c!==controller||input&&g.input!==input)continue;if(g.panel){g.panel.controllerGrabbed=false;g.panel.bar.material.color.setHex(panelBarColor(false));g.panel.moved=true;}this.grabs.delete(c);if(g.town)this.changed(true);}
  }
  update(dt,frame,referenceSpace,viewer){
-  if(!this.active)return;if(!frame||!viewer){this.release();this.edges=new WeakMap();this.tracked=new WeakSet();return;}this.viewer=viewer;
+  if(!this.active)return;if(!frame||!viewer){this.release();this.edges=new WeakMap();this.tracked=new WeakSet();return;}this.viewer=viewer;const hoverHits=[];
   for(const e of this.entries){
    const s=e.source;if(!s||s.hand)continue;
    const tracked=!!frame.getPose(s.targetRaySpace,referenceSpace),gp=s.gamepad;
@@ -79,7 +87,8 @@ export class XRControls{
      p.mesh.position.copy(this.target).sub(g.anchor.clone().applyQuaternion(p.mesh.quaternion));p.mesh.updateMatrixWorld(true);p.moved=true;
     }
    }
-   const hit=this.panelHit(e.controller);e.beam.visible=!!hit||this.grabs.has(e.controller);e.beam.scale.z=hit?.distance??this.grabs.get(e.controller)?.distance??1.6;
+   const hit=this.panelHit(e.controller);hoverHits.push(hit);e.beam.visible=!!hit||this.grabs.has(e.controller);e.beam.scale.z=hit?.distance??this.grabs.get(e.controller)?.distance??1.6;
   }
+  this.refreshPanelBars(hoverHits);
  }
 }

@@ -1,4 +1,4 @@
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js';
 import {helpTopic,helpPages} from './help-content.js';
 import {drawPanelSurface} from './panel-surface.js';
 import * as T from './vendor/three.module.js';
@@ -107,7 +107,7 @@ export class MRPanel{
   if(this.sliderDrag&&(!controller||this.sliderDrag.controller===controller)){
    const control=this.sliderDrag.control,id=control.id;this.sliderDrag=null;if(!control.pickerScroll&&!control.helpScroll)this.set(id,this.read()[id].value,true);this.hover='';
   }
-  if(!this.grab||(controller&&this.grab.controller!==controller))return;this.grab=null;this.hover='';this.bar.material.color.setHex(0xf2f5f8);
+  if(!this.grab||(controller&&this.grab.controller!==controller))return;this.grab=null;this.hover='';this.bar.material.color.setHex(panelBarColor(false));
  }
  select(controller){
   // A panel hit or an ongoing drag consumes the trigger. A left-hand miss
@@ -140,7 +140,7 @@ export class MRPanel{
   }
   this.cursor.visible=!!nearest;if(nearest)this.cursor.position.copy(nearest.point);
   const hover=this.controllerGrabbed?'grab':this.sliderDrag?this.sliderDrag.control.id:this.grab||nearest?.object===this.grabTarget?'grab':nearest?controlAtUV(this.controls,nearest.uv)?.id??'':'';
-  this.bar.material.color.setHex(hover==='grab'?0xffdfa1:0xf2f5f8);
+  this.bar.material.color.setHex(panelBarColor(hover==='grab'));
   if(hover!==this.hover||stamp-this.lastDraw>250){this.hover=hover;this.draw();this.lastDraw=stamp;}
  }
  previewPointer(x,y,camera,activate=false){
@@ -149,7 +149,7 @@ export class MRPanel{
   if(this.grab&&!activate){this.moveGrab(this.raycaster.ray);return true;}
   if(this.sliderDrag&&!activate){this.slideToRay(this.raycaster.ray);return true;}
   const hit=this.raycaster.intersectObjects([this.mesh,this.grabTarget],false)[0],control=hit?.object===this.mesh?controlAtUV(this.controls,hit.uv):null;
-  const hover=hit?.object===this.grabTarget?'grab':control?.id??'';this.bar.material.color.setHex(hover==='grab'?0xffdfa1:0xf2f5f8);
+  const hover=hit?.object===this.grabTarget?'grab':control?.id??'';this.bar.material.color.setHex(panelBarColor(hover==='grab'));
   if(this.hover!==hover){this.hover=hover;this.draw();}
   if(activate){if(this.grab||this.sliderDrag)return true;if(hit?.object===this.grabTarget)this.beginGrab(hit);else if(control?.slider)this.beginSlider(control,null,this.raycaster.ray);else this.fire(control);}return true;
  }
@@ -160,7 +160,7 @@ export class MRPanel{
  }
  button(id,label,x,y,w,h,action,{selected=false,danger=false,primary=false,disabled=false,heart=false,quiet=false,nav=false}={}){
   const c=this.ctx,p=panelTheme(),hover=!disabled&&this.hover===id;
-  c.save();c.fillStyle=disabled?p.disabled:primary?panelGradient(c,x,y,w,0,p.primary):hover?p.hover:heart&&selected?'#492333':selected?p.selected:danger?p.dangerSurface:p.surface;
+  c.save();c.fillStyle=disabled?p.disabled:primary?panelPrimaryFill(c,x,y,w,h):hover?p.hover:heart&&selected?'#492333':selected?p.selected:danger?p.dangerSurface:p.surface;
   c.beginPath();c.roundRect(x,y,w,h,primary?16:12);
   if(primary&&!disabled){c.shadowColor=p.primary[0]+'35';c.shadowBlur=10;}if(!quiet&&!nav)c.fill();c.shadowBlur=0;
   c.strokeStyle=disabled?p.line:heart&&selected?'#f681a1':primary?p.primaryEdge:hover?p.accent:selected?p.selectedLine:p.line;c.lineWidth=hover?2:1;if(!quiet&&!nav)c.stroke();
@@ -266,7 +266,7 @@ export class MRPanel{
  }
  draw(){
   const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,W,H);
-  this.text('花火街',36,49,43,panelTheme().text);
+  this.text('花火街',36,49,43,panelTheme().text);this.text('v'+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
   this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
   this.button('favoriteToggle',s.favoriteSaved?'♥':'♡',696,18,76,60,()=>this.click('favoriteToggle'),{selected:!!s.favoriteSaved,disabled:!s.favoriteCanSave,heart:true});
   this.button('favoriteListOpen','一覧',608,18,76,60,()=>this.click('favoriteListOpen'));
@@ -384,7 +384,7 @@ export class MRPanel{
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,panelTheme().muted,736);
   this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());
   this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});
-  this.text(this.controllerGrabbed?'移動中 · グリップを離すと、ここに置けます':'白い棒へビーム＋グリップ · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
+  this.text(this.controllerGrabbed?'移動中 · 掴んだボタンを離すと、ここに置けます':'白い棒：トリガー／グリップで移動 · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
   if(this.page===4&&s.trackMenuOpen&&!this.picker){
    this.controls=[];c.fillStyle=panelTheme().overlay;c.beginPath();c.roundRect(400,337,384,238,14);c.fill();
    this.button('trackRename','曲名を変える',412,345,360,64,()=>this.click('trackRename'),{disabled:!s.trackCanRename});
