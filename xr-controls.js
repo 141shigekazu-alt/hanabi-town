@@ -23,7 +23,7 @@ export class XRControls{
  panelHit(controller){
   this.cast(controller);const candidates=[],modal=this.panels.find(p=>p.childView);
   for(const panel of this.panels){if(!panel.mesh.visible)continue;panel.mesh.updateWorldMatrix(true,true);for(const hit of this.ray.intersectObjects([panel.mesh,panel.grabTarget??panel.bar,...(panel.parentSurface?.visible?[panel.parentSurface]:[])],false))candidates.push({...hit,panel,blocked:hit.object===panel.parentSurface||!!modal&&panel!==modal});}
-  return candidates.sort((a,b)=>a.distance-b.distance)[0]??null;
+  return candidates.sort((a,b)=>(modal?Number(a.blocked)-Number(b.blocked):0)||a.distance-b.distance)[0]??null;
  }
  select(e){
   if(!this.active||!e.source||(!e.source.hand&&!this.tracked.has(e.source))||this.triggerDown.has(e.controller))return;
