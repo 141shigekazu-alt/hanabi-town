@@ -127,3 +127,5 @@ html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaRevi
 #mrFavoriteNameInput{font:300 26px 'Hanabi UI',sans-serif;caret-color:var(--panel-knob)}
 #betaReviewBar strong,#betaShellNames{color:var(--panel-accent);font-weight:300}
 #trackMenu{background:var(--panel-overlay)!important;border-color:var(--panel-line)!important}
+
+#betaReviewBar #betaCloseTC{position:absolute;right:8px;top:8px;width:36px;height:36px;padding:0;font-size:24px;line-height:1;margin:0}#betaReviewBar .beta-review-handle{margin-right:36px}.loadout-home>label{font-size:14px}.loadout-heading{font-size:19px}.loadout-home .trigger-loading{margin-top:18px}#loadoutStudies{margin-top:20px}

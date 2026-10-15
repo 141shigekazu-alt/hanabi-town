@@ -39,7 +39,7 @@ export function organizePanel(){
  seek.append($('betaPanelTime').closest('.beta-seek-panel'));
  for(const id of ['betaBack10','betaBack5','betaForward5'])$(id).hidden=true;
  for(const id of ['betaFloatBack5','betaFloatForward5'])$(id).hidden=true;
- const tcbar=$('betaReviewBar');tcbar.prepend(make('p',{id:'betaShellNames',className:'beta-shell-names'}));
+ const tcbar=$('betaReviewBar');const tcClose=make('button',{id:'betaCloseTC'},'×');tcClose.setAttribute('aria-label','TC・玉名パネルを閉じる');tcbar.append(tcClose);tcbar.prepend(make('p',{id:'betaShellNames',className:'beta-shell-names'}));
  const back5=$('betaFloatBack5'),forward5=$('betaFloatForward5');const tcbuttons=$('betaFloatPause').parentElement;tcbuttons.replaceChildren($('betaFloatBack10'),$('betaFloatPause'),make('button',{id:'betaFloatForward10'},'10秒送る'));
  const songs=make('div',{className:'beta-song-buttons'});songs.append(make('button',{id:'betaPreviousTrack'},'前の曲'),make('button',{id:'betaNextTrack'},'次の曲'));tcbar.append(songs);const tcseek=make('label',{},'曲の再生位置');tcseek.append($('betaMusicSeek'));tcbar.insertBefore(tcseek,songs);old.append($('betaPanelTime').closest('.beta-seek-panel'));
  // Detached compatibility nodes remain available to older callback wiring.
@@ -57,11 +57,11 @@ export function organizePanel(){
  move(advanced,'autoMusicExport');
  const scene=make('div',{id:'showSceneControls'});advanced.append(scene);field(scene,'musicScene');move(scene,'musicScenePlay');move(scene,'musicTimeline');move(scene,'musicTime');move(scene,'musicState');
  $('browserTab0').hidden=true;$('browserTab1').hidden=true;$('browserTab4').textContent='花火大会';
- const trial=make('button',{id:'showTrialOpen'},'試し打ちを開く');card.append(trial);
- $('browserPage1').prepend(make('button',{id:'showTrialBack'},'花火大会へ戻る'));
+ const trial=make('button',{id:'showTrialOpen'},'トリガーに花火玉を仕込む');card.append(trial);
+ $('browserPage1').prepend(make('h2',{className:'loadout-heading'},'トリガーに花火玉を仕込む'));$('browserPage1').prepend(make('button',{id:'showTrialBack'},'‹ 花火大会へ戻る'));const trialHome=make('section',{className:'loadout-home'});$('browserPage1').append(trialHome);
  $('showInfo').hidden=true;const tc=make('button',{id:'showTC'},'TC・玉名を表示');card.append(tc);
  const views=details($('browserPage2'),'眺め方を変える','showViews');
- for(const id of ['diorama','boat','boatStart','bridge','showInfo','viewHint'])move(views,id);
+ for(const id of ['diorama','boat','boatStart','bridge','showInfo','showTC','viewHint'])move(views,id);
  const flower=make('section',{id:'flowerStudyCard',className:'show-card'});$('browserPage1').prepend(flower);
  flower.append(make('h2',{},'花を咲かせる · 演出試作'));
  for(const [id,label,choices] of [
@@ -89,5 +89,8 @@ export function organizePanel(){
  // Retained DOM nodes support older preview links, but no duplicate entry points.
  for(const id of ['autoMusicRoom','autoMusicWatch','autoMusicManual','autoMusicRebuild'])old.append($(id));
  $('autoMusicResult').append(make('p',{},'テンポと検出時刻は解析に任せ、曲の気持ちは選んだ曲調で演出します。'));
+ const loadPage=$('browserPage1');for(const id of ['type','size','palette'])field(trialHome,id);move(trialHome,'sample');trialHome.append(trigger);
+ const loadBack=$('showTrialBack'),loadHeading=loadPage.querySelector('.loadout-heading');loadPage.prepend(loadBack,loadHeading,trialHome);
+ const studies=details(loadPage,'花・トラなどの演出を試す','loadoutStudies');for(const node of [...loadPage.children])if(![loadBack,loadHeading,trialHome,studies].includes(node))studies.append(node);
  mountHelp($('browserPage3'));
 }

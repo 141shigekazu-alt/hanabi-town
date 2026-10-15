@@ -20,8 +20,8 @@ export function controlAtUV(controls,uv){
 // A single texture and plane keep the sidebar light enough for the headset.
 // Actions use the same form controls and callbacks as the desktop sidebar.
 export class MRPanel{
- constructor({scene,read,click,cycle,choose=()=>{},adjust,place,exit,set=()=>{},pageChanged=()=>{},prepareChoose=()=>{},prepareTab=()=>{}}){
-  Object.assign(this,{scene,read,click,cycle,choose,adjust,place,exit,set,pageChanged,prepareChoose,prepareTab});
+ constructor({scene,read,click,cycle,choose=()=>{},adjust,place,exit,set=()=>{},pageChanged=()=>{},prepareChoose=()=>{},prepareTab=()=>{},childChanged=()=>{}}){
+  Object.assign(this,{scene,read,click,cycle,choose,adjust,place,exit,set,pageChanged,prepareChoose,prepareTab,childChanged});
   this.helpScroll=0;this.helpMaxScroll=0;this.scrollSources=new Set();this.helpScrollStamp=0;this.picker=null;this.pickerScrollAt=0;this.groundStudy=false;this.page=0;this.controls=[];this.controllers=[];this.edges=new WeakMap();this.hover='';this.lastDraw=0;this.active=false;
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
@@ -36,6 +36,27 @@ export class MRPanel{
   this.cursor=new T.Mesh(new T.SphereGeometry(.004,8,6),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));this.cursor.renderOrder=1002;this.cursor.visible=false;scene.add(this.cursor);
   this.raycaster=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.pointer=new T.Vector2();this.lastTransform=null;this.preview=false;
  }
+ syncChildView(child){
+  if(!child){this.endChildView();return;}
+  if(this.childView||!this.active||!this.visible)return;
+  // Preserve the real parent's texture and pose; the child is a separate,
+  // nearer plane using the same readable canvas resolution and controls.
+  if(!this.parentSurface){
+   const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;this.parentCanvas=canvas;
+   this.parentTexture=new T.CanvasTexture(canvas);this.parentTexture.colorSpace=T.SRGBColorSpace;this.parentTexture.generateMipmaps=false;this.parentTexture.minFilter=T.LinearFilter;
+   this.parentSurface=new T.Mesh(this.mesh.geometry,new T.MeshBasicMaterial({map:this.parentTexture,transparent:true,opacity:.42,depthTest:false,depthWrite:false,side:T.DoubleSide,forceSinglePass:true}));this.parentSurface.renderOrder=998;this.scene.add(this.parentSurface);
+  }
+  this.parentCanvas.getContext('2d').clearRect(0,0,W,H);this.parentCanvas.getContext('2d').drawImage(this.surface,0,0);this.parentTexture.needsUpdate=true;
+  this.childView={position:this.mesh.position.clone(),quaternion:this.mesh.quaternion.clone(),scale:this.mesh.scale.clone(),moved:this.moved,yawOffset:this.yawOffset,renderOrder:this.mesh.renderOrder,barOrder:this.bar.renderOrder,cursorOrder:this.cursor.renderOrder,beamOrders:this.controllers.map(e=>e.beam.renderOrder)};
+  this.parentSurface.position.copy(this.mesh.position);this.parentSurface.quaternion.copy(this.mesh.quaternion);this.parentSurface.scale.copy(this.mesh.scale);this.parentSurface.visible=true;this.parentSurface.updateMatrixWorld(true);
+  this.mesh.position.add(new T.Vector3(0,0,.06).applyQuaternion(this.mesh.quaternion));this.mesh.scale.multiplyScalar(.9);this.mesh.renderOrder=1008;this.bar.renderOrder=1009;this.cursor.renderOrder=1010;this.controllers.forEach(e=>e.beam.renderOrder=1011);this.mesh.updateMatrixWorld(true);this.childChanged(true);
+ }
+ endChildView(){
+  const saved=this.childView;if(!saved)return;this.childView=null;this.parentSurface.visible=false;
+  this.mesh.position.copy(saved.position);this.mesh.quaternion.copy(saved.quaternion);this.mesh.scale.copy(saved.scale);this.moved=saved.moved;this.yawOffset=saved.yawOffset;
+  this.mesh.renderOrder=saved.renderOrder;this.bar.renderOrder=saved.barOrder;this.cursor.renderOrder=saved.cursorOrder;this.controllers.forEach((e,i)=>e.beam.renderOrder=saved.beamOrders[i]??1001);this.mesh.updateMatrixWorld(true);this.childChanged(false);
+ }
+ navigate(page){this.adjusting=false;this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.picker=null;this.page=page;this.pageChanged(page);this.draw();}
  get visible(){return this.mesh.visible;}
  attach(controller){
   const geometry=new T.BufferGeometry().setFromPoints([new T.Vector3(),new T.Vector3(0,0,-1)]);
@@ -47,7 +68,7 @@ export class MRPanel{
 
  }
  openAt(transform,{side=.38,distance=1.05,drop=.08}={}){
-  if(!transform)return;this.lastTransform=transform;
+  if(!transform)return;this.endChildView();this.lastTransform=transform;
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10];const length=Math.hypot(x,z);
   if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
   this.mesh.position.set(p.x+x*distance-z*side,p.y-drop,p.z+z*distance+x*side);
@@ -55,7 +76,7 @@ export class MRPanel{
  }
  begin(transform){this.active=true;this.preview=false;this.edges=new WeakMap();this.page=0;this.openAt(transform);}
  end(){this.active=false;this.close();this.edges=new WeakMap();}
- close(){this.picker=null;this.release();this.mesh.visible=false;this.cursor.visible=false;this.hover='';for(const e of this.controllers)e.beam.visible=false;}
+ close(){const child=!!this.childView;this.endChildView();if(child){this.adjusting=false;this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.page=4;this.pageChanged(4);}this.picker=null;this.release();this.mesh.visible=false;this.cursor.visible=false;this.hover='';for(const e of this.controllers)e.beam.visible=false;}
  // A moved panel can end up behind the viewer or facing away. A returns it
  // to a readable position in those cases, instead of toggling an unseen plane.
  isReadable(transform=this.lastTransform){
@@ -88,7 +109,7 @@ export class MRPanel{
   if(p&&Math.hypot(p.x-this.target.x,p.z-this.target.z)>.05){
    this.facing.position.copy(this.target);this.facing.lookAt(p.x,this.target.y,p.z);this.mesh.quaternion.copy(this.facing.quaternion);
   }
-  this.anchor.copy(this.grab.localAnchor).applyQuaternion(this.mesh.quaternion);
+  this.anchor.copy(this.grab.localAnchor).multiply(this.mesh.scale).applyQuaternion(this.mesh.quaternion);
   this.mesh.position.copy(this.target).sub(this.anchor);this.mesh.updateMatrixWorld(true);this.moved=true;
  }
  beginSlider(control,controller,ray){this.sliderDrag={control,controller};this.slideToRay(ray);}
@@ -213,11 +234,11 @@ export class MRPanel{
  drawPicker(s){
   const picker=this.picker,state=s[picker.id],c=this.ctx;if(!state||state.disabled){this.picker=null;return;}
   const rows=8,pitch=92,top=268,count=state.options.length,max=Math.max(0,count-rows);picker.offset=Math.max(0,Math.min(max,picker.offset));
-  c.fillStyle=panelTheme().overlay;c.fillRect(8,208,784,1120);this.controls=[];
+  c.fillStyle=panelTheme().overlay;c.fillRect(8,208,784,1120);this.controls=this.controls.filter(control=>control.id==='detailClose');
   this.text(picker.id==='setlistSelect'?'このセットリストを観る':picker.id==='musicTrack'?'曲を選ぶ':picker.id==='autoMusicFeeling'?'曲調を選ぶ':picker.id==='autoMusicEars'?'穂の風景を選ぶ':picker.id==='helpTopic'?'使い方を選ぶ':'一覧から選ぶ',32,240,32,panelTheme().accent);
   const width=max?680:744;
   state.options.slice(picker.offset,picker.offset+rows).forEach((o,i)=>{
-   this.button('choice:'+o.value,o.label,28,top+i*pitch,width,80,()=>{if(o.disabled)return;this.picker=null;this.choose(picker.id,o.value);},{selected:o.value===state.value});
+   this.button('choice:'+o.value,o.label,28,top+i*pitch,width,80,()=>{if(o.disabled)return;this.picker=null;this.choose(picker.id,o.value);},{selected:o.value===state.value,disabled:!!o.disabled});
   });
   if(max){
    c.fillStyle=panelTheme().track;c.fillRect(742,top,24,rows*pitch);c.fillStyle=panelTheme().accent;const thumb=rows*pitch*rows/count;c.fillRect(742,top+(rows*pitch-thumb)*picker.offset/max,24,thumb);
@@ -265,14 +286,18 @@ export class MRPanel{
   this.button('prepareCancel','戻る（変更しない）',28,958,744,48,()=>this.click('prepareCancel'));
  }
  draw(){
-  const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,W,H);
+  const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&this.adjusting;this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
   this.text('花火街',36,49,43,panelTheme().text);this.text('v'+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
   this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
+  if(child){this.button('detailClose','×',696,18,76,60,()=>this.navigate(4));this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
+  else{
   this.button('favoriteToggle',s.favoriteSaved?'♥':'♡',696,18,76,60,()=>this.click('favoriteToggle'),{selected:!!s.favoriteSaved,disabled:!s.favoriteCanSave,heart:true});
   this.button('favoriteListOpen','一覧',608,18,76,60,()=>this.click('favoriteListOpen'));
   this.text('右A：サイドパネル · 左X：クルッとパネル',36,132,21,panelTheme().muted);
+  }
   c.save();c.translate(0,HEADER_GROWTH);
-  [[4,'花火大会'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>this.button('page'+page,label,28+i*254,126,236,68,()=>{if(this.page!==page){this.page=page;this.pageChanged(page);}},{selected:this.page===page,nav:true}));
+  if(child)this.button('showParent',this.page===1&&this.studyMode?'‹ 花火玉の仕込みへ戻る':'‹ 花火大会へ戻る',28,126,744,64,()=>{if(this.page===1&&this.studyMode){this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.draw();}else this.navigate(4);});
+  else [[4,'花火大会'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>this.button('page'+page,label,28+i*254,126,236,68,()=>this.navigate(page),{selected:this.page===page,nav:true}));
   if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
    this.button('play',s.playLabel??(s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る'),28,238,744,64,()=>this.click('play'),{selected:!s.running});
@@ -299,20 +324,20 @@ export class MRPanel{
    else this.text('気に入った大会は、右上の ♥ から保存できます',32,505,23,panelTheme().muted,736);
    this.button('showAdjust','演出を調整する  ›',28,563,744,60,()=>{this.adjusting=true;},{quiet:true});
    c.strokeStyle=panelTheme().line;c.beginPath();c.moveTo(28,559);c.lineTo(772,559);c.moveTo(28,631);c.lineTo(772,631);c.stroke();
+   this.button('showTrialOpen','トリガーに花火玉を仕込む  ›',28,656,744,62,()=>this.navigate(1));
    if(s.selectionFailed||s.musicAnalysisBusy){
-    this.wrap(s.showNotice??s.readiness?.setting??'',32,665,736,3);
-    this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,785,744,58,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
+    this.wrap(s.showNotice??s.readiness?.setting??'',32,756,736,2);
+    this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,824,744,54,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
    }else{
-    this.button('showTC',s.betaTCEnabled?'TC・玉名を隠す  ●':'TC・玉名を表示  ○',28,656,744,62,()=>this.click('showTC'),{selected:s.betaTCEnabled});
     if(!s.musicless)this.slider('musicVolume','音楽の音量',777,s.musicVolume,{compact:true});
    }
    this.slider('volume','花火の音量',901,s.volume,{compact:true});
    this.slider('roomBrightness','部屋の明るさ',1025,s.roomBrightness,{compact:true});
    if(this.adjusting){
-    c.fillStyle=panelTheme().overlay;c.fillRect(12,202,776,922);this.controls=this.controls.filter(control=>control.y<202);
-    this.text('演出を調整する',32,239,32,panelTheme().text);
-    this.button('adjustBack','戻る',636,212,136,56,()=>{this.adjusting=false;});
-    this.wrap(s.readiness?.setting??'',32,299,736,2);
+    c.clearRect(12,202,776,922);c.fillStyle=panelTheme().overlay;c.fillRect(12,202,776,922);this.controls=this.controls.filter(control=>control.y<202);
+    this.text('花火大会  ›  演出を調整する',32,218,22,panelTheme().muted,736);
+    this.text('演出を調整する',32,272,34,panelTheme().text);
+    this.text(s.readiness?.setting??'',32,325,23,panelTheme().muted,736);
     if(s.selectionFailed||s.musicAnalysisBusy){
      this.wrap(s.showNotice??'',32,390,736,5);
      this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,650,744,64,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
@@ -330,7 +355,18 @@ export class MRPanel{
     if(s.trackUndo)this.button('trackUndo','曲の削除を元に戻す',28,975,744,58,()=>this.click('trackUndo'));
    }
   }else if(this.page===1){
-   this.button('showTrialBack','花火大会へ戻る',28,233,744,48,()=>this.click('showTrialBack'));
+   this.text(this.studyMode?'花火大会  ›  花火玉の仕込み  ›  演出の試し打ち':'花火大会  ›  トリガーに花火玉を仕込む',32,218,22,panelTheme().muted,736);
+   this.text(this.studyMode?'演出の試し打ち':'トリガーに花火玉を仕込む',32,272,33,panelTheme().text,736);
+   if(!this.studyMode){
+    this.text('種類・大きさ・配色を選んで、左右へ仕込みます。',32,315,22,panelTheme().muted,736);
+    this.selector('type','花火の種類',355,s.type);this.selector('size','玉の大きさ',466,s.size);
+    if(s.palette)this.selector('palette','配色',577,s.palette);
+    this.button('loadLeft','左トリガーに仕込む',28,714,360,66,()=>this.click('loadLeft'));
+    this.button('loadRight','右トリガーに仕込む',412,714,360,66,()=>this.click('loadRight'));
+    for(const [hand,x,label] of [['Left',28,'左トリガーに仕込み済み'],['Right',412,'右トリガーに仕込み済み']]){c.fillStyle=panelTheme().surface;c.beginPath();c.roundRect(x,803,360,114,12);c.fill();this.text(label,x+16,826,21,panelTheme().accent,328);this.wrap(s['loaded'+hand]??'',x+16,863,328,2);}
+    this.button('sample','選んだ一発を試す',28,950,744,58,()=>this.click('sample'));
+    this.button('studyMore','花・トラなどの演出を試す  ›',28,1040,744,54,()=>{this.studyMode=true;this.groundStudy=false;this.flowerStudy=false;});
+   }else{
    this.button('upperStudy','上空の花火',28,293,232,44,()=>{this.groundStudy=false;this.flowerStudy=false;},{selected:!this.groundStudy&&!this.flowerStudy});
    this.button('groundStudy','大トラ・子トラ',284,293,232,44,()=>{this.groundStudy=true;this.flowerStudy=false;},{selected:this.groundStudy&&!this.flowerStudy});
    this.button('flowerStudy','花を咲かせる',540,293,232,44,()=>{this.flowerStudy=true;this.groundStudy=false;},{selected:this.flowerStudy});
@@ -365,6 +401,7 @@ export class MRPanel{
     this.button('wideFinale','空いっぱいのかむろを見る',28,983,744,40,()=>this.click('wideFinale'));
 
    }
+   }
   }else if(this.page===2){
    if(s.bridge){this.text(s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
@@ -380,19 +417,18 @@ export class MRPanel{
    this.drawHelp(s);
   }
 
-  if(this.page===4&&!s.preparing)this.button('showTrialOpen','試し打ちを開く',28,1140,744,38,()=>this.click('showTrialOpen'));
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,panelTheme().muted,736);
-  this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());
-  this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});
+  if(child)this.button('detailBack','花火大会に戻る',28,1188,744,48,()=>this.navigate(4));
+  else{this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});}
   this.text(this.controllerGrabbed?'移動中 · 掴んだボタンを離すと、ここに置けます':'白い棒：トリガー／グリップで移動 · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
-  if(this.page===4&&s.trackMenuOpen&&!this.picker){
+  if(this.page===4&&!this.adjusting&&s.trackMenuOpen&&!this.picker){
    this.controls=[];c.fillStyle=panelTheme().overlay;c.beginPath();c.roundRect(400,337,384,238,14);c.fill();
    this.button('trackRename','曲名を変える',412,345,360,64,()=>this.click('trackRename'),{disabled:!s.trackCanRename});
    this.button('trackDelete','曲を削除する',412,421,360,64,()=>this.click('trackDelete'),{disabled:!s.trackCanRename,danger:true});
    this.button('trackMenuClose','閉じる',412,497,360,64,()=>this.click('trackMenuToggle'));
   }
   c.restore();
-  for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen'].includes(control.id))control.y+=HEADER_GROWTH;
+  for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen','detailClose'].includes(control.id))control.y+=HEADER_GROWTH;
   if(this.picker)this.drawPicker(s);
   this.texture.needsUpdate=true;
  }

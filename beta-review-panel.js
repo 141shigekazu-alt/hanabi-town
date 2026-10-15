@@ -63,6 +63,7 @@ export class BetaReviewPanel extends ShowInfoPanel{
   rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2)text=text.slice(0,-1)+'…';c.fillText(text,28,98+i*29);});
   this.controls=[];
   const button=(id,label,x,y,w,h,disabled)=>{const b={id,x,y,w,h,disabled};c.fillStyle=disabled?panelTheme().disabled:panelTheme().surface;c.beginPath();c.roundRect(x,y,w,h,10);c.fill();c.textAlign='center';c.font=panelFont(28);c.fillStyle=disabled?panelTheme().disabledText:panelTheme().text;c.fillText(label,x+w/2,y+h/2);this.controls.push(b);};
+  button('betaCloseTC','×',688,18,62,54,false);
   button('betaFloatBack10','10秒戻る',18,156,230,68,s.busy||!s.musicActive);
   button('betaFloatPause',s.running?'一時停止':'再生',269,156,230,68,s.busy||!s.canPlay);
   button('betaFloatForward10','10秒送る',520,156,230,68,s.busy||!s.musicActive);

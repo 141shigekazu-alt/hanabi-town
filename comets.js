@@ -1,6 +1,6 @@
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
-import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.80';
+import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.81';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.16';

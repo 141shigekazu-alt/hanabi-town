@@ -21,8 +21,8 @@ export class XRControls{
  end(){this.release();this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.triggerDown.clear();}
  cast(controller){controller.updateWorldMatrix(true,false);this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.origin,this.direction);}
  panelHit(controller){
-  this.cast(controller);const candidates=[];
-  for(const panel of this.panels){if(!panel.mesh.visible)continue;panel.mesh.updateWorldMatrix(true,true);for(const hit of this.ray.intersectObjects([panel.mesh,panel.grabTarget??panel.bar],false))candidates.push({...hit,panel});}
+  this.cast(controller);const candidates=[],modal=this.panels.find(p=>p.childView);
+  for(const panel of this.panels){if(!panel.mesh.visible)continue;panel.mesh.updateWorldMatrix(true,true);for(const hit of this.ray.intersectObjects([panel.mesh,panel.grabTarget??panel.bar,...(panel.parentSurface?.visible?[panel.parentSurface]:[])],false))candidates.push({...hit,panel,blocked:hit.object===panel.parentSurface||!!modal&&panel!==modal});}
   return candidates.sort((a,b)=>a.distance-b.distance)[0]??null;
  }
  select(e){
@@ -32,7 +32,7 @@ export class XRControls{
   // A trigger shortly after a physical menu touch must not launch a shell.
   if(e.controller===this.wrist.ignoreController&&performance.now()<this.wrist.ignoreUntil)return;
   const hit=this.panelHit(e.controller);
-  if(hit){if(!e.source.hand&&hit.object===(hit.panel.grabTarget??hit.panel.bar))this.grabPanel(e,hit,'trigger');else if(hit.object===hit.panel.mesh&&hit.panel!==this.panels[2])hit.panel.select(e.controller);return;}
+  if(hit){if(hit.blocked)return;if(!e.source.hand&&hit.object===(hit.panel.grabTarget??hit.panel.bar))this.grabPanel(e,hit,'trigger');else if(hit.object===hit.panel.mesh&&hit.panel!==this.panels[2])hit.panel.select(e.controller);return;}
   if(e.source.hand)return;
   this.cast(e.controller);
   this.fire(e.source.handedness,this.origin.clone().addScaledVector(this.direction,.055),this.direction.clone());
@@ -43,11 +43,11 @@ export class XRControls{
  }
  refreshPanelBars(hits=null){
   hits??=this.entries.filter(e=>e.source&&this.tracked.has(e.source)).map(e=>this.panelHit(e.controller));
-  for(const p of this.panels)if(p.bar?.material?.color)p.bar.material.color.setHex(panelBarColor(!!p.controllerGrabbed||hits.some(hit=>hit?.panel===p&&hit.object===(p.grabTarget??p.bar)))); 
+  for(const p of this.panels)if(p.bar?.material?.color)p.bar.material.color.setHex(panelBarColor(!!p.controllerGrabbed||hits.some(hit=>!hit?.blocked&&hit?.panel===p&&hit.object===(p.grabTarget??p.bar)))); 
  }
  squeeze(e){
   if(!this.active||!e.source||e.source.hand||!this.tracked.has(e.source)||this.grabs.has(e.controller)||this.panels.some(p=>p.sliderDrag))return;
-  const hit=this.panelHit(e.controller);let panel=hit?.panel;
+  const hit=this.panelHit(e.controller);if(hit?.blocked)return;let panel=hit?.panel;
   if(hit&&hit.object===(panel.grabTarget??panel.bar)){
    this.grabPanel(e,hit,'grip');return;
   }
@@ -84,7 +84,7 @@ export class XRControls{
      this.cast(e.controller);this.target.copy(this.ray.ray.direction).multiplyScalar(g.distance).add(this.ray.ray.origin);
      this.facing.position.copy(this.target);this.facing.lookAt(viewer.position.x,this.target.y,viewer.position.z);
      this.rotation.setFromAxisAngle(this.up,p.yawOffset);p.mesh.quaternion.copy(this.facing.quaternion).premultiply(this.rotation);
-     p.mesh.position.copy(this.target).sub(g.anchor.clone().applyQuaternion(p.mesh.quaternion));p.mesh.updateMatrixWorld(true);p.moved=true;
+     p.mesh.position.copy(this.target).sub(g.anchor.clone().multiply(p.mesh.scale).applyQuaternion(p.mesh.quaternion));p.mesh.updateMatrixWorld(true);p.moved=true;
     }
    }
    const hit=this.panelHit(e.controller);hoverHits.push(hit);e.beam.visible=!!hit||this.grabs.has(e.controller);e.beam.scale.z=hit?.distance??this.grabs.get(e.controller)?.distance??1.6;
