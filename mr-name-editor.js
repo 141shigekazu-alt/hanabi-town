@@ -19,10 +19,10 @@ export class MRNameEditor{
   session?.addEventListener('end',this.endHandler,{once:true});this.mountField();this.onChange();this.focus();return true;
  }
  mountField(){
-  const d=this.document,dialog=d.createElement('section');dialog.id='mrNameDialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',this.state.kind==='track'?'曲名を変える':'お気に入りの名前を変える');
+  const d=this.document,dialog=d.createElement('section');dialog.id='mrNameDialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',this.state.kind==='track'?'曲名を変える':this.state.kind==='setlist'?'セットリストの名前を変える':'お気に入りの名前を変える');
   const heading=d.createElement('h2');heading.textContent=this.state.kind==='track'?'曲名を変える':'名前を変える';
   const label=d.createElement('label');label.textContent=this.state.kind==='track'?'曲の名前':'保存する名前';label.htmlFor='mrFavoriteNameInput';
-  const input=d.createElement('input');input.type='text';input.id='mrFavoriteNameInput';input.maxLength=100;input.autocomplete='off';input.spellcheck=false;input.setAttribute('aria-label',this.state.kind==='track'?'曲の新しい名前':'お気に入りの新しい名前');
+  const input=d.createElement('input');input.type='text';input.id='mrFavoriteNameInput';input.maxLength=100;input.autocomplete='off';input.spellcheck=false;input.setAttribute('aria-label',this.state.kind==='track'?'曲の新しい名前':this.state.kind==='setlist'?'セットリストの新しい名前':'お気に入りの新しい名前');
   input.value=this.state.draft;this.lastValue=input.value;this.input=input;
   input.oninput=()=>this.sync();input.onfocus=()=>{if(this.state){this.state.keyboardOpen=true;this.onChange();}};
   input.onblur=()=>{this.sync();if(this.state){this.state.keyboardOpen=false;this.onChange();}};

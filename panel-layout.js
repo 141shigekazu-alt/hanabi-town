@@ -12,6 +12,7 @@ export function organizePanel(){
  page.append(old);
  const card=make('div',{className:'show-card'});page.prepend(card);
  card.append(make('h2',{},'今日の花火大会'));
+ const setlistField=make('label',{},'このセットリストを観る'),setlistSelect=make('select',{id:'setlistSelect'});setlistSelect.append(make('option',{value:'',disabled:true},'保存したセットリストはありません'));setlistSelect.disabled=true;setlistField.append(setlistSelect);setlistField.id='setlistField';setlistField.hidden=true;card.append(setlistField);
  const songRow=make('div',{className:'song-selector'});card.append(songRow);field(songRow,'musicTrack');
  const songActions=make('div',{className:'song-actions'});songRow.append(songActions);
  const songMenuToggle=make('button',{id:'trackMenuToggle'},'…');songMenuToggle.setAttribute('aria-label','曲の操作');songMenuToggle.setAttribute('aria-haspopup','menu');songMenuToggle.setAttribute('aria-expanded','false');songActions.append(songMenuToggle);

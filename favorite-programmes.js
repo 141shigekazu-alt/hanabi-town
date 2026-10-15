@@ -42,6 +42,37 @@ export class FavoriteRepository{
  async rename(id,name){const item=await this.read('programmes',id);if(!item)throw Error('保存構成が見つかりません。');await this.write(['programmes'],tx=>tx.objectStore('programmes').put({...item,name:name.trim().slice(0,100)||item.name}));}
  async remove(id){const item=await this.read('programmes',id);if(item)await this.write(['programmes'],tx=>tx.objectStore('programmes').put({...item,deletedAt:new Date().toISOString()}));}
  async restore(id){const item=await this.read('programmes',id);if(item)await this.write(['programmes'],tx=>tx.objectStore('programmes').put({...item,deletedAt:null}));}
+ async listSetlists(){
+  const db=await this.open();let all;
+  try{all=await new Promise((resolve,reject)=>{const q=db.transaction('settings').objectStore('settings').getAll();q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}finally{db.close();}
+  const index=all.find(x=>x.id==='setlists:index'),rows=all.filter(x=>x.kind==='setlist'&&!x.deletedAt),map=new Map(rows.map(x=>[x.id,x]));
+  return [...(index?.order??[]).filter(id=>map.has(id)),...rows.map(x=>x.id).filter(id=>!(index?.order??[]).includes(id))].map(id=>clone(map.get(id)));
+ }
+ async saveSetlist(rows){
+  // Capture before awaiting storage: a later reorder/reroll cannot change this set.
+  const entries=clone(rows).map(({checked,playbackKey,deletedAt,...row})=>row);
+  if(!entries.length)throw Error('セットリストに入れる曲を選んでください。');
+  for(const row of entries){captureProgramme(row);if(!row.audioId)throw Error('保存した音源が見つかりません。');}
+  for(const audioId of new Set(entries.map(x=>x.audioId))){const audio=await this.read('audio',audioId);if(!audio?.bytes?.byteLength)throw Error('保存した音源が見つかりません。');}
+  const id='setlist:'+crypto.randomUUID(),savedAt=new Date().toISOString();
+  await this.write(['settings'],tx=>{
+   const store=tx.objectStore('settings'),q=store.get('setlists:index');
+   q.onsuccess=()=>{
+    const index=q.result??{id:'setlists:index',nextNumber:1,order:[]},number=index.nextNumber;
+    const digits=String(number).padStart(2,'0').replace(/\d/g,d=>String.fromCharCode(0xff10+Number(d)));
+    store.put({id,kind:'setlist',schema:1,name:'セットリスト＿'+digits,entries,savedAt,duration:entries.reduce((sum,r)=>sum+(r.plan.showDuration??r.plan.duration),0)+Math.max(0,entries.length-1)*3});
+    store.put({...index,nextNumber:number+1,order:[...index.order,id]});
+   };
+  });
+  const saved=await this.read('settings',id);if(!saved)throw Error('セットリストの保存結果を確認できませんでした。');return saved;
+ }
+ async renameSetlist(id,name){
+  const title=String(name).trim();if(!title)throw Error('名前を入力してください。');if(title.length>100)throw Error('名前は100文字以内にしてください。');
+  const item=await this.read('settings',id);if(item?.kind!=='setlist'||item.deletedAt)throw Error('セットリストが見つかりません。');
+  await this.write(['settings'],tx=>tx.objectStore('settings').put({...item,name:title}));
+ }
+ async removeSetlist(id){const item=await this.read('settings',id);if(item?.kind==='setlist')await this.write(['settings'],tx=>tx.objectStore('settings').put({...item,deletedAt:new Date().toISOString()}));}
+ async restoreSetlist(id){const item=await this.read('settings',id);if(item?.kind==='setlist')await this.write(['settings'],tx=>tx.objectStore('settings').put({...item,deletedAt:null}));}
 }
 // Decode only the current song and one following song, rather than an entire festival.
 export class FavoriteFestival{

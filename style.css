@@ -97,3 +97,5 @@ aside{max-height:82vh;overflow-y:auto}details{font-size:12px;border-top:1px soli
 #panel[data-musicless=true] #rainEarCard .mix-choices{display:flex}
 
 #panel[data-musicless=true] #creativeCard .mix-choices{display:flex}
+/* Named festivals reuse each saved audio asset and keep their own programme order. */
+#setlistField{margin:0 0 14px}#setlistSave{background:#203e42;color:#bdf4db;border-color:#689f8d;font-weight:700;min-height:54px}#savedSetlists{margin-top:24px;padding-top:15px;border-top:1px solid #40556b}#savedSetlists h3{font-size:17px;color:#f3dfb5}#setlistRows{list-style:none;margin:0;padding:0;display:grid;gap:10px}.setlist-row{padding:13px;border:1px solid #40556b;border-radius:12px;background:#142b31}.setlist-row strong{display:block;overflow-wrap:anywhere;color:#f0e2c8}.setlist-row small{display:block;color:#b5d7ce;font-size:12px;margin-top:4px}.setlist-song-order{color:#b7c7d1;font-size:12px;line-height:1.6;overflow-wrap:anywhere;margin:8px 0}

@@ -1,5 +1,5 @@
 import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
-import {TYPES} from './fireworks.js?v=1.2.76';
+import {TYPES} from './fireworks.js?v=1.2.77';
 import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';

@@ -6,7 +6,7 @@ export function favoriteDropIndex(y,offset,count){return Math.max(0,Math.min(cou
 export function favoriteInsertionSlot(y,offset,count){return Math.max(offset,Math.min(count,offset+ROWS,offset+Math.floor((y-TOP+PITCH/2)/PITCH)));}
 export function favoriteMoveTarget(slot,source,count){return Math.max(0,Math.min(count-1,slot>source?slot-1:slot));}
 export class FavoritesPanel extends MRPanel{
- constructor(options){super(options);this.offset=0;this.dragRow=null;}
+ constructor(options){super(options);this.offset=0;this.setlistOffset=0;this.listMode='favorites';this.dragRow=null;}
  beginSlider(control,controller,ray){
   if(!control.favoriteDrag)return super.beginSlider(control,controller,ray);
   this.sliderDrag={control,controller};this.dragRow={id:control.favoriteId,source:control.index,slot:control.index,target:control.index};this.slideToRay(ray);
@@ -36,13 +36,21 @@ export class FavoritesPanel extends MRPanel{
   const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,800,1340,{border:'#ddc69585'});
   this.text('♥',28,49,38,'#ff587d');this.text('お気に入り・大会',78,49,38,'#f3dfb5',580);this.button('favoriteClose','閉じる',664,22,108,54,()=>this.close());
   const selected=s.rows.filter(r=>r.checked),seconds=selected.reduce((n,r)=>n+r.plan.showDuration,0)+Math.max(0,selected.length-1)*3;
-  this.text(`${selected.length}曲 · 約${Math.floor(seconds/60)}分${Math.round(seconds)%60}秒`,28,112,28,'#a8f0c8');
-  this.text(s.festival||'☑で選び、⠿をつまんで順番を変える',28,154,24,'#d5e3eb',744);this.wrap(s.message??'',28,192,744,1);
-  this.offset=Math.max(0,Math.min(Math.max(0,s.rows.length-ROWS),this.offset));
-  if(!s.rows.length)this.wrap('気に入った構成で、サイドパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
-  s.rows.slice(this.offset,this.offset+ROWS).forEach((row,i)=>{
-   const index=this.offset+i,y=TOP+i*PITCH;
+  const sets=this.listMode==='setlists',rows=sets?s.setlists??[]:s.rows,key=sets?'setlistOffset':'offset';
+  this.button('favoriteTab','♥の曲を選ぶ',28,86,360,48,()=>{this.listMode='favorites';this.menuId=null;},{selected:!sets});
+  this.button('setlistTab','保存したセットリスト',412,86,360,48,()=>{this.listMode='setlists';this.menuId=null;},{selected:sets});
+  this.text(sets?rows.length+'件のセットリスト':`${selected.length}曲 · 約${Math.floor(seconds/60)}分${Math.round(seconds)%60}秒`,28,174,28,'#a8f0c8');
+  this.wrap(s.message||(sets?'名前を押すと、その曲順・花火で大会を準備':s.festival||'☑で選び、⠿をつまんで順番を変える'),28,212,744,1);
+  this[key]=Math.max(0,Math.min(Math.max(0,rows.length-ROWS),this[key]));
+  if(!rows.length)this.wrap(sets?'♥の曲を選んで並べ、「このセットリストを保存する」を押してください。':'気に入った構成で、サイドパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
+  rows.slice(this[key],this[key]+ROWS).forEach((row,i)=>{
+   const index=this[key]+i,y=TOP+i*PITCH;
    c.fillStyle=this.dragRow?.id===row.id?'#293341':'#132536';c.beginPath();c.roundRect(20,y-4,760,122,16);c.fill();
+   if(sets){
+    this.button('setlistLoad:'+row.id,row.name,28,y,586,58,()=>this.choose('setlistLoad',row.id),{disabled:s.busy});
+    this.text(row.entries.length+'曲 · 約'+Math.floor(row.duration/60)+'分'+Math.round(row.duration)%60+'秒',40,y+86,22,'#b8c9d4',560);
+    this.button('setlistMenu:'+row.id,'…',628,y,140,100,()=>{this.menuId=row.id;},{disabled:s.busy});return;
+   }
    this.button('drag:'+row.id,'⠿',28,y,58,100,()=>{}, {disabled:s.busy});const drag=this.controls.at(-1);Object.assign(drag,{slider:!s.busy,favoriteDrag:true,favoriteId:row.id,index});
    this.button('check:'+row.id,row.checked?'☑':'☐',98,y,64,100,()=>this.choose('check',row.id),{selected:row.checked,disabled:s.busy});
    this.button('load:'+row.id,row.name,176,y,438,58,()=>this.choose('load',row.id),{disabled:s.busy});
@@ -54,18 +62,22 @@ export class FavoritesPanel extends MRPanel{
    c.fillStyle='#ff9f85';c.fillRect(20,y-3,760,6);c.beginPath();c.moveTo(20,y-11);c.lineTo(36,y);c.lineTo(20,y+11);c.closePath();c.fill();
    c.fillRect(492,y-19,278,31);this.text('ここに入れる',516,y-3,23,'#172230',240);
   }
-  this.button('previous','前の一覧',28,1064,240,52,()=>{this.offset=Math.max(0,this.offset-ROWS);},{disabled:this.offset===0});
-  this.text(`${s.rows.length?this.offset+1:0}–${Math.min(this.offset+ROWS,s.rows.length)} / ${s.rows.length}`,310,1090,25,'#b8c9d4');
-  this.button('next','次の一覧',532,1064,240,52,()=>{this.offset=Math.min(Math.max(0,s.rows.length-ROWS),this.offset+ROWS);},{disabled:this.offset+ROWS>=s.rows.length});
-  this.button('festival','この順番で大会を開演',28,1150,744,78,()=>this.click('favoritePrepare'),{primary:true,disabled:s.busy||!selected.length});
-  if(s.undoId)this.button('undo','削除を元に戻す',28,1248,744,52,()=>this.choose('undo'),{disabled:s.busy});else this.text('各曲の余韻が終わってから３秒空けて次へ',32,1263,23,'#b8c9d4',736);
+  this.button('previous','前の一覧',28,1064,240,52,()=>{this[key]=Math.max(0,this[key]-ROWS);},{disabled:this[key]===0});
+  this.text(`${rows.length?this[key]+1:0}–${Math.min(this[key]+ROWS,rows.length)} / ${rows.length}`,310,1090,25,'#b8c9d4');
+  this.button('next','次の一覧',532,1064,240,52,()=>{this[key]=Math.min(Math.max(0,rows.length-ROWS),this[key]+ROWS);},{disabled:this[key]+ROWS>=rows.length});
+  if(sets)this.button('setlistCreate','♥の曲を選んで新しく作る',28,1132,744,62,()=>{this.listMode='favorites';});
+  else{
+   this.button('setlistSave','このセットリストを保存する',28,1132,744,62,()=>this.click('setlistSave'),{disabled:s.busy||!selected.length});
+   this.button('festival','この順番で大会を開演',28,1208,744,62,()=>this.click('favoritePrepare'),{primary:true,disabled:s.busy||!selected.length});
+  }
+  if(sets?s.setlistUndoId:s.undoId)this.button('undo','削除を元に戻す',28,1284,744,42,()=>this.choose(sets?'setlistUndo':'undo'),{disabled:s.busy});else this.text('各曲の余韻が終わってから３秒空けて次へ',32,1310,23,'#b8c9d4',736);
   if(s.rename){this.drawRename(s.rename);this.texture.needsUpdate=true;return;}
   if(this.menuId){
-   const row=s.rows.find(r=>r.id===this.menuId);if(!row)this.menuId=null;else{
+   const row=rows.find(r=>r.id===this.menuId);if(!row)this.menuId=null;else{
     c.fillStyle='#07101bf5';c.beginPath();c.roundRect(12,200,776,1120,24);c.fill();this.controls=[];this.text(row.name,40,302,32,'#ffe0a3',720);
-    this.button('rename','名前を変える',40,390,720,84,()=>{const id=this.menuId;this.menuId=null;this.choose('rename',id);},{disabled:s.busy});
+    this.button('rename','名前を変える',40,390,720,84,()=>{const id=this.menuId;this.menuId=null;this.choose(sets?'setlistRename':'rename',id);},{disabled:s.busy});
     this.text('文字の一部だけ選んで直せます',48,518,24,'#b8c9d4',700);
-    this.button('delete','削除する',40,590,720,84,()=>{const id=this.menuId;this.menuId=null;this.choose('delete',id);},{danger:true,disabled:s.busy});
+    this.button('delete','削除する',40,590,720,84,()=>{const id=this.menuId;this.menuId=null;this.choose(sets?'setlistDelete':'delete',id);},{danger:true,disabled:s.busy});
     this.button('menuBack','戻る',40,760,720,70,()=>{this.menuId=null;});
    }
   }
