@@ -1,3 +1,5 @@
+import {drawPanelSurface} from './panel-surface.js';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
 import * as T from './vendor/three.module.js';
 
 const W=1024,H=420,PREFERENCE='hanabi-town-entry-tip-hidden';
@@ -18,15 +20,15 @@ export class EntryTip{
   this.bar=new T.Object3D();this.raycaster=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.pointer=new T.Vector2();this.draw();
  }
  draw(){
-  const c=this.ctx;c.clearRect(0,0,W,H);c.fillStyle='#101f2ee8';c.beginPath();c.roundRect(2,2,1020,H-4,26);c.fill();c.strokeStyle='#e8c98788';c.lineWidth=3;c.stroke();
-  c.textBaseline='middle';c.font='34px system-ui,sans-serif';c.fillStyle='#ffe0a3';c.fillText('まずは、街を好きな場所へ。',42,65);
-  c.font='32px system-ui,sans-serif';c.fillStyle='#e8f1f7';c.fillText('台座へビーム＋グリップで、掴んで移動',42,132);
+  const c=this.ctx;drawPanelSurface(c,W,H,{radius:26});
+  c.textBaseline='middle';c.font=panelFont(34);c.fillStyle=panelTheme().accent;c.fillText('まずは、街を好きな場所へ。',42,65);
+  c.font=panelFont(32);c.fillStyle=panelTheme().text;c.fillText('台座へビーム＋グリップで、掴んで移動',42,132);
   c.fillText('掴んだまま、スティックを倒すと',42,192);
-  c.fillStyle='#ffe0a3';c.fillText('左右：街を回す　／　上下：大きさを変える',42,256);
-  c.fillStyle='#1c3544';c.beginPath();c.roundRect(28,312,968,94,12);c.fill();
+  c.fillStyle=panelTheme().accent;c.fillText('左右：街を回す　／　上下：大きさを変える',42,256);
+  c.fillStyle=panelTheme().surface;c.beginPath();c.roundRect(28,312,968,94,12);c.fill();
   c.lineWidth=3;c.strokeStyle='#ffdfa1';c.strokeRect(46,338,38,38);
   if(this.suppressed){c.strokeStyle='#a8f0c8';c.beginPath();c.moveTo(52,356);c.lineTo(62,366);c.lineTo(80,345);c.stroke();}
-  c.fillStyle=this.preferenceError?'#ffad9f':'#e8f1f7';c.fillText(this.preferenceError?'設定を保存できませんでした':'次回から表示しない',108,357);
+  c.fillStyle=this.preferenceError?'#ffad9f':panelTheme().text;c.fillText(this.preferenceError?'設定を保存できませんでした':'次回から表示しない',108,357);
   this.texture.needsUpdate=true;
  }
  setSuppressed(hidden){

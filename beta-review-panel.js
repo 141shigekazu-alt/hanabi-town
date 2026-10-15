@@ -1,3 +1,5 @@
+import {drawPanelSurface} from './panel-surface.js';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
 import * as T from './vendor/three.module.js';
 import {ShowInfoPanel} from './show-info.js?v=1.1.0';
 
@@ -48,27 +50,27 @@ export class BetaReviewPanel extends ShowInfoPanel{
   if(!state.musicActive)this.release();
   if(!this.enabled){this.release();this.anchored=false;return;}
   if(this.mesh.visible&&!this.anchored)this.anchor(transform);
-  const key=[state.current,state.duration,state.tail,state.running,state.busy,state.musicActive,state.seek,state.names,state.canPrevious,state.canNext,state.canPlay].join('|');
+  const key=[panelThemeId(),state.current,state.duration,state.tail,state.running,state.busy,state.musicActive,state.seek,state.names,state.canPrevious,state.canNext,state.canPlay].join('|');
   if(key!==this.key){this.key=key;this.drawReview();}
  }
  drawReview(){
   const c=this.ctx,s=this.state;if(!s)return;c.clearRect(0,0,W,H);
-  c.fillStyle='rgba(12,27,42,.90)';c.beginPath();c.roundRect(2,2,W-4,H-4,22);c.fill();c.strokeStyle='rgba(220,201,155,.6)';c.lineWidth=2;c.stroke();
-  c.textAlign='left';c.textBaseline='middle';c.font='bold 56px system-ui,sans-serif';c.fillStyle='#ffe7ad';c.fillText(s.current,28,45);
-  const next=28+c.measureText(s.current).width+15;c.font='30px system-ui,sans-serif';c.fillStyle='#b8c8d7';if(s.duration)c.fillText('/ '+s.duration,next,48);
-  c.font='23px system-ui,sans-serif';c.fillStyle='#e8d4a9';let line='',rows=[];
+  drawPanelSurface(c,W,H,{radius:22});
+  c.textAlign='left';c.textBaseline='middle';c.font=panelFont(56);c.fillStyle=panelTheme().accent;c.fillText(s.current,28,45);
+  const next=28+c.measureText(s.current).width+15;c.font=panelFont(30);c.fillStyle=panelTheme().muted;if(s.duration)c.fillText('/ '+s.duration,next,48);
+  c.font=panelFont(23);c.fillStyle=panelTheme().accent;let line='',rows=[];
   for(const char of s.names??'次の一玉を待つ'){if(c.measureText(line+char).width>W-56&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
   rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2)text=text.slice(0,-1)+'…';c.fillText(text,28,98+i*29);});
   this.controls=[];
-  const button=(id,label,x,y,w,h,disabled)=>{const b={id,x,y,w,h,disabled};c.fillStyle=disabled?'#16212b':'#21384b';c.beginPath();c.roundRect(x,y,w,h,10);c.fill();c.textAlign='center';c.font='28px system-ui,sans-serif';c.fillStyle=disabled?'#788895':'#edf3f8';c.fillText(label,x+w/2,y+h/2);this.controls.push(b);};
+  const button=(id,label,x,y,w,h,disabled)=>{const b={id,x,y,w,h,disabled};c.fillStyle=disabled?panelTheme().disabled:panelTheme().surface;c.beginPath();c.roundRect(x,y,w,h,10);c.fill();c.textAlign='center';c.font=panelFont(28);c.fillStyle=disabled?panelTheme().disabledText:panelTheme().text;c.fillText(label,x+w/2,y+h/2);this.controls.push(b);};
   button('betaFloatBack10','10秒戻る',18,156,230,68,s.busy||!s.musicActive);
   button('betaFloatPause',s.running?'一時停止':'再生',269,156,230,68,s.busy||!s.canPlay);
   button('betaFloatForward10','10秒送る',520,156,230,68,s.busy||!s.musicActive);
   const disabled=s.busy||!s.musicActive,value=Math.max(0,Math.min(1,this.sliderDrag?this.sliderValue:s.seek??0)),trackX=46,trackW=676;
-  c.fillStyle=disabled?'#283744':'#3b5264';c.beginPath();c.roundRect(trackX,264,trackW,12,6);c.fill();
-  c.fillStyle=disabled?'#667789':'#ddc695';c.beginPath();c.roundRect(trackX,264,Math.max(1,value*trackW),12,6);c.fill();
-  c.fillStyle=disabled?'#788895':'#ffe7ad';c.beginPath();c.arc(trackX+value*trackW,270,17,0,Math.PI*2);c.fill();
-  c.font='22px system-ui,sans-serif';c.textAlign='center';c.fillStyle='#c3d2dc';c.fillText(s.tail||'曲の再生位置',W/2,307);
+  c.fillStyle=disabled?panelTheme().disabled:panelTheme().track;c.beginPath();c.roundRect(trackX,264,trackW,12,6);c.fill();
+  c.fillStyle=disabled?panelTheme().disabledText:panelGradient(c,trackX,264,trackW,0,panelTheme().highlight);c.beginPath();c.roundRect(trackX,264,Math.max(1,value*trackW),12,6);c.fill();
+  c.fillStyle=disabled?panelTheme().disabledText:panelTheme().knob;c.beginPath();c.arc(trackX+value*trackW,270,17,0,Math.PI*2);c.fill();
+  c.font=panelFont(22);c.textAlign='center';c.fillStyle=panelTheme().muted;c.fillText(s.tail||'曲の再生位置',W/2,307);
   this.controls.push({id:'betaMusicSeek',slider:true,disabled,x:18,y:240,w:W-36,h:55,trackX,trackW});
   button('betaPreviousTrack','前の曲',18,335,350,56,s.busy||!s.canPrevious);
   button('betaNextTrack','次の曲',400,335,350,56,s.busy||!s.canNext);

@@ -1,4 +1,5 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
+import {PANEL_THEMES} from './panel-theme.js';
 import {mountHelp} from './help-content.js';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
@@ -81,6 +82,7 @@ export function organizePanel(){
  $('sample').after(trigger);
  const testExtras=details($('browserPage1'),'演出素材の確認（試作用）','showTrialExtras');
  for(const id of ['starmine','whistleSoundStudy'])move(testExtras,id);
+ const themeField=make('label',{},'パネルの配色'),themeSelect=make('select',{id:'panelTheme'});for(const option of PANEL_THEMES)themeSelect.append(make('option',{value:option.value},option.label));themeField.append(themeSelect);$('browserPage2').prepend(themeField);
  const soundExtras=details($('browserPage2'),'音の比較（試作用）','showAudioExtras');field(soundExtras,'audioMode');
  const offline=document.querySelector('.offline-card');const save=details($('panel'),'オフライン保存','showOffline');save.append(offline);
  document.querySelector('.mr-entry').hidden=true;

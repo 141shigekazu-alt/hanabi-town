@@ -1,12 +1,15 @@
+import {panelTheme,panelGradient} from './panel-theme.js';
 // Shared canvas treatment: same quad, texture size and single-pass material.
 // There is no scene copy, backdrop blur, render target or postprocess here.
 let glass=true;
 export function setPanelGlass(value){const changed=glass!==!!value;glass=!!value;return changed;}
 export function panelGlassEnabled(){return glass;}
-export function drawPanelSurface(c,w,h,{radius=34,border='#8eabb378'}={}){
- c.clearRect(0,0,w,h);
- const fill=c.createLinearGradient(0,0,w,h);fill.addColorStop(0,glass?'rgba(20,36,51,.94)':'#142433');fill.addColorStop(1,glass?'rgba(10,22,35,.87)':'#0a1623');
- c.fillStyle=fill;c.beginPath();c.roundRect(2,2,w-4,h-4,radius);c.fill();c.strokeStyle=border;c.lineWidth=2;c.stroke();
+export function drawPanelSurface(c,w,h,{radius=34}={}){
+ c.clearRect(0,0,w,h);const p=panelTheme();
+ const colors=glass?p.panel:p.panel.map(color=>color.slice(0,7));
+ c.fillStyle=panelGradient(c,0,0,w,h,colors);c.beginPath();c.roundRect(3,3,w-6,h-6,radius);c.fill();
+ // Glow is painted into the existing texture; the MR quad stays single pass.
+ c.save();c.strokeStyle=panelGradient(c,0,0,w,h,p.edge);c.lineWidth=1.5;c.shadowColor=p.edge[0];c.shadowBlur=5;c.stroke();c.restore();
 }
 const percentile=(values,p)=>{const sorted=[...values].sort((a,b)=>a-b);return sorted.length?sorted[Math.ceil(sorted.length*p)-1]:null;};
 const average=values=>values.length?values.reduce((a,b)=>a+b,0)/values.length:null;

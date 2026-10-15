@@ -103,3 +103,27 @@ aside{max-height:82vh;overflow-y:auto}details{font-size:12px;border-top:1px soli
 .beta-shell-names{margin:0 0 8px;color:#ead6ad;font-size:13px;line-height:1.4;max-width:480px}.beta-song-buttons{display:flex;gap:8px;margin-top:8px}.beta-song-buttons button{flex:1}.beta-review-bar>div:not(.beta-review-handle){display:flex;gap:8px}
 
 .beta-review-bar>label{display:block;margin:10px 0 0;color:#b8c8d7;font-size:11px}.beta-review-bar>label input{display:block;width:100%;margin:8px 0}
+
+/* Shared thin Gothic and palette for browser controls and native MR textures. */
+@font-face{font-family:'Hanabi UI';src:url('./fonts/NotoSansJP-variable.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+:root{--panel-text:#eee9dd;--panel-muted:#b0babd;--panel-accent:#dec18a;--panel-surface:#1d2a31;--panel-line:#8ba3ae45;--panel-overlay:#111c23fc;--panel-track:#41505a;--panel-knob:#f1dbaf;--panel-selected:#b4955c25;--panel-selectedLine:#d0ac6b90;--panel-danger:#edb7ac;--panel-dangerSurface:#37252b;--panel-primaryInk:#25221b;--panel-panel:linear-gradient(145deg,#142027f5,#101920f2,#141b20f0);--panel-primary:linear-gradient(105deg,#edce91,#dfb574);--panel-highlight:linear-gradient(90deg,#b68b4e,#eed4a0)}
+body,button,input,select,textarea{font-family:'Hanabi UI','Hiragino Sans',sans-serif;font-weight:300}
+#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar{background:var(--panel-panel);color:var(--panel-text);border:1px solid var(--panel-selectedLine);box-shadow:0 0 12px #0003}
+html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar){box-shadow:-1px 0 7px #df79ca25,1px 0 7px #82c7ed25}
+:is(#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar) button{background:var(--panel-surface);border-color:var(--panel-line);color:var(--panel-text);font-weight:300}
+:is(#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar) :is(select,input[type=text]){background:var(--panel-surface);color:var(--panel-text);border-color:var(--panel-line);font-weight:300}
+:is(#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar) :is(h2,h3,strong){font-weight:300;color:var(--panel-text)}
+:is(#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar) :is(label,small,summary){color:var(--panel-muted)}
+#panel .show-card,#panel .music-mix,#favoritesWindow .favorite-row,#favoritesWindow .setlist-row{background:var(--panel-surface);border-color:var(--panel-line)}
+#panel .show-launch,#panel #showWatch,#favoritePrepare,.mr-name-actions .mr-name-save{background:var(--panel-primary);border-color:var(--panel-selectedLine);color:var(--panel-primaryInk);font-weight:300}
+#panel #showWatch{font-size:23px}
+#panel .panel-tabs{background:transparent;border:0;border-bottom:1px solid var(--panel-line);border-radius:0}
+#panel .panel-tabs button{background:transparent;border:0;border-radius:0;color:var(--panel-muted);box-shadow:none}
+#panel .panel-tabs button[aria-selected=true]{color:var(--panel-text);box-shadow:inset 0 -2px var(--panel-accent)}
+:is(#panel,#favoritesWindow,#mrNameDialog,#betaReviewBar) input[type=range]{accent-color:var(--panel-knob)}
+#panel #setlistSave,#setlistSave{background:var(--panel-surface);border-color:var(--panel-selectedLine);color:var(--panel-accent);font-weight:300}
+:is(#panel,#favoritesWindow) button[aria-pressed=true]{background:var(--panel-selected);border-color:var(--panel-selectedLine)}
+#panel #showStop,#panel #trackDelete,#favoritesWindow .favorite-delete{background:var(--panel-dangerSurface);color:var(--panel-danger)}
+#mrFavoriteNameInput{font:300 26px 'Hanabi UI',sans-serif;caret-color:var(--panel-knob)}
+#betaReviewBar strong,#betaShellNames{color:var(--panel-accent);font-weight:300}
+#trackMenu{background:var(--panel-overlay)!important;border-color:var(--panel-line)!important}

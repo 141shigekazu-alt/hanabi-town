@@ -1,3 +1,4 @@
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
 import {helpTopic,helpPages} from './help-content.js';
 import {drawPanelSurface} from './panel-surface.js';
 import * as T from './vendor/three.module.js';
@@ -152,28 +153,31 @@ export class MRPanel{
   if(this.hover!==hover){this.hover=hover;this.draw();}
   if(activate){if(this.grab||this.sliderDrag)return true;if(hit?.object===this.grabTarget)this.beginGrab(hit);else if(control?.slider)this.beginSlider(control,null,this.raycaster.ray);else this.fire(control);}return true;
  }
- text(label,x,y,size=25,color='#dce7ef',maxWidth){
-  const c=this.ctx;c.font=`${size}px system-ui,sans-serif`;c.fillStyle=color;c.textBaseline='middle';
-  if(maxWidth){while(c.measureText(label).width>maxWidth&&size>17){size--;c.font=`${size}px system-ui,sans-serif`;}}
+ text(label,x,y,size=25,color=panelTheme().text,maxWidth){
+  const c=this.ctx;c.font=panelFont(size);c.fillStyle=color;c.textBaseline='middle';
+  if(maxWidth){while(c.measureText(label).width>maxWidth&&size>17){size--;c.font=panelFont(size);}}
   c.fillText(label,x,y);
  }
- button(id,label,x,y,w,h,action,{selected=false,danger=false,primary=false,disabled=false,heart=false}={}){
-  const c=this.ctx,hover=!disabled&&this.hover===id;
-  c.fillStyle=disabled?'#27313c':heart&&selected?(hover?'#743044':'#492333'):primary?(hover?'#ffe0a0':'#e9bc64'):hover?'#405265':selected?'#4d4634':danger?'#34242c':'#182b3b';
-  c.beginPath();c.roundRect(x,y,w,h,primary?16:12);c.fill();c.strokeStyle=disabled?'#536271':heart&&selected?'#ff7b96':primary?'#fff0c8':hover?'#ffe1a6':selected?'#ddc695':'#31495b';c.lineWidth=primary||hover?3:1;c.stroke();
-  const oldAlign=c.textAlign;c.textAlign='center';this.text(label,x+w/2,y+h/2,primary?39:25,disabled?'#a3b1bf':heart?(selected?'#ff587d':'#efb6c1'):primary?'#172230':danger?'#f5c6c0':'#e7eef3',w-22);c.textAlign=oldAlign;
+ button(id,label,x,y,w,h,action,{selected=false,danger=false,primary=false,disabled=false,heart=false,quiet=false,nav=false}={}){
+  const c=this.ctx,p=panelTheme(),hover=!disabled&&this.hover===id;
+  c.save();c.fillStyle=disabled?p.disabled:primary?panelGradient(c,x,y,w,0,p.primary):hover?p.hover:heart&&selected?'#492333':selected?p.selected:danger?p.dangerSurface:p.surface;
+  c.beginPath();c.roundRect(x,y,w,h,primary?16:12);
+  if(primary&&!disabled){c.shadowColor=p.primary[0]+'35';c.shadowBlur=10;}if(!quiet&&!nav)c.fill();c.shadowBlur=0;
+  c.strokeStyle=disabled?p.line:heart&&selected?'#f681a1':primary?p.primaryEdge:hover?p.accent:selected?p.selectedLine:p.line;c.lineWidth=hover?2:1;if(!quiet&&!nav)c.stroke();
+  if(nav&&selected){c.fillStyle=panelGradient(c,x,y,w,0,p.highlight);c.fillRect(x+8,y+h-4,w-16,3);}
+  c.textAlign='center';this.text(label,x+w/2,y+h/2,primary?33:25,disabled?p.disabledText:heart?(selected?'#ff7194':'#efb6c1'):primary?p.primaryInk:danger?p.danger:p.text,w-22);c.restore();
   this.controls.push({id,x,y,w,h,primary,disabled,action:()=>{if(!disabled)action();}});
  }
  preparationBox(view={phase:'preparing',heading:'準備中…',title:'選んだ曲',setting:'設定を確認しています'}){
   const c=this.ctx,ready=view.phase==='ready',error=view.phase==='error';
   c.fillStyle=error?'#35252c':ready?'#16312e':'#28303b';c.beginPath();c.roundRect(28,451,744,104,12);c.fill();
-  this.text(view.heading,44,473,28,error?'#ffbeb4':ready?'#a8f0c8':'#ffe0a3',712);
-  this.text(view.title,44,505,26,'#f0f5f8',712);
-  this.text(view.setting,44,536,25,'#d5e3eb',712);
+  this.text(view.heading,44,473,28,error?'#ffbeb4':ready?'#a8f0c8':panelTheme().accent,712);
+  this.text(view.title,44,505,26,panelTheme().text,712);
+  this.text(view.setting,44,536,25,panelTheme().muted,712);
  }
 
  selector(id,label,y,state,{width=744,x=28}={}){
-  this.text(label,x+4,y,23,'#aabecb');
+  this.text(label,x+4,y,23,panelTheme().muted);
   this.button(id,state.selected+'  ▾',x,y+24,width,60,()=>{if(!state.disabled){this.picker={id,offset:Math.max(0,(state.options.findIndex(o=>o.value===state.value))-3)};this.draw();}});
  }
  scrollPicker(delta){
@@ -190,18 +194,18 @@ export class MRPanel{
  scrollHelpTo(fraction){this.helpScroll=Math.max(0,Math.min(1,fraction))*this.helpMaxScroll;this.draw();}
  drawHelp(s){
   this.selector('helpTopic','知りたいことを選ぶ',245,s.helpTopic);
-  const topic=helpTopic(s.helpTopic.value),c=this.ctx;c.font='500 25px system-ui,sans-serif';
+  const topic=helpTopic(s.helpTopic.value),c=this.ctx;c.font=panelFont(25);
   const lines=helpPages(topic,t=>c.measureText(t).width,676).flat(),top=390,bottom=980;
   if(this.helpTopicId!==topic.id){this.helpTopicId=topic.id;this.helpScroll=0;}
   this.helpMaxScroll=Math.max(0,lines.length*32-(bottom-top));this.helpScroll=Math.max(0,Math.min(this.helpMaxScroll,this.helpScroll));
-  this.text(topic.title,32,365,30,'#ffe0a3',724);
+  this.text(topic.title,32,365,30,panelTheme().accent,724);
   c.save();c.beginPath();c.rect(28,top,700,bottom-top);c.clip();
-  lines.forEach((line,i)=>this.text(line,38,top+18+i*32-this.helpScroll,25,'#d4e2eb'));c.restore();
+  lines.forEach((line,i)=>this.text(line,38,top+18+i*32-this.helpScroll,25,panelTheme().text));c.restore();
   if(this.helpMaxScroll){
    const trackH=bottom-top,thumb=Math.max(48,trackH*trackH/(lines.length*32)),travel=trackH-thumb;
-   c.fillStyle='#253c50';c.fillRect(748,top,16,trackH);c.fillStyle='#ddc695';c.fillRect(748,top+travel*this.helpScroll/this.helpMaxScroll,16,thumb);
+   c.fillStyle=panelTheme().track;c.fillRect(748,top,16,trackH);c.fillStyle=panelTheme().accent;c.fillRect(748,top+travel*this.helpScroll/this.helpMaxScroll,16,thumb);
    this.controls.push({id:'helpScroll',x:728,y:top,w:44,h:trackH,slider:true,helpScroll:true,trackY:top+thumb/2,trackH:travel});
-   this.text('本文へビームを向け、スティック上下でスクロール',32,1005,22,'#b8c9d4',736);
+   this.text('本文へビームを向け、スティック上下でスクロール',32,1005,22,panelTheme().muted,736);
   }
   this.button('entryTipEnabled',(s.entryTipEnabled?'☑':'☐')+' 入室時の操作案内を表示',28,1040,744,64,()=>this.click('entryTipEnabled'),{selected:s.entryTipEnabled});
  }
@@ -209,74 +213,72 @@ export class MRPanel{
  drawPicker(s){
   const picker=this.picker,state=s[picker.id],c=this.ctx;if(!state||state.disabled){this.picker=null;return;}
   const rows=8,pitch=92,top=268,count=state.options.length,max=Math.max(0,count-rows);picker.offset=Math.max(0,Math.min(max,picker.offset));
-  c.fillStyle='#07101bf5';c.fillRect(8,208,784,1120);this.controls=[];
-  this.text(picker.id==='setlistSelect'?'このセットリストを観る':picker.id==='musicTrack'?'曲を選ぶ':picker.id==='autoMusicFeeling'?'曲調を選ぶ':picker.id==='autoMusicEars'?'穂の風景を選ぶ':picker.id==='helpTopic'?'使い方を選ぶ':'一覧から選ぶ',32,240,32,'#ffe0a3');
+  c.fillStyle=panelTheme().overlay;c.fillRect(8,208,784,1120);this.controls=[];
+  this.text(picker.id==='setlistSelect'?'このセットリストを観る':picker.id==='musicTrack'?'曲を選ぶ':picker.id==='autoMusicFeeling'?'曲調を選ぶ':picker.id==='autoMusicEars'?'穂の風景を選ぶ':picker.id==='helpTopic'?'使い方を選ぶ':'一覧から選ぶ',32,240,32,panelTheme().accent);
   const width=max?680:744;
   state.options.slice(picker.offset,picker.offset+rows).forEach((o,i)=>{
    this.button('choice:'+o.value,o.label,28,top+i*pitch,width,80,()=>{if(o.disabled)return;this.picker=null;this.choose(picker.id,o.value);},{selected:o.value===state.value});
   });
   if(max){
-   c.fillStyle='#253c50';c.fillRect(742,top,24,rows*pitch);c.fillStyle='#ddc695';const thumb=rows*pitch*rows/count;c.fillRect(742,top+(rows*pitch-thumb)*picker.offset/max,24,thumb);
+   c.fillStyle=panelTheme().track;c.fillRect(742,top,24,rows*pitch);c.fillStyle=panelTheme().accent;const thumb=rows*pitch*rows/count;c.fillRect(742,top+(rows*pitch-thumb)*picker.offset/max,24,thumb);
    this.controls.push({id:'pickerScroll',x:718,y:top,w:64,h:rows*pitch,slider:true,pickerScroll:true,trackY:top+thumb/2,trackH:rows*pitch-thumb});
-   this.text('ビームを一覧へ向け、スティック上下でスクロール',32,1060,23,'#bccddb',736);
+   this.text('ビームを一覧へ向け、スティック上下でスクロール',32,1060,23,panelTheme().muted,736);
   }
   this.button('pickerCancel','戻る（変更しない）',28,1140,744,64,()=>{this.picker=null;});
  }
 
  range(id,label,y,state,unit=''){
-  this.text(label,32,y,23,'#aabecb');
+  this.text(label,32,y,23,panelTheme().muted);
   this.button(id+'-','−',28,y+24,92,60,()=>this.adjust(id,-1));
   const value=['volume','musicVolume'].includes(id)?Math.round(state.value*100)+'%':state.value.toFixed(2)+unit;
-  this.text(value,350,y+54,30,'#ffe0a3');
+  this.text(value,350,y+54,30,panelTheme().accent);
   this.button(id+'+','＋',680,y+24,92,60,()=>this.adjust(id,1));
  }
  slider(id,label,y,state,{compact=false}={}){
   const c=this.ctx,value=Math.max(0,Math.min(1,state.value)),trackX=60,trackW=680,seek=id==='betaMusicSeek',offset=compact?32:60;
-  this.text(label,32,y,compact?24:28,seek?'#f8bea4':'#e0eaf0',seek?736:580);
-  if(!seek)this.text(Math.round(value*100)+'%',660,y,compact?25:32,'#ffe0a3');
-  c.fillStyle='#3b5264';c.beginPath();c.roundRect(trackX,y+offset-6,trackW,12,6);c.fill();
-  c.fillStyle=seek?'#ed9c78':'#ddc695';c.beginPath();c.roundRect(trackX,y+offset-6,Math.max(1,value*trackW),12,6);c.fill();
-  c.fillStyle=this.hover===id?'#fff0cf':seek?'#ffc1a3':'#e7d1a5';c.beginPath();c.arc(trackX+value*trackW,y+offset,compact?17:21,0,Math.PI*2);c.fill();
+  this.text(label,32,y,compact?24:28,seek?'#f8bea4':panelTheme().text,seek?736:580);
+  if(!seek)this.text(Math.round(value*100)+'%',660,y,compact?25:32,panelTheme().accent);
+  c.fillStyle=panelTheme().track;c.beginPath();c.roundRect(trackX,y+offset-6,trackW,12,6);c.fill();
+  c.fillStyle=panelGradient(c,trackX,y,trackW,0,panelTheme().highlight);c.beginPath();c.roundRect(trackX,y+offset-6,Math.max(1,value*trackW),12,6);c.fill();
+  c.fillStyle=panelTheme().knob;c.beginPath();c.arc(trackX+value*trackW,y+offset,compact?17:21,0,Math.PI*2);c.fill();
   this.controls.push({id,x:28,y:y+offset-27,w:744,h:54,slider:true,trackX,trackW});
-  if(!compact){this.text(seek?'はじめ':id==='roomBrightness'?'暗い':'小さい',32,y+115,23,'#aabecb');this.text(seek?'曲末':id==='roomBrightness'?'明るい':'大きい',660,y+115,23,'#aabecb');}
+  if(!compact){this.text(seek?'はじめ':id==='roomBrightness'?'暗い':'小さい',32,y+115,23,panelTheme().muted);this.text(seek?'曲末':id==='roomBrightness'?'明るい':'大きい',660,y+115,23,panelTheme().muted);}
  }
 
  wrap(text,x,y,maxWidth,lines=3){
-  const c=this.ctx;c.font='23px system-ui,sans-serif';let line='',row=0;
-  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*34,23,'#aebfc9');row++;line='';if(row>=lines)return;}line+=char;}
-  if(line)this.text(line,x,y+row*34,23,'#aebfc9');
+  const c=this.ctx;c.font=panelFont(23);let line='',row=0;
+  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*34,23,panelTheme().muted);row++;line='';if(row>=lines)return;}line+=char;}
+  if(line)this.text(line,x,y+row*34,23,panelTheme().muted);
  }
  drawPreparation(s){
   const p=s.preparing,hand=p.hand==='left'?'左':'右',fields=['kind','size','palette'];
-  this.text(hand+'トリガーに仕込む',32,258,34,'#ffe0a3');
+  this.text(hand+'トリガーに仕込む',32,258,34,panelTheme().accent);
   ['種類','大きさ','配色'].forEach((label,i)=>this.button('prepareTab'+i,label,28+i*254,304,236,54,()=>this.prepareTab(i),{selected:p.tab===i}));
   const compact=s.prepareOptions.length>12,rowPitch=compact?54:66,choiceHeight=compact?46:54;
   s.prepareOptions.forEach((o,i)=>{const x=28+(i%2)*384,y=390+Math.floor(i/2)*rowPitch;
-   if(o.disabled){this.text(o.label+'（対象外）',x+20,y+27,23,'#657986');return;}
+   if(o.disabled){this.text(o.label+'（対象外）',x+20,y+27,23,panelTheme().disabledText);return;}
    this.button('prepareChoice'+i,o.label,x,y,360,choiceHeight,()=>this.prepareChoose(o.value),{selected:String(p.draft[fields[p.tab]])===o.value});
   });
-  this.text(s.preparing.summary,32,786,25,'#ffe0a3',736);
-  this.text(s.loadedLeft?'左：'+s.loadedLeft:'',32,824,20,'#b8c9d4',736);this.text('右：'+s.loadedRight,32,854,20,'#b8c9d4',736);
+  this.text(s.preparing.summary,32,786,25,panelTheme().accent,736);
+  this.text(s.loadedLeft?'左：'+s.loadedLeft:'',32,824,20,panelTheme().muted,736);this.text('右：'+s.loadedRight,32,854,20,panelTheme().muted,736);
   this.button('prepareConfirm','この玉を'+hand+'に仕込む',28,886,744,60,()=>this.click('prepareConfirm'));
   this.button('prepareCancel','戻る（変更しない）',28,958,744,48,()=>this.click('prepareCancel'));
  }
  draw(){
   const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,W,H);
-  this.text('花火街  ·  サイドパネル',32,44,34,'#f3dfb5');
+  this.text('花火街',36,49,43,panelTheme().text);
+  this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
   this.button('favoriteToggle',s.favoriteSaved?'♥':'♡',696,18,76,60,()=>this.click('favoriteToggle'),{selected:!!s.favoriteSaved,disabled:!s.favoriteCanSave,heart:true});
   this.button('favoriteListOpen','一覧',608,18,76,60,()=>this.click('favoriteListOpen'));
-  this.text('右A：サイドパネル · 左X：クルッとパネル',32,88,23,'#acbdc9');
-  if(s.setlistSelect?.options?.length>1)this.selector('setlistSelect','このセットリストを観る',114,s.setlistSelect);
-  else{this.text(s.chapter,32,130,42,'#dde8ef',736);this.text(s.last,32,182,42,'#ffe0a3',736);}
+  this.text('右A：サイドパネル · 左X：クルッとパネル',36,132,21,panelTheme().muted);
   c.save();c.translate(0,HEADER_GROWTH);
-  c.fillStyle='#132536';c.beginPath();c.roundRect(20,152,760,76,14);c.fill();
-  [[4,'花火大会'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>{this.button('page'+page,label,28+i*254,160,236,54,()=>{if(this.page!==page){this.page=page;this.pageChanged(page);}},{selected:this.page===page});if(this.page===page){c.fillStyle='#ffe0a3';c.fillRect(40+i*254,211,212,4);}});
+  [[4,'花火大会'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>this.button('page'+page,label,28+i*254,126,236,68,()=>{if(this.page!==page){this.page=page;this.pageChanged(page);}},{selected:this.page===page,nav:true}));
   if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
    this.button('play',s.playLabel??(s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る'),28,238,744,64,()=>this.click('play'),{selected:!s.running});
    if(s.awaitingShow){
-    this.text('街の台座へビーム＋グリップで掴んで移動',32,335,24,'#c5d5df',736);
-    this.text('掴んだままスティック：左右で回転・上下で大きさ',32,374,23,'#aebfce',736);
+    this.text('街の台座へビーム＋グリップで掴んで移動',32,335,24,panelTheme().text,736);
+    this.text('掴んだままスティック：左右で回転・上下で大きさ',32,374,23,panelTheme().muted,736);
    }else{
    this.button('stop','大会を止める',28,318,360,60,()=>this.click('stop'));
    this.button('restart','大会を最初から',412,318,360,60,()=>this.click('restart'));}
@@ -284,40 +286,48 @@ export class MRPanel{
    this.selector('mood','大会の雰囲気',525,s.mood);
    this.selector('ending','大会の終わり',641,s.ending);
    this.button('loadLeft','左トリガーに仕込む',28,770,360,48,()=>this.click('loadLeft'));this.button('loadRight','右トリガーに仕込む',412,770,360,48,()=>this.click('loadRight'));
-   this.text('左：'+s.loadedLeft+' ／ 右：'+s.loadedRight,32,836,20,'#ffe0a3',736);
+   this.text('左：'+s.loadedLeft+' ／ 右：'+s.loadedRight,32,836,20,panelTheme().accent,736);
    this.button('reset','設定と視点を初期状態に戻す',28,860,744,42,()=>this.click('reset'));
   }else if(this.page===4){
-   if(s.trackUndo)this.button('trackUndo','曲の削除を元に戻す',412,221,360,42,()=>this.click('trackUndo'));
-   this.selector('musicTrack','曲を選ぶ',247,s.musicTrack,{width:650});
-   this.button('trackMenuToggle','…',694,271,78,60,()=>this.click('trackMenuToggle'),{disabled:!s.trackCanRename});
-   this.button('showWatch',s.showWatchLabel??'▶ 花火大会を開演',28,345,744,92,()=>this.click('showWatch'),{primary:true,disabled:!!s.showWatchDisabled});
-   this.preparationBox(s.readiness);
+   this.selector('musicTrack','曲を選ぶ',221,s.musicTrack,{width:650});
+   this.button('trackMenuToggle','…',694,245,78,60,()=>this.click('trackMenuToggle'),{disabled:!s.trackCanRename});
+   const ready=s.readiness?.phase==='ready',err=s.readiness?.phase==='error';
+   this.text(s.readiness?.heading??'準備中…',486,221,21,err?'#ffbeb4':ready?'#9ed5b9':panelTheme().accent,282);
+   this.text((s.musicless?'音楽なし':s.autoMusicFeeling.selected)+' ／ 構成 '+(s.normalBuildNumber??1),32,334,22,panelTheme().muted,736);
+   this.button('showWatch',s.showWatchLabel??'▶ 花火大会を開演',28,365,744,88,()=>this.click('showWatch'),{primary:true,disabled:!!s.showWatchDisabled});
+   if(s.setlistSelect?.options?.length>1)this.button('setlistSelect',s.setlistSelect.selected+'  ▾',28,475,744,60,()=>{this.picker={id:'setlistSelect',offset:0};});
+   else this.text('気に入った大会は、右上の ♥ から保存できます',32,505,23,panelTheme().muted,736);
+   this.button('showAdjust','演出を調整する  ›',28,563,744,60,()=>{this.adjusting=true;},{quiet:true});
+   c.strokeStyle=panelTheme().line;c.beginPath();c.moveTo(28,559);c.lineTo(772,559);c.moveTo(28,631);c.lineTo(772,631);c.stroke();
    if(s.selectionFailed||s.musicAnalysisBusy){
-    this.wrap(s.showNotice??'',32,622,736,5);
-    this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,836,744,58,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
-    this.text(s.selectionFailed?'上の一覧から別の曲も選べます':'初めての曲は、解析が終わるまでお待ちください',32,942,23,'#b8c9d4',736);
-    this.slider('volume','花火の音量',1010,s.volume,{compact:true});
-    this.slider('roomBrightness','部屋の明るさ',1078,s.roomBrightness,{compact:true});
-   }else if(s.musicless){
-    this.selector('program','大会プログラム',580,s.program);
-    this.selector('mood','大会の雰囲気',685,s.mood);
-    this.selector('ending','大会の終わり',790,s.ending);
-    this.button('showStop','大会を止める',28,886,360,40,()=>this.click('showStop'));
-    this.button('showRestart','最初から観る',412,886,360,40,()=>this.click('showRestart'));
-    this.button('showRebuild','プログラムを組み直す',28,938,744,40,()=>this.click('showRebuild'));
-    this.slider('volume','花火の音量',1010,s.volume,{compact:true});
-    this.slider('roomBrightness','部屋の明るさ',1078,s.roomBrightness,{compact:true});
+    this.wrap(s.showNotice??s.readiness?.setting??'',32,665,736,3);
+    this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,785,744,58,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
    }else{
-    this.selector('autoMusicFeeling','曲調・構成',580,s.autoMusicFeeling,{width:s.musicOriginal?744:360});
-    if(!s.musicOriginal)this.selector('autoMusicEars','穂の風景',580,s.autoMusicEars,{width:360,x:412});
-    this.button('musicReanalyze','解析をやり直す',28,681,s.musicOriginal?744:360,40,()=>this.click('musicReanalyze'));
-    if(!s.musicOriginal)this.button('showRebuild','別の組み合わせで作り直す',412,681,360,40,()=>this.click('showRebuild'));
-    this.button('showStop','大会を止める',28,729,360,36,()=>this.click('showStop'));
-    this.button('showRestart','最初から観る',412,729,360,36,()=>this.click('showRestart'));
-    this.button('showTC',s.betaTCEnabled?'TC・玉名を隠す':'TC・玉名を表示',28,799,744,48,()=>this.click('showTC'));
-    this.slider('musicVolume','音楽の音量',884,s.musicVolume,{compact:true});
-    this.slider('volume','花火の音量',974,s.volume,{compact:true});
-    this.slider('roomBrightness','部屋の明るさ',1064,s.roomBrightness,{compact:true});
+    this.button('showTC',s.betaTCEnabled?'TC・玉名を隠す  ●':'TC・玉名を表示  ○',28,656,744,62,()=>this.click('showTC'),{selected:s.betaTCEnabled});
+    if(!s.musicless)this.slider('musicVolume','音楽の音量',777,s.musicVolume,{compact:true});
+   }
+   this.slider('volume','花火の音量',901,s.volume,{compact:true});
+   this.slider('roomBrightness','部屋の明るさ',1025,s.roomBrightness,{compact:true});
+   if(this.adjusting){
+    c.fillStyle=panelTheme().overlay;c.fillRect(12,202,776,922);this.controls=this.controls.filter(control=>control.y<202);
+    this.text('演出を調整する',32,239,32,panelTheme().text);
+    this.button('adjustBack','戻る',636,212,136,56,()=>{this.adjusting=false;});
+    this.wrap(s.readiness?.setting??'',32,299,736,2);
+    if(s.selectionFailed||s.musicAnalysisBusy){
+     this.wrap(s.showNotice??'',32,390,736,5);
+     this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,650,744,64,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
+    }else if(s.musicless){
+     this.selector('program','大会プログラム',373,s.program);this.selector('mood','大会の雰囲気',483,s.mood);this.selector('ending','大会の終わり',593,s.ending);
+     this.button('showRebuild','プログラムを組み直す',28,735,744,64,()=>this.click('showRebuild'));
+    }else{
+     this.selector('autoMusicFeeling','曲調・構成',373,s.autoMusicFeeling);
+     if(!s.musicOriginal)this.selector('autoMusicEars','穂の風景',483,s.autoMusicEars);
+     this.button('musicReanalyze','解析をやり直す',28,627,744,64,()=>this.click('musicReanalyze'));
+     if(!s.musicOriginal)this.button('showRebuild','別の組み合わせで作り直す',28,713,744,64,()=>this.click('showRebuild'));
+    }
+    this.button('showStop','大会を止める',28,865,360,64,()=>this.click('showStop'),{danger:true});
+    this.button('showRestart','最初から観る',412,865,360,64,()=>this.click('showRestart'));
+    if(s.trackUndo)this.button('trackUndo','曲の削除を元に戻す',28,975,744,58,()=>this.click('trackUndo'));
    }
   }else if(this.page===1){
    this.button('showTrialBack','花火大会へ戻る',28,233,744,48,()=>this.click('showTrialBack'));
@@ -346,23 +356,24 @@ export class MRPanel{
     this.selector('size','玉の大きさ',451,s.size);
     if(s.palette)this.selector('palette','配色：外星 × 芯星／菊の色',555,s.palette);
     this.button('sample','この一発を試す',28,665,444,54,()=>this.click('sample'));
-    this.text('選んだ玉を下の左右へ仕込めます',490,691,18,'#ffe0a3',280);
+    this.text('選んだ玉を下の左右へ仕込めます',490,691,18,panelTheme().accent,280);
     this.button('loadLeft','左トリガーに仕込む',28,743,360,48,()=>this.click('loadLeft'));
     this.button('loadRight','右トリガーに仕込む',412,743,360,48,()=>this.click('loadRight'));
-    for(const [hand,x] of [['Left',28],['Right',412]]){c.fillStyle='#142536';c.beginPath();c.roundRect(x,805,360,86,10);c.fill();this.wrap(s['loaded'+hand]??'',x+16,826,328,2);}
+    for(const [hand,x] of [['Left',28],['Right',412]]){c.fillStyle=panelTheme().surface;c.beginPath();c.roundRect(x,805,360,86,10);c.fill();this.wrap(s['loaded'+hand]??'',x+16,826,328,2);}
     this.button('big','二尺玉の三重芯',28,918,360,48,()=>this.click('big'));
     this.button('finale','銀かむろの締め',412,918,360,48,()=>this.click('finale'));
     this.button('wideFinale','空いっぱいのかむろを見る',28,983,744,40,()=>this.click('wideFinale'));
 
    }
   }else if(this.page===2){
-   if(s.bridge){this.text(s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,'#ffe0a3');this.wrap(s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
+   if(s.bridge){this.text(s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
    this.range('height','街の底面の高さ（床から）',458,s.height,' m');}
    this.range('volume','花火の音量',566,s.volume);
    this.slider('roomBrightness','部屋の明るさ',674,s.roomBrightness,{compact:true});
    this.selector('towerColor','塔のライトアップ',785,s.towerColor);
+   this.selector('panelTheme','パネルの配色',994,s.panelTheme);
    if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
    this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));}
   }else{
@@ -370,18 +381,18 @@ export class MRPanel{
   }
 
   if(this.page===4&&!s.preparing)this.button('showTrialOpen','試し打ちを開く',28,1140,744,38,()=>this.click('showTrialOpen'));
-  if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,'#8caabb',736);
+  if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,panelTheme().muted,736);
   this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());
   this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});
-  this.text(this.controllerGrabbed?'移動中 · グリップを離すと、ここに置けます':'白い棒へビーム＋グリップ · スティックで角度と奥行き',32,1255,20,'#b8c9d4',736);
+  this.text(this.controllerGrabbed?'移動中 · グリップを離すと、ここに置けます':'白い棒へビーム＋グリップ · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
   if(this.page===4&&s.trackMenuOpen&&!this.picker){
-   this.controls=[];c.fillStyle='#0c1d2cf5';c.beginPath();c.roundRect(400,337,384,238,14);c.fill();
+   this.controls=[];c.fillStyle=panelTheme().overlay;c.beginPath();c.roundRect(400,337,384,238,14);c.fill();
    this.button('trackRename','曲名を変える',412,345,360,64,()=>this.click('trackRename'),{disabled:!s.trackCanRename});
    this.button('trackDelete','曲を削除する',412,421,360,64,()=>this.click('trackDelete'),{disabled:!s.trackCanRename,danger:true});
    this.button('trackMenuClose','閉じる',412,497,360,64,()=>this.click('trackMenuToggle'));
   }
   c.restore();
-  for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen','setlistSelect'].includes(control.id))control.y+=HEADER_GROWTH;
+  for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen'].includes(control.id))control.y+=HEADER_GROWTH;
   if(this.picker)this.drawPicker(s);
   this.texture.needsUpdate=true;
  }

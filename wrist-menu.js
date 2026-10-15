@@ -1,3 +1,4 @@
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
 import {drawPanelSurface} from './panel-surface.js';
 import * as T from './vendor/three.module.js';
 
@@ -101,12 +102,12 @@ export class WristMenu{
  }
  draw(){
   const c=this.ctx,active=this.read();this.controls=[];drawPanelSurface(c,W,H,{radius:26,border:'#ddc69585'});
-  c.textBaseline='middle';c.font='25px system-ui,sans-serif';c.fillStyle='#f2dfb5';c.fillText('クルッとパネル',24,38);
+  c.textBaseline='middle';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText('クルッとパネル',24,38);
   const views=[{id:'miniature',label:'街を見下ろす'},{id:'bridge',label:'橋の上から見上げる'},{id:'boat',label:'屋形船から見上げる'}];
   if(this.readCruiseStarted())views.push({id:'boat-start',label:'出航位置に戻る'});
   views.push({id:'diorama',label:'ジオラマサイズで観る'},{id:'tc-panel',label:this.readTC()?'TC・玉名を隠す':'TC・玉名を表示'});
   const buttons=[{id:'close',label:'×',x:444,y:12,w:52,h:52},...views.map((b,i)=>({...b,x:20,y:85+i*86,w:472,h:72}))];
-  for(const b of buttons){const selected=b.id==='tc-panel'?this.readTC():b.id==='show-info'?this.readInfo():b.id===(active?(this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?'#405568':selected?'#554931':'#1a2e40';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.textAlign='center';c.font='25px system-ui,sans-serif';c.fillStyle='#e8eef1';c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
-  c.font='17px system-ui,sans-serif';c.fillStyle='#a9c2cf';c.fillText('右の指 / コントローラー先端でタッチ',24,H-20);this.texture.needsUpdate=true;
+  for(const b of buttons){const selected=b.id==='tc-panel'?this.readTC():b.id==='show-info'?this.readInfo():b.id===(active?(this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?panelTheme().hover:selected?panelTheme().selected:panelTheme().surface;c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.strokeStyle=selected?panelTheme().selectedLine:panelTheme().line;c.lineWidth=1;c.stroke();c.textAlign='center';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
+  c.font=panelFont(17);c.fillStyle=panelTheme().muted;c.fillText('右の指 / コントローラー先端でタッチ',24,H-20);this.texture.needsUpdate=true;
  }
 }
