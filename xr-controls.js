@@ -63,7 +63,7 @@ export class XRControls{
     if(before){if(now[0]&&!before[0]){if(s.handedness==='left')this.wrist.toggle(viewer);else if(s.handedness==='right'){for(const [controller,grab] of this.grabs)if(grab.panel===this.sidebar)this.release(controller);this.sidebar.toggle();}}if(now[1]&&!before[1]&&s.handedness==='right')this.pause();}
    }
    const g=this.grabs.get(e.controller);
-   if(!g&&s.handedness==='left'&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.sidebar.picker&&!this.panels.some(p=>p.grab||p.sliderDrag))this.bridge.move(stickValue(gp.axes[2]),stickValue(gp.axes[3]),dt,viewer);
+   if(!g&&s.handedness==='left'&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.sidebar.picker&&!this.sidebar.scrollSources?.has(s)&&!this.panels.some(p=>p.grab||p.sliderDrag))this.bridge.move(stickValue(gp.axes[2]),stickValue(gp.axes[3]),dt,viewer);
    if(g){
     const x=stickValue(gp?.axes[2]),y=stickValue(gp?.axes[3]);
     if(g.town){
@@ -74,7 +74,7 @@ export class XRControls{
      const p=g.panel;if(!p.mesh.visible){this.release(e.controller);continue;}
      p.yawOffset=(p.yawOffset??0)-x*dt*1.2;g.distance=T.MathUtils.clamp(g.distance-y*dt*.65,.20,3);
      this.cast(e.controller);this.target.copy(this.ray.ray.direction).multiplyScalar(g.distance).add(this.ray.ray.origin);
-     this.facing.position.copy(this.target);this.facing.lookAt(viewer.position.x,p===this.sidebar?this.target.y:viewer.position.y,viewer.position.z);
+     this.facing.position.copy(this.target);this.facing.lookAt(viewer.position.x,this.target.y,viewer.position.z);
      this.rotation.setFromAxisAngle(this.up,p.yawOffset);p.mesh.quaternion.copy(this.facing.quaternion).premultiply(this.rotation);
      p.mesh.position.copy(this.target).sub(g.anchor.clone().applyQuaternion(p.mesh.quaternion));p.mesh.updateMatrixWorld(true);p.moved=true;
     }

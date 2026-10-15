@@ -6,7 +6,7 @@ export function organizePanel(){
  const move=(parent,id)=>parent.append($(id));
  const field=(parent,id)=>parent.append($(id).closest('label'));
  const details=(parent,title,id)=>{const el=make('details',{id});el.append(make('summary',{},title));parent.append(el);return el;};
- const hearts=make('div',{className:'panel-heart-actions'});for(const [id,text] of [['favoriteToggle','♡'],['favoriteListOpen','♥ 一覧']])hearts.append(make('button',{id},text));$('panel').prepend(hearts);const saved=make('p',{id:'favoriteSaveStatus',role:'status'});$('panel').append(saved);
+ const hearts=make('div',{className:'panel-heart-actions'});for(const [id,text] of [['favoriteListOpen','一覧'],['favoriteToggle','♡']])hearts.append(make('button',{id},text));$('panel').prepend(hearts);const saved=make('p',{id:'favoriteSaveStatus',role:'status'});$('panel').append(saved);
  const page=$('browserPage4'),old=make('div',{hidden:true});
  while(page.firstChild)old.append(page.firstChild);
  page.append(old);
@@ -33,9 +33,16 @@ export function organizePanel(){
  const row=make('div',{className:'show-button-row'});card.append(row);
  for(const [id,label] of [['showStop','止める'],['showRestart','最初から']])row.append(make('button',{id},label));
  move(card,'autoMusicCancel');move(card,'autoMusicProgress');move(card,'autoMusicStatus');move(card,'autoMusicRebuildFeedback');card.append(make('p',{id:'showNotice',role:'status',className:'show-notice'}));
- const playback=details(card,'再生位置・音量・部屋の明るさ','showPlayback');playback.open=true;
+ const playback=details(card,'音量・部屋の明るさ','showPlayback');playback.open=true;
  const seek=make('div',{id:'showMusicPlayback'});playback.append(seek);
  seek.append($('betaPanelTime').closest('.beta-seek-panel'));
+ for(const id of ['betaBack10','betaBack5','betaForward5'])$(id).hidden=true;
+ for(const id of ['betaFloatBack5','betaFloatForward5'])$(id).hidden=true;
+ const tcbar=$('betaReviewBar');tcbar.prepend(make('p',{id:'betaShellNames',className:'beta-shell-names'}));
+ const back5=$('betaFloatBack5'),forward5=$('betaFloatForward5');const tcbuttons=$('betaFloatPause').parentElement;tcbuttons.replaceChildren($('betaFloatBack10'),$('betaFloatPause'),make('button',{id:'betaFloatForward10'},'10秒送る'));
+ const songs=make('div',{className:'beta-song-buttons'});songs.append(make('button',{id:'betaPreviousTrack'},'前の曲'),make('button',{id:'betaNextTrack'},'次の曲'));tcbar.append(songs);const tcseek=make('label',{},'曲の再生位置');tcseek.append($('betaMusicSeek'));tcbar.insertBefore(tcseek,songs);old.append($('betaPanelTime').closest('.beta-seek-panel'));
+ // Detached compatibility nodes remain available to older callback wiring.
+ old.append(back5,forward5);
  const mix=$('musicVolume').closest('.music-mix');playback.append(mix);
  for(const el of mix.querySelectorAll('.mix-choices,.mix-hint,h3'))el.hidden=true;
  field(playback,'roomBrightness');
@@ -48,7 +55,10 @@ export function organizePanel(){
  move(advanced,'autoMusicRebuildFeedback');move(advanced,'autoMusicResult');move(advanced,'autoMusicAnalysisSource');field(advanced,'autoMusicPacing');
  move(advanced,'autoMusicExport');
  const scene=make('div',{id:'showSceneControls'});advanced.append(scene);field(scene,'musicScene');move(scene,'musicScenePlay');move(scene,'musicTimeline');move(scene,'musicTime');move(scene,'musicState');
- $('browserTab0').hidden=true;$('browserTab4').textContent='花火大会';
+ $('browserTab0').hidden=true;$('browserTab1').hidden=true;$('browserTab4').textContent='花火大会';
+ const trial=make('button',{id:'showTrialOpen'},'試し打ちを開く');card.append(trial);
+ $('browserPage1').prepend(make('button',{id:'showTrialBack'},'花火大会へ戻る'));
+ $('showInfo').hidden=true;const tc=make('button',{id:'showTC'},'TC・玉名を表示');card.append(tc);
  const views=details($('browserPage2'),'眺め方を変える','showViews');
  for(const id of ['diorama','boat','boatStart','bridge','showInfo','viewHint'])move(views,id);
  const flower=make('section',{id:'flowerStudyCard',className:'show-card'});$('browserPage1').prepend(flower);

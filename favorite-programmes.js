@@ -76,7 +76,7 @@ export class FavoriteRepository{
 }
 // Decode only the current song and one following song, rather than an entire festival.
 export class FavoriteFestival{
- constructor(rows,load){this.rows=clone(rows);this.load=load;this.index=0;this.armed=true;this.phase='armed';this.gapRemaining=0;this.cancelled=false;this.pending=new Map();this.current=null;}
+ constructor(rows,load){this.rows=clone(rows);this.load=load;this.index=0;this.armed=true;this.phase='armed';this.gapRemaining=0;this.cancelled=false;this.navigation=0;this.pending=new Map();this.current=null;}
  get row(){return this.rows[this.index];}
  get hasNext(){return this.index+1<this.rows.length;}
  get label(){return `${this.index+1} / ${this.rows.length}曲目 · ${this.row?.title??''}`;}
@@ -85,6 +85,11 @@ export class FavoriteFestival{
  prefetch(){if(this.hasNext&&!this.cancelled)this.get(this.index+1).catch(()=>{});}
  finishTail(){if(this.cancelled||!this.hasNext)return false;this.phase='gap';this.gapRemaining=3;return true;}
  tickGap(dt){if(this.phase!=='gap'||this.cancelled)return false;this.gapRemaining=Math.max(0,this.gapRemaining-Math.max(0,dt));return this.gapRemaining<=1e-8;}
- async advance(){if(this.cancelled||!this.hasNext)return null;const index=this.index+1,next=await this.get(index);if(this.cancelled)return null;this.pending.delete(this.index);this.index=index;this.current=next;return next;}
- cancel(){this.cancelled=true;this.pending.clear();this.current=null;}
+ async goTo(index){
+  if(this.cancelled||index<0||index>=this.rows.length)return null;
+  const navigation=++this.navigation,next=await this.get(index);if(this.cancelled||navigation!==this.navigation)return null;
+  this.pending.delete(this.index);this.index=index;this.current=next;return next;
+ }
+ async advance(){return this.hasNext?this.goTo(this.index+1):null;}
+ cancel(){this.navigation++;this.cancelled=true;this.pending.clear();this.current=null;}
 }

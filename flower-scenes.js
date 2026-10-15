@@ -121,7 +121,7 @@ function gardenAllocation(shots,fans){
 }
 // A lower mixed carpet and independent, stemless 5-go/shaku flowers above it.
 export function flowerGardenPassage(options={}){
- const bed=flowerCarpetPassage({...options,mixed:true}),upperShots=[];
+ const bed=flowerCarpetPassage({...options,mixed:options.mixed??true}),upperShots=[];
  const {firstOpening,duration,seed,color}=bed,upperRandom=variationRandom(seed,0x76f10a);
  for(let index=0,offset=.9;offset<duration-.25;index++,offset+=2.7){
   const family=upperShots.length%3,last=duration-offset<3.6,roll=upperRandom(),kind=options.creativeUpper&&index%3===1?(roll<.7?'butterfly':roll<.9?'planet':'drum'):family===0&&!last?'sunflower':family===1?'petalflower':'goldflower';

@@ -31,7 +31,7 @@ export class ShowInfoPanel{
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10],length=Math.hypot(x,z);if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
   // Physical metres, independent of the miniature/bridge town scale. Fixed
   // in the scene so looking up does not drag an overlay across the fireworks.
-  this.mesh.position.set(p.x+x*.58-z*.25,p.y-.25,p.z+z*.58+x*.25);this.mesh.lookAt(p.x,p.y,p.z);this.anchored=true;
+  this.mesh.position.set(p.x+x*.58-z*.25,p.y-.25,p.z+z*.58+x*.25);this.mesh.lookAt(p.x,this.mesh.position.y,p.z);this.anchored=true;
  }
  release(controller=null){if(!controller||this.grab?.controller===controller){this.grab=null;this.bar.material.opacity=.65;}}
  barHit(controller){

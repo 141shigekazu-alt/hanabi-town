@@ -1,4 +1,4 @@
-import {paletteOptions} from './fireworks.js?v=1.2.77';
+import {paletteOptions} from './fireworks.js?v=1.2.78';
 
 export const SHOW_FAMILIES=['traditional','pop','modern','mixed'];
 const labels={traditional:'伝統の玉を味わう',pop:'ポップに弾む',modern:'創造花火を楽しむ',mixed:'いろんな玉の競演'};
@@ -8,9 +8,9 @@ export function styleHash(seed,index=0){let x=(Number(seed)^Math.imul(index+1,0x
 export function drawProgrammeStyle(seed,variation=0,{feeling='auto',bpm=120}={}){
  const family=SHOW_FAMILIES[(styleHash(seed)%4+variation)%4],r=styleHash(seed,variation+5);
  const colors=feeling==='sentimental'?['cool','cool','gold','multi']:feeling==='grand'?['gold','gold','warm','cool','multi']:feeling==='bright'?['multi','multi','warm','cool']:['multi','warm','cool','gold'];
- const color=colors[r%colors.length],flowerFocus=family==='modern'&&(r>>>6)%3===0;
+ const color=colors[r%colors.length],landscape=['none','ears','flowers','sea','none','flowers','paddy','ears'][(styleHash(seed,41)%8+variation)%8],flowerFocus=landscape==='flowers';
  const staging=flowerFocus?'garden':(bpm<100?['solos','dialogue','flow']:['flow','dialogue','solos'])[(r>>>10)%3];
- return{version:1,seed:styleHash(seed,variation+17),family,color,staging,flowerFocus,label:labels[family],colorLabel:colorLabels[color],stagingLabel:stagingLabels[staging],description:[labels[family],colorLabels[color],stagingLabels[staging]].join(' · ')};
+ return{version:2,landscape,seed:styleHash(seed,variation+17),family,color,staging,flowerFocus,label:labels[family],colorLabel:colorLabels[color],stagingLabel:stagingLabels[staging],description:[labels[family],colorLabels[color],stagingLabels[staging]].join(' · ')};
 }
 export function shellFamily(kind){return ['candy','candyburst','candysenrin'].includes(kind)?'pop':['longstar','sparklelarge','butterfly','planet','drum','sunflower','petalflower','goldflower'].includes(kind)?'modern':kind==='ear'?null:'traditional';}
 function pool(family,size,flowers=false){

@@ -27,7 +27,7 @@ export function attachBetaPanelDrag(panel,handle,viewport){
  return {resize(){if(moved&&!panel.hidden){const box=panel.getBoundingClientRect();place(box.left,box.top);}},get dragging(){return !!grab;}};
 }
 
-const W=768,H=344,WIDTH=.42;
+const W=768,H=410,WIDTH=.42;
 export class BetaReviewPanel extends ShowInfoPanel{
  constructor({scene,click,set=()=>{}}){
   super({scene,timer:{},names:{},overlay:{},entries:[]});this.click=click;this.set=set;
@@ -48,26 +48,33 @@ export class BetaReviewPanel extends ShowInfoPanel{
   if(!state.musicActive)this.release();
   if(!this.enabled){this.release();this.anchored=false;return;}
   if(this.mesh.visible&&!this.anchored)this.anchor(transform);
-  const key=[state.current,state.duration,state.tail,state.running,state.busy,state.musicActive,state.seek].join('|');
+  const key=[state.current,state.duration,state.tail,state.running,state.busy,state.musicActive,state.seek,state.names,state.canPrevious,state.canNext,state.canPlay].join('|');
   if(key!==this.key){this.key=key;this.drawReview();}
  }
  drawReview(){
   const c=this.ctx,s=this.state;if(!s)return;c.clearRect(0,0,W,H);
   c.fillStyle='rgba(12,27,42,.90)';c.beginPath();c.roundRect(2,2,W-4,H-4,22);c.fill();c.strokeStyle='rgba(220,201,155,.6)';c.lineWidth=2;c.stroke();
-  c.textAlign='left';c.textBaseline='middle';c.font='bold 66px system-ui,sans-serif';c.fillStyle='#ffe7ad';c.fillText(s.current,28,62);
-  const next=28+c.measureText(s.current).width+15;c.font='35px system-ui,sans-serif';c.fillStyle='#b8c8d7';c.fillText('/ '+s.duration,next,66);
-  c.font='24px system-ui,sans-serif';c.fillStyle='#c3d2dc';c.fillText(!s.musicActive?'曲の開始前 · 再生後に操作できます':s.tail||'曲の時刻',28,110);
-  this.controls=[['betaFloatBack10','10秒戻る'],['betaFloatBack5','5秒戻る'],['betaFloatPause',!s.musicActive?'再生前':s.running?'一時停止':'再開'],['betaFloatForward5','5秒進む']].map(([id,label],i)=>{
-   const b={id,x:18+i*186,y:140,w:174,h:78};c.fillStyle=(s.busy||!s.musicActive)?'#16212b':'#21384b';c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();
-   c.textAlign='center';c.font='29px system-ui,sans-serif';c.fillStyle=(s.busy||!s.musicActive)?'#788895':'#edf3f8';c.fillText(label,b.x+b.w/2,b.y+b.h/2);return b;
-  });
+  c.textAlign='left';c.textBaseline='middle';c.font='bold 56px system-ui,sans-serif';c.fillStyle='#ffe7ad';c.fillText(s.current,28,45);
+  const next=28+c.measureText(s.current).width+15;c.font='30px system-ui,sans-serif';c.fillStyle='#b8c8d7';if(s.duration)c.fillText('/ '+s.duration,next,48);
+  c.font='23px system-ui,sans-serif';c.fillStyle='#e8d4a9';let line='',rows=[];
+  for(const char of s.names??'次の一玉を待つ'){if(c.measureText(line+char).width>W-56&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
+  rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2)text=text.slice(0,-1)+'…';c.fillText(text,28,98+i*29);});
+  this.controls=[];
+  const button=(id,label,x,y,w,h,disabled)=>{const b={id,x,y,w,h,disabled};c.fillStyle=disabled?'#16212b':'#21384b';c.beginPath();c.roundRect(x,y,w,h,10);c.fill();c.textAlign='center';c.font='28px system-ui,sans-serif';c.fillStyle=disabled?'#788895':'#edf3f8';c.fillText(label,x+w/2,y+h/2);this.controls.push(b);};
+  button('betaFloatBack10','10秒戻る',18,156,230,68,s.busy||!s.musicActive);
+  button('betaFloatPause',s.running?'一時停止':'再生',269,156,230,68,s.busy||!s.canPlay);
+  button('betaFloatForward10','10秒送る',520,156,230,68,s.busy||!s.musicActive);
   const disabled=s.busy||!s.musicActive,value=Math.max(0,Math.min(1,this.sliderDrag?this.sliderValue:s.seek??0)),trackX=46,trackW=676;
-  c.fillStyle=disabled?'#283744':'#3b5264';c.beginPath();c.roundRect(trackX,262,trackW,12,6);c.fill();
-  c.fillStyle=disabled?'#667789':'#ddc695';c.beginPath();c.roundRect(trackX,262,Math.max(1,value*trackW),12,6);c.fill();
-  c.fillStyle=disabled?'#788895':'#ffe7ad';c.beginPath();c.arc(trackX+value*trackW,268,17,0,Math.PI*2);c.fill();
-  c.font='23px system-ui,sans-serif';c.textAlign='left';c.fillStyle='#c3d2dc';c.fillText('はじめ',28,313);c.textAlign='center';c.fillText('曲の再生位置',W/2,313);c.textAlign='right';c.fillText('曲末',W-28,313);
-  this.controls.push({id:'betaMusicSeek',slider:true,x:18,y:234,w:W-36,h:65,trackX,trackW});this.texture.needsUpdate=true;
+  c.fillStyle=disabled?'#283744':'#3b5264';c.beginPath();c.roundRect(trackX,264,trackW,12,6);c.fill();
+  c.fillStyle=disabled?'#667789':'#ddc695';c.beginPath();c.roundRect(trackX,264,Math.max(1,value*trackW),12,6);c.fill();
+  c.fillStyle=disabled?'#788895':'#ffe7ad';c.beginPath();c.arc(trackX+value*trackW,270,17,0,Math.PI*2);c.fill();
+  c.font='22px system-ui,sans-serif';c.textAlign='center';c.fillStyle='#c3d2dc';c.fillText(s.tail||'曲の再生位置',W/2,307);
+  this.controls.push({id:'betaMusicSeek',slider:true,disabled,x:18,y:240,w:W-36,h:55,trackX,trackW});
+  button('betaPreviousTrack','前の曲',18,335,350,56,s.busy||!s.canPrevious);
+  button('betaNextTrack','次の曲',400,335,350,56,s.busy||!s.canNext);
+  this.texture.needsUpdate=true;
  }
+
  controlAt(x,y){return this.controls.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);}
  slideLocal(local){
   const control=this.controls.find(c=>c.slider);if(!control)return;
@@ -97,7 +104,7 @@ export class BetaReviewPanel extends ShowInfoPanel{
   if(!this.mesh.visible)return false;controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);
   if(this.sliderDrag)return true;this.controllerRay(controller);
   const hit=this.ray.intersectObject(this.mesh,false)[0];if(!hit)return false;
-  const button=this.controlAt(hit.uv.x*W,(1-hit.uv.y)*H);if(button&&!this.state.busy&&this.state.musicActive&&!this.grab&&!this.controllerGrabbed){if(button.slider)this.beginSlider({controller});else this.click(button.id);}return true;
+  const button=this.controlAt(hit.uv.x*W,(1-hit.uv.y)*H);if(button&&!button.disabled&&!this.grab&&!this.controllerGrabbed){if(button.slider)this.beginSlider({controller});else this.click(button.id);}return true;
  }
  touch(stamp,frame,referenceSpace,busy=false){
   if(!this.mesh.visible||!frame||busy||this.grab||this.controllerGrabbed){this.touches=new WeakMap();return;}
@@ -109,7 +116,7 @@ export class BetaReviewPanel extends ShowInfoPanel{
    if(this.sliderDrag){if(this.sliderDrag.source===source){if(Math.abs(local.z)>.045)this.release();else this.slideLocal(local);}continue;}
    const button=Math.abs(local.z)<.018?this.controlAt((local.x/WIDTH+.5)*W,(.5-local.y/(WIDTH*H/W))*H):null;
    const before=this.touches.get(source);this.touches.set(source,{id:button?.id,stamp});
-   if(button&&!this.state.busy&&this.state.musicActive&&(!before||before.id!==button.id||stamp-before.stamp>150)){if(button.slider)this.beginSlider({source},local);else this.click(button.id);}
+   if(button&&!button.disabled&&(!before||before.id!==button.id||stamp-before.stamp>150)){if(button.slider)this.beginSlider({source},local);else this.click(button.id);}
   }
   if(this.sliderDrag?.source&&!this.entries.some(e=>e.source===this.sliderDrag.source))this.release();
  }

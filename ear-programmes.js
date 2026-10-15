@@ -10,7 +10,8 @@ export function addEarPassages(plan,analysis,options,helpers){
  const {shellTiming,planBudget}=helpers,choice=earScene(options.earScene).id;
  plan.earScene=choice;plan.earPassages=[];
  const seed=(analysis.seed+Math.imul(options.variation??0,0x9e3779b9))>>>0;
- const intensity=choice==='auto'?['none','accent','feature'][((analysis.seed>>>7)+(options.variation??0))%3]:'feature';
+ const focus=options.programmeStyle?.landscape;
+ const intensity=choice==='auto'?(focus==='none'||focus==='flowers'?'none':'feature'):'feature';
  plan.earIntensity=intensity;
  // Retain deliberate finale ears, but replace scattered filler rows with a
  // chosen landscape. Some arrangements have no ears before the finale.
@@ -22,7 +23,7 @@ export function addEarPassages(plan,analysis,options,helpers){
  const span=s=>({start:s.at,end:s.opening+shellTiming(s.kind,s.size).life+.15});
  const blocks=plan.shots.filter(priority).map(s=>({start:s.at-.2,end:span(s).end+.2}));
  blocks.push(...(analysis.energy??[]).filter(e=>e.rms<(analysis.peak??0)*.0015).map(e=>({start:e.time,end:e.time+1})));
- blocks.push(...(plan.groundOnlyWindows??[]));
+
  const limit=Math.min(analysis.audibleEnd??analysis.duration,plan.finalPreviewStart??analysis.duration)-.25;
  const sections=analysis.sections??[],regions=[];
  for(let i=0;i<sections.length;i++){
@@ -34,13 +35,16 @@ export function addEarPassages(plan,analysis,options,helpers){
  for(const region of regions){
   if(intensity==='none'||plan.earPassages.length>=(intensity==='accent'?1:3))break;
   const lively=region.kind==='interlude'&&plan.directingProfile!=='slow';
-  const baseMode=choice!=='auto'?choice:(lively?['purple','sunset','green','red','orange']:[ 'gold','alternating','sunset','red','orange'])[((analysis.seed>>>11)+Math.floor((options.variation??0)/3)+plan.earPassages.length)%5];
+  const baseMode=choice!=='auto'?choice:(lively?['purple','sunset','green','red','orange']:['gold','alternating','green','purple','sunset','red','orange'])[((analysis.seed>>>11)+(options.variation??0)+plan.earPassages.length)%(lively?5:7)];
   for(const w of islands(region,[...blocks,...selected.map(x=>({start:x.start-5,end:x.end+5}))])){
    const firstOpening=w.start+1.65+.08;
    const mode=choice==='auto'&&intensity==='feature'&&['intro','interlude'].includes(region.kind)&&w.end-firstOpening>=30.5&&((analysis.seed>>>5)+(options.variation??0))%3===0?'sea-sunset':baseMode,withFlowers=mode==='green';
-   const long=(withFlowers||mode==='gold')&&w.end-firstOpening>16.8;
-   const sceneOptions={mode,firstOpening,duration:long?16:8,flowers:withFlowers,seed:(seed^Math.imul(plan.earPassages.length+1,0x41ef603d))>>>0};
-   const scene=mode==='sea-sunset'?seaSunsetPassage(sceneOptions):earLandscape(sceneOptions);
+   // Continue the same colour through the available phrase: one to six waves,
+   // rather than stopping after a single volley while the intro carries on.
+   const maxWaves=intensity==='accent'?1:Math.max(1,Math.min(6,1+Math.floor((w.end-firstOpening-7.4)/4.6)));
+   const sceneOptions={mode,firstOpening,duration:maxWaves>=3?16:8,waves:maxWaves,flowers:withFlowers,seed:(seed^Math.imul(plan.earPassages.length+1,0x41ef603d))>>>0};
+   let scene=mode==='sea-sunset'?seaSunsetPassage(sceneOptions):earLandscape(sceneOptions);
+   if(mode!=='sea-sunset')for(let waves=maxWaves-1;scene.end>w.end&&waves>=1;waves--)scene=earLandscape({...sceneOptions,waves});
    const window={start:scene.shots[0].at-.01,end:scene.end};
    if(window.end>w.end||window.start<w.start||blocks.some(b=>overlap(window,b)))continue;
    const shots=[...plan.shots.filter(s=>priority(s)||!overlap(window,span(s))),...scene.shots];
@@ -53,6 +57,7 @@ export function addEarPassages(plan,analysis,options,helpers){
    // replacement may never raise its peak above the greater of that or the local field allowance.
    const before=flowerProgrammeBudget(plan.shots,plan.fans,helpers,seed);
    if(combined.peakPoints>Math.max(EAR_FIELD_POINT_LIMIT,before.peakPoints))continue;
+   plan.groundOnlyWindows=(plan.groundOnlyWindows??[]).filter(w=>!overlap(window,w));
    plan.shots=shots;plan.fans=fans;plan.earLimit=EAR_FIELD_LIMIT;plan.upperPointBudget=EAR_FIELD_POINT_LIMIT;plan.standardEarLimit=14;plan.standardPointBudget=64000;
    if(plan.slowScenes)plan.slowScenes=plan.slowScenes.filter(s=>!overlap(window,s));
    const label=earScene(mode).label,seconds=Math.round(scene.lastExtinction-scene.firstOpening);

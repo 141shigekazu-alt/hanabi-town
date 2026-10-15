@@ -33,7 +33,7 @@ export function addFlowerPassages(plan,analysis,options,helpers){
  if(!lively||plan.directingProfile==='slow')return plan;
  const planSeed=(analysis.seed+Math.imul(options.variation??0,0x9e3779b9))>>>0;
  const protectedShot=s=>s.group==='auto-finale'||/^auto-chorus-(?:entry|repeat|follow)/.test(s.group??'');
- const protectedWindows=plan.shots.filter(protectedShot).map(s=>({start:s.at-.15,end:s.opening+shellTiming(s.kind,s.size).life+.25}));
+ const protectedWindows=plan.shots.filter(s=>s.group==='auto-finale').map(s=>({start:s.at-.15,end:s.opening+shellTiming(s.kind,s.size).life+.25}));
  protectedWindows.push(...(analysis.energy??[]).filter(e=>e.rms<(analysis.peak??0)*.0015).map(e=>({start:e.time,end:e.time+1})));
  protectedWindows.push(...(plan.earPassages??[]).map(w=>({start:w.start,end:w.end})));
  protectedWindows.push(...(plan.groundOnlyWindows??[]).map(w=>({start:w.start,end:w.end})));
@@ -62,21 +62,26 @@ export function addFlowerPassages(plan,analysis,options,helpers){
    const available=w.end-firstOpening-3.2-.35;
    if(available<10)continue;
    const long=available>=15&&(region.kind==='interlude'||(options.variation??0)%2===0),duration=long?15:10;
-   const passage=flowerGardenPassage({firstOpening,duration,period:analysis.period,creativeUpper:!!options.programmeStyle,seed:(planSeed^Math.imul(plan.flowerPassages.length+1,0x531a2f9d))>>>0});
+   const variant=((analysis.seed>>>4)+Math.floor((options.variation??0)/3)+plan.flowerPassages.length)%3===0?'dandelion':'garden';
+   const passage=flowerGardenPassage({firstOpening,duration,period:analysis.period,mixed:variant!=='dandelion',color:variant==='dandelion'?'flower-yellow':'five',creativeUpper:!!options.programmeStyle,seed:(planSeed^Math.imul(plan.flowerPassages.length+1,0x531a2f9d))>>>0});
    const window={start:passage.shots[0].at-.01,end:passage.end};
    if(blocked.some(b=>overlap(window,b)))continue;
    // Flower beds replace ordinary gestures in their own passage, including tails
    // entering it. Priority chorus/finale gestures were protected above.
    const keptShots=plan.shots.filter(s=>protectedShot(s)||!overlap(window,{start:s.at,end:s.opening+shellTiming(s.kind,s.size).life+.1}));
    const keptFans=plan.fans.filter(f=>!overlap(window,groundReservation(f,planSeed)));
-   const shots=[...keptShots,...passage.shots],fans=[...keptFans,...passage.fans];
+   let passageShots=[...passage.shots],shots=[...keptShots,...passageShots];const fans=[...keptFans,...passage.fans];
+   // Musical anchor shells keep their time and shape. Yield only optional upper
+   // flowers when they need room above the complete lower carpet.
+   const fieldFits=()=>flowerProgrammeBudget(shots.filter(s=>overlap(window,{start:s.at,end:s.opening+shellTiming(s.kind,s.size).life+.1})),fans.filter(f=>overlap(window,groundReservation(f,planSeed))),helpers,planSeed).peakPoints<=64000;
+   while(!earProgrammeFits(shots,helpers)||!fieldFits()){const upper=passageShots.find(s=>s.group==='auto-flower-garden-upper');if(!upper)break;passageShots=passageShots.filter(s=>s!==upper);shots=[...keptShots,...passageShots];}
    const b=planBudget(shots),g=groundCapacity(fans,planSeed);
-   if(!earProgrammeFits(shots,helpers)||g.small>1536||g.large>96)continue;
+   if(!earProgrammeFits(shots,helpers)||!fieldFits()||g.small>1536||g.large>96)continue;
    // New passage allocation must leave room for both aerial and ground fields.
    const own=flowerProgrammeBudget(passage.shots,passage.fans,helpers,planSeed);
    if(own.peakPoints>64000)continue;
    plan.shots=shots;plan.fans=fans;
-   const cue={start:round(window.start),end:round(window.end),firstOpening:round(firstOpening),lastOpening:round(firstOpening+duration),duration,count:passage.count,upperCount:passage.upperCount,totalCount:passage.totalCount,kind:region.kind,label:'花の絨毯と上空の花園 · '+duration+'秒'};
+   const cue={start:round(window.start),end:round(window.end),firstOpening:round(firstOpening),lastOpening:round(firstOpening+duration),duration,variant,count:passage.count,upperCount:passageShots.filter(s=>s.group==='auto-flower-garden-upper').length,totalCount:passageShots.length,kind:region.kind,label:(variant==='dandelion'?'タンポポの花畑':'５色の花の絨毯と上空の花園')+' · '+duration+'秒'};
    plan.flowerPassages.push(cue);committedWindows.push(window);
    const removedFeatures=plan.featureCues.filter(c=>!shots.some(s=>s.group==='auto-feature'&&s.kind===c.kind&&Math.abs((s.anchor??s.opening)-c.at)<.001));
    plan.sections=plan.sections.filter(c=>!removedFeatures.some(f=>Math.abs(c.at-Math.max(0,f.at-6))<.001));
