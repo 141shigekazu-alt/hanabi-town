@@ -6,7 +6,7 @@ export function parseVoiceRequest(input){
  // A local rule parser cannot safely interpret arbitrary negation or exclusions.
  if(/(?:じゃなく|ではなく|以外|しないで|上げない|出さない|避け|やめて|いらない|要らない)/.test(text)){result.summary='「金色で、ぽつりぽつり」のように、上げたい花火を教えてください。';return result;}
  if(/海|うみ|波|水辺/.test(text)){result.landscape='sea';result.color='cool';}
- if(/金色|金いろ|ゴールド|黄金|黄色|金の/.test(text))result.color='gold';
+ if(/金色|金いろ|きんいろ|キンイロ|きいろ|キイロ|きにろ|キニロ|ゴールド|黄金|黄色|金の/.test(text))result.color='gold';
  else if(/カラフル|色とりどり|いろとりどり|色取り取り|七色|虹色|キャンディ|多色/.test(text))result.color='multi';
  else if(/紫|むらさき|パープル/.test(text))result.color='violet';
  else if(/青|水色|寒色|涼し|冷た/.test(text))result.color='cool';

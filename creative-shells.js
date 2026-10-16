@@ -27,8 +27,9 @@ export function createCreativeStars(kind,size,seed,{pose='natural'}={}){
  if(!isCreativeShell(kind)||![5,10].includes(size))throw Error('創造花火は５号／尺玉で試作中です。');
  const r=variationRandom(seed,0xc4ea7171),stars=[],large=size===10;
  const signed=()=>r()*2-1;
- const roll=(kind==='planet'?-.55:kind==='butterfly'?-.10:0)+signed()*.07;
- const yaw=pose==='side'?.88:pose==='front'?0:signed()*.22,pitch=pose==='front'?0:signed()*.09;
+ let roll=(kind==='planet'?-.55:kind==='butterfly'?-.10:0)+signed()*.07;
+ let yaw=pose==='side'?.88:pose==='front'?0:signed()*.22,pitch=pose==='front'?0:signed()*.09;
+ if(kind==='drum'&&pose==='natural'){const orientation=variationRandom(seed,0xd2a08601);roll=orientation()*Math.PI;yaw=(orientation()*2-1)*.65;pitch=(orientation()*2-1)*.38;}
  const sx=1+signed()*.025,sy=1+signed()*.025;
  const add=(vector,group,extra={})=>{
   const len=Math.hypot(...vector),direction=rotate(unit(...vector),roll,yaw,pitch);
