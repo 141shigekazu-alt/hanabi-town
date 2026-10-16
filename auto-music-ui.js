@@ -232,7 +232,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicWatch').onclick=()=>{if(!retained||busy||roomOpening)return;onReady(retained);document.getElementById('musicShow').click();};
  $('autoMusicManual').onclick=()=>{if(retained?.manualId&&!busy&&!roomOpening)onManual(retained.manualId);};
  $('autoMusicExport').onclick=()=>{
-  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.88',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.89',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  for(const event of ['dragenter','dragover'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.add('dragging');});
  drop.addEventListener('dragleave',()=>drop.classList.remove('dragging'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('dragging');if(e.dataTransfer.files[0])generate(e.dataTransfer.files[0]);});

@@ -289,7 +289,7 @@ export class MRPanel{
  drawVoiceControls(s){
   const v=s.voice??{},c=this.ctx,recording=v.phase==='recording',preparing=['permission','loading','starting'].includes(v.phase);
   this.button('voiceOpen',recording?'■ 停止':preparing?'◌':'🎤',28,628,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
-  this.text('あなたのイメージをAIに話す',132,650,23,panelTheme().text,620);
+  this.text('あなたのイメージをAIに話す',132,650,23,panelTheme().text,490);this.text('テスト版',640,650,18,panelTheme().muted,112);
   this.text('20秒まで録音 · 話し終わったら「停止」',132,679,20,panelTheme().muted,620);
   if(v.busy){
    if(preparing){
@@ -300,8 +300,8 @@ export class MRPanel{
   }else if(v.hasDraft||v.transcript){
    this.wrap(v.hasDraft?'✓ 希望を受け取りました。下の構成変更ボタンで反映します。':v.status??'',32,724,736,2);
    this.wrap(v.transcript?'「'+v.transcript+'」':'',32,795,736,2);
-   this.wrap(v.summary??'',32,864,736,2);
-   if(v.hasDraft)this.button('voiceDiscard','声の希望を取り消す',412,925,360,36,()=>this.click('voiceDiscard'),{quiet:true});
+   this.wrap(v.summary??'',32,850,736,3);
+   if(v.hasDraft)this.button('voiceDiscard','声の希望を取り消す',412,934,360,30,()=>this.click('voiceDiscard'),{quiet:true});
   }else if(v.error){this.wrap(v.status??'',32,730,736,5);}
   else{
    this.wrap('例：「夜空をイメージした曲なので、金色系の花火をたくさん出して」',32,730,736,2);

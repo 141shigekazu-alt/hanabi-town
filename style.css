@@ -148,3 +148,5 @@ html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaRevi
 #voiceDetail{margin-bottom:12px}
 @keyframes voice-preparing-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){#voiceStatus::before{animation:none!important}}
+
+.voice-test-label{font-size:11px;color:var(--panel-muted,#a7b5c6);border:1px solid var(--panel-border,#354758);border-radius:5px;padding:1px 6px;white-space:nowrap;flex-shrink:0}

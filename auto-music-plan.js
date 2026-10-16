@@ -1,3 +1,4 @@
+import {requestedFinale} from './voice-finale.js';
 import {voiceProgrammeStyle} from './voice-request.js';
 import {addGoldAccents} from './gold-accents.js';
 import {directVoicePlan} from './voice-director.js';
@@ -9,13 +10,13 @@ import {flowerPalette} from './retired-shells.js';
 import {petalGeometry} from './flower-scenes.js';
 import {addFlowerPassages} from './flower-programmes.js';
 import {directMusicFeeling,musicFeeling} from './music-feeling.js';
-import {automaticRepeatHeads} from './auto-repeat-heads.js?v=1.2.88';
-import {createSlowMusicPlan} from './auto-music-slow.js?v=1.2.88';
-import {SIZES,TYPES,EAR_PROFILE} from './fireworks.js?v=1.2.88';
-import {longStarCounts,longStarLife} from './long-stars.js?v=1.2.88';
-import {sparkleCounts,sparkleLife} from './sparkling-stars.js?v=1.2.88';
-import {createCometPattern} from './comets.js?v=1.2.88';
-import {createStarBundlePattern} from './star-bundles.js?v=1.2.88';
+import {automaticRepeatHeads} from './auto-repeat-heads.js?v=1.2.89';
+import {createSlowMusicPlan} from './auto-music-slow.js?v=1.2.89';
+import {SIZES,TYPES,EAR_PROFILE} from './fireworks.js?v=1.2.89';
+import {longStarCounts,longStarLife} from './long-stars.js?v=1.2.89';
+import {sparkleCounts,sparkleLife} from './sparkling-stars.js?v=1.2.89';
+import {createCometPattern} from './comets.js?v=1.2.89';
+import {createStarBundlePattern} from './star-bundles.js?v=1.2.89';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const round=x=>+x.toFixed(4)||0;
 export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
@@ -34,7 +35,7 @@ export function planBudget(shots){
  let upper=0,ears=0,points=0,peakUpper=0,peakEars=0,peakPoints=0;for(const e of events){upper+=e.upper;ears+=e.ears;points+=e.points;peakUpper=Math.max(peakUpper,upper);peakEars=Math.max(peakEars,ears);peakPoints=Math.max(peakPoints,points);}
  return {peakUpper,peakEars,peakPoints};
 }
-function createRhythmicMusicPlan(analysis,{title='好きな曲',style='auto',variation=0,feeling='auto'}={}){
+function createRhythmicMusicPlan(analysis,{title='好きな曲',style='auto',variation=0,feeling='auto',voiceRequest=null,programmeStyle=null}={}){
  const duration=analysis.duration;if(!analysis.sections?.length||!analysis.beats?.length)throw Error('曲の区切りを見つけられませんでした。');
  const shots=[],fans=[],sections=[],groundOnlyWindows=[],arrangements=[],chorusEntryCues=[],chorusFollowCues=[],repeatEntryCues=[],featureCues=[],groundReservations=[];
  const upperLimit=14,earLimit=14,upperPointBudget=64000;
@@ -81,20 +82,21 @@ function createRhythmicMusicPlan(analysis,{title='好きな曲',style='auto',var
  const last=analysis.energy.filter(e=>e.time>=analysis.audibleEnd-7&&e.time<analysis.audibleEnd-1),lastLevel=last.reduce((s,e)=>s+e.level,0)/Math.max(1,last.length);
  const exuberant=feeling!=='sentimental'&&(style==='lively'||style==='auto'&&lastLevel>.55);
  const calmFinale=analysis.bpm>=115?(analysis.chorus?.length?'core-crescendo':'color-afterglow'):'silver-cascade';
- const finaleChoice=exuberant?pick(['silver-curtain','festival'],variation):pick([calmFinale,...['silver-cascade','color-afterglow','core-crescendo'].filter(k=>k!==calmFinale)],variation);
+ const automaticFinale=exuberant?pick(['silver-curtain','festival'],variation):pick([calmFinale,...['silver-cascade','color-afterglow','core-crescendo'].filter(k=>k!==calmFinale)],variation);
  const finalOpening=exuberant?Math.min(duration+.25,analysis.audibleEnd+.25):Math.max(7,analysis.audibleEnd-2.8);
+ const voiceFinale=requestedFinale(voiceRequest,{candidate,row,finalOpening,style:programmeStyle}),finaleChoice=voiceFinale?.kind??automaticFinale;
  const finaleLabels={'silver-curtain':'銀かむろで空を覆う','festival':'小玉から多重芯と銀へ','core-crescendo':'八重芯から二尺の多重芯へ','color-afterglow':'色の大星と穂の余韻','silver-cascade':'銀かむろを段階的に重ねる'};
- let finale=[];
+ let finale=voiceFinale?.shots??[];
  if(finaleChoice==='silver-curtain')finale=[...row(finalOpening-.25,'silver',5,7,'original','auto-finale',.32,{wide:true,heightOffset:-.16}),...row(finalOpening,'silver',10,3,'original','auto-finale',.65,{wide:true}),candidate('silver',20,finalOpening+.2,'auto-finale',0,'original',{wide:true})];
  if(finaleChoice==='festival')finale=[...row(finalOpening-3,'candy',5,3,'candy-mix','auto-finale',.65),...row(finalOpening-1.5,'longstar',5,2,'long-gold','auto-finale',1.1),candidate('quad',20,finalOpening,'auto-finale',0),...row(finalOpening+.2,'silver',10,3,'original','auto-finale',.65,{wide:true})];
  if(finaleChoice==='core-crescendo')finale=[...row(finalOpening-4,'longstar',5,2,'long-blue','auto-finale',1.05),...row(finalOpening-1.5,'double',10,2,'original','auto-finale',.92),candidate('triple',20,finalOpening-.5,'auto-finale',-.30),candidate('penta',20,finalOpening+.2,'auto-finale',.30)];
  if(finaleChoice==='color-afterglow')finale=[...row(finalOpening-3,'ear',2,7,'ear-aqua','auto-finale',.27),...row(finalOpening-2,'longstar',10,2,'long-purple','auto-finale',.98),candidate('sparklelarge',20,finalOpening,'auto-finale',0,'long-blue',{whistle:true})];
  if(finaleChoice==='silver-cascade')finale=[...row(finalOpening-2,'silver',5,5,'original','auto-finale',.40,{wide:true,heightOffset:-.16}),...row(finalOpening-.7,'silver',10,2,'original','auto-finale',1.0,{wide:true}),candidate('silver',20,finalOpening,'auto-finale',0,'original',{wide:true})];
- let finalLabel=finaleLabels[finaleChoice];
+ let finalLabel=voiceFinale?.label??finaleLabels[finaleChoice];
  if(!commit(finale)){commit([candidate('sparklelarge',20,finalOpening,'auto-finale',0,'long-blue')]);finalLabel='最後の一輪';}
  const finaleQuietStart=Math.max(0,Math.min(...shots.map(s=>s.at))-2),bodyEnd=Math.max(0,finaleQuietStart-1);
  sections.push({at:finaleQuietStart,label:'締めへ目線を集める'},{at:finalOpening,label:finalLabel});
- ground(Math.max(.1,finaleQuietStart),exuberant?'grand-fan-cross':'small-stream-cross',exuberant?'silver':'mountain-blue',{motionRate:.85,interval:.16});
+ if(!voiceFinale||voiceFinale.grand){ground(Math.max(.1,finaleQuietStart),exuberant?'grand-fan-cross':'small-stream-cross',exuberant?'silver':'mountain-blue',{motionRate:.85,interval:.16});}
  ground(Math.max(.1,finalOpening-1),exuberant?'small-color-row':'curtain',exuberant?'tora-row-mix':'silver');
  const quietChoruses=feeling==='festival'?[]:analysis.sections.filter((s,i)=>s.role==='chorus'&&(s.level<.30||s.level<.60&&(analysis.sections[i-1]?.level??0)-s.level>.25));
  const isQuietOpening=at=>quietChoruses.some(s=>at>=s.at-7&&at<s.end-.01);
@@ -230,7 +232,7 @@ function createRhythmicMusicPlan(analysis,{title='好きな曲',style='auto',var
  }
  shots.sort((a,b)=>a.at-b.at);shots.forEach((s,i)=>{s.reviewIndex=i;s.position.earSeed=(planSeed+i*313)>>>0;});fans.sort((a,b)=>a.at-b.at);if(!sections.some(s=>s.at===0))sections.push({at:0,label:'好きな曲の幕開け'});sections.sort((a,b)=>a.at-b.at);
  const showDuration=Math.max(duration+1,...shots.map(s=>s.opening+shellTiming(s.kind,s.size).life+2),...groundReservations.map(r=>r.end+1));
- return {title,revision:'1.2.88 · サビから金の三号へ',autoGenerated:true,duration,showDuration,tempoEstimate:analysis.bpm,finalOpening,finale:{kind:finaleChoice,label:finalLabel},finalPreviewStart:Math.max(0,finaleQuietStart-3),middlePreviewStart:duration*.45,pyramidAt:duration*.5,upperLimit,earLimit,upperPointBudget,sections,shots,fans,beats:analysis.beats,energy:analysis.energy,groundOnlyWindows,arrangements,chorusEntryCues,chorusFollowCues,repeatEntryCues,featureCues,analysisSummary:{structureModel:analysis.structure?.model||null,chorusCount:analysis.chorus?.length||0,repeatEntryCount:repeatEntryCues.length,fastSmallShots:shots.filter(s=>s.group==='auto-fast-small').length,goldSmallShots:shots.filter(s=>s.size===3&&(['willow','silver'].includes(s.kind)||s.kind==='kiku'&&s.position.palette==='original')).length,beatConfidence:analysis.beatConfidence,sectionCount:analysis.sections.length,style,variation,audibleEnd:analysis.audibleEnd,shellKinds:[...new Set(shots.filter(s=>s.kind!=='ear').map(s=>s.kind))],groundModes:[...new Set(fans.map(f=>f.mode))]},budget:planBudget(shots),method:analysis.method+'; seeded phrase decks, natural launch variation, independent ground dialogue, varied finales and gold small shells following chorus entries. No existing authored plan or song title used in directing.'};
+ return {title,revision:'1.2.89 · サビから金の三号へ',autoGenerated:true,duration,showDuration,tempoEstimate:analysis.bpm,finalOpening,finale:{kind:finaleChoice,label:finalLabel},finalPreviewStart:Math.max(0,finaleQuietStart-3),middlePreviewStart:duration*.45,pyramidAt:duration*.5,upperLimit,earLimit,upperPointBudget,sections,shots,fans,beats:analysis.beats,energy:analysis.energy,groundOnlyWindows,arrangements,chorusEntryCues,chorusFollowCues,repeatEntryCues,featureCues,analysisSummary:{structureModel:analysis.structure?.model||null,chorusCount:analysis.chorus?.length||0,repeatEntryCount:repeatEntryCues.length,fastSmallShots:shots.filter(s=>s.group==='auto-fast-small').length,goldSmallShots:shots.filter(s=>s.size===3&&(['willow','silver'].includes(s.kind)||s.kind==='kiku'&&s.position.palette==='original')).length,beatConfidence:analysis.beatConfidence,sectionCount:analysis.sections.length,style,variation,audibleEnd:analysis.audibleEnd,shellKinds:[...new Set(shots.filter(s=>s.kind!=='ear').map(s=>s.kind))],groundModes:[...new Set(fans.map(f=>f.mode))]},budget:planBudget(shots),method:analysis.method+'; seeded phrase decks, natural launch variation, independent ground dialogue, varied finales and gold small shells following chorus entries. No existing authored plan or song title used in directing.'};
 }
 
 // Keep the proven rhythmic director and its random sequence intact.
