@@ -59,7 +59,7 @@ export class WristMenu{
  }}
  open(transform){
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10],length=Math.hypot(x,z);if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
-  this.beforeOpen();if(!this.moved){this.mesh.position.set(p.x+x*.48+z*.23,p.y-.24,p.z+z*.48-x*.23);this.mesh.lookAt(p.x,this.mesh.position.y,p.z);this.yawOffset=0;}this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.touch.reset();this.hover='';this.draw();
+  this.beforeOpen();if(!this.moved){this.mesh.position.set(p.x+x*.85+z*.70,p.y-.20,p.z+z*.85-x*.70);this.mesh.lookAt(p.x,this.mesh.position.y,p.z);this.yawOffset=0;}this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.touch.reset();this.hover='';this.draw();
  }
  close(){this.gesture.reset();this.mesh.visible=false;this.cursor.visible=false;for(const e of this.entries){e.beam.visible=false;e.touchTip.visible=false;}}
  end(){this.moved=false;this.close();this.gesture.reset();this.touch.reset();this.ignoreController=null;this.ignoreUntil=0;for(const d of this.handDisplays)d.lines.visible=false;}

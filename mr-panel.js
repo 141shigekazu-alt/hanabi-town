@@ -49,7 +49,7 @@ export class MRPanel{
   this.parentCanvas.getContext('2d').clearRect(0,0,W,H);this.parentCanvas.getContext('2d').drawImage(this.surface,0,0);this.parentTexture.needsUpdate=true;
   this.childView={position:this.mesh.position.clone(),quaternion:this.mesh.quaternion.clone(),scale:this.mesh.scale.clone(),moved:this.moved,yawOffset:this.yawOffset,renderOrder:this.mesh.renderOrder,barOrder:this.bar.renderOrder,cursorOrder:this.cursor.renderOrder,beamOrders:this.controllers.map(e=>e.beam.renderOrder)};
   this.parentSurface.position.copy(this.mesh.position);this.parentSurface.quaternion.copy(this.mesh.quaternion);this.parentSurface.scale.copy(this.mesh.scale);this.parentSurface.visible=true;this.parentSurface.updateMatrixWorld(true);
-  this.mesh.position.add(new T.Vector3(0,0,.06).applyQuaternion(this.mesh.quaternion));this.mesh.scale.multiplyScalar(.9);this.mesh.renderOrder=1008;this.bar.renderOrder=1009;this.cursor.renderOrder=1010;this.controllers.forEach(e=>e.beam.renderOrder=1011);this.mesh.updateMatrixWorld(true);this.childChanged(true);
+  this.mesh.position.add(new T.Vector3(.13,-.03,.14).applyQuaternion(this.mesh.quaternion));this.mesh.scale.multiplyScalar(.84);this.mesh.renderOrder=1008;this.bar.renderOrder=1009;this.cursor.renderOrder=1010;this.controllers.forEach(e=>e.beam.renderOrder=1011);this.mesh.updateMatrixWorld(true);this.childChanged(true);
  }
  endChildView(){
   const saved=this.childView;if(!saved)return;this.childView=null;this.parentSurface.visible=false;
@@ -67,7 +67,7 @@ export class MRPanel{
   controller.addEventListener('selectend',()=>this.release(controller));
 
  }
- openAt(transform,{side=.38,distance=1.05,drop=.08}={}){
+ openAt(transform,{side=.88,distance=1.2,drop=.12}={}){
   if(!transform)return;this.endChildView();this.lastTransform=transform;
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10];const length=Math.hypot(x,z);
   if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
@@ -318,7 +318,7 @@ export class MRPanel{
    this.button('trackMenuToggle','…',694,245,78,60,()=>this.click('trackMenuToggle'),{disabled:!s.trackCanRename});
    const ready=s.readiness?.phase==='ready',err=s.readiness?.phase==='error';
    this.text(s.readiness?.heading??'準備中…',486,221,21,err?'#ffbeb4':ready?'#9ed5b9':panelTheme().accent,282);
-   this.text((s.musicless?'音楽なし':s.autoMusicFeeling.selected)+' ／ 構成 '+(s.normalBuildNumber??1),32,334,22,panelTheme().muted,736);
+   this.text(s.analysisFeedback?.phase==='complete'?'✓ 解析が完了しました':(s.musicless?'音楽なし':s.autoMusicFeeling.selected)+' ／ 構成 '+(s.normalBuildNumber??1),32,334,22,s.analysisFeedback?.phase==='complete'?panelTheme().accent:panelTheme().muted,736);
    this.button('showWatch',s.showWatchLabel??'▶ 花火大会を開演',28,365,744,88,()=>this.click('showWatch'),{primary:true,disabled:!!s.showWatchDisabled});
    if(s.setlistSelect?.options?.length>1)this.button('setlistSelect',s.setlistSelect.selected+'  ▾',28,475,744,60,()=>{this.picker={id:'setlistSelect',offset:0};});
    else this.text('気に入った大会は、右上の ♥ から保存できます',32,505,23,panelTheme().muted,736);
@@ -337,22 +337,33 @@ export class MRPanel{
     c.clearRect(12,202,776,922);c.fillStyle=panelTheme().overlay;c.fillRect(12,202,776,922);this.controls=this.controls.filter(control=>control.y<202);
     this.text('花火大会  ›  演出を調整する',32,218,22,panelTheme().muted,736);
     this.text('演出を調整する',32,272,34,panelTheme().text);
-    this.text(s.readiness?.setting??'',32,325,23,panelTheme().muted,736);
-    if(s.selectionFailed||s.musicAnalysisBusy){
-     this.wrap(s.showNotice??'',32,390,736,5);
+    if(s.analysisFeedback?.inChild){
+     const a=s.analysisFeedback;
+     this.text(a.busy?'曲を解析中…':a.phase==='complete'?'✓ 解析が終わりました':a.phase==='error'?'解析できませんでした':'解析を中止しました',32,340,32,panelTheme().accent,736);
+     this.text(a.title??'',32,400,27,panelTheme().text,736);
+     this.wrap(a.status??'',32,468,736,6);
+     c.fillStyle=panelTheme().track;c.fillRect(32,704,736,8);c.fillStyle=panelTheme().accent;c.fillRect(32,704,736*Math.max(0,Math.min(1,a.progress??0)),8);
+     if(a.busy)this.button('autoMusicCancel','解析を中止する',28,770,744,64,()=>this.click('autoMusicCancel'));
+     else if(a.phase==='complete')this.text('まもなく花火大会へ戻ります',32,782,25,panelTheme().muted,736);
+    }else if(s.selectionFailed||s.musicAnalysisBusy){
+     this.wrap(s.readiness?.setting??s.showNotice??'',32,390,736,5);
      this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,650,744,64,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
     }else if(s.musicless){
      this.selector('program','大会プログラム',373,s.program);this.selector('mood','大会の雰囲気',483,s.mood);this.selector('ending','大会の終わり',593,s.ending);
-     this.button('showRebuild','プログラムを組み直す',28,735,744,64,()=>this.click('showRebuild'));
+     this.button('showRebuild','打ち上げ玉の構成を変える',28,735,744,64,()=>this.click('showRebuild'));
     }else{
      this.selector('autoMusicFeeling','曲調・構成',373,s.autoMusicFeeling);
      if(!s.musicOriginal)this.selector('autoMusicEars','穂の風景',483,s.autoMusicEars);
      this.button('musicReanalyze','解析をやり直す',28,627,744,64,()=>this.click('musicReanalyze'));
-     if(!s.musicOriginal)this.button('showRebuild','別の組み合わせで作り直す',28,713,744,64,()=>this.click('showRebuild'));
+     if(!s.musicOriginal)this.button('showRebuild','打ち上げ玉の構成を変える',28,713,744,64,()=>this.click('showRebuild'));
     }
-    this.button('showStop','大会を止める',28,865,360,64,()=>this.click('showStop'),{danger:true});
-    this.button('showRestart','最初から観る',412,865,360,64,()=>this.click('showRestart'));
-    if(s.trackUndo)this.button('trackUndo','曲の削除を元に戻す',28,975,744,58,()=>this.click('trackUndo'));
+    if(!s.musicAnalysisBusy&&!s.selectionFailed&&!s.analysisFeedback?.inChild){
+     this.text(s.showNotice||('✓ 構成 '+(s.normalBuildNumber??1)+' を準備しました'),32,819,25,panelTheme().accent,736);
+     this.wrap(s.readiness?.setting??'',32,859,736,4);
+    }
+    this.button('showStop','大会を止める',28,1025,360,64,()=>this.click('showStop'),{danger:true});
+    this.button('showRestart','最初から観る',412,1025,360,64,()=>this.click('showRestart'));
+    if(s.trackUndo)this.button('trackUndo','曲の削除を元に戻す',28,1100,744,58,()=>this.click('trackUndo'));
    }
   }else if(this.page===1){
    this.text(this.studyMode?'花火大会  ›  花火玉の仕込み  ›  演出の試し打ち':'花火大会  ›  トリガーに花火玉を仕込む',32,218,22,panelTheme().muted,736);
@@ -425,7 +436,7 @@ export class MRPanel{
    this.controls=[];c.fillStyle=panelTheme().overlay;c.beginPath();c.roundRect(400,337,384,238,14);c.fill();
    this.button('trackRename','曲名を変える',412,345,360,64,()=>this.click('trackRename'),{disabled:!s.trackCanRename});
    this.button('trackDelete','曲を削除する',412,421,360,64,()=>this.click('trackDelete'),{disabled:!s.trackCanRename,danger:true});
-   this.button('trackMenuClose','閉じる',412,497,360,64,()=>this.click('trackMenuToggle'));
+   this.button('trackMenuClose','×',412,497,360,64,()=>this.click('trackMenuToggle'));
   }
   c.restore();
   for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen','detailClose'].includes(control.id))control.y+=HEADER_GROWTH;

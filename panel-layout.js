@@ -30,7 +30,7 @@ export function organizePanel(){
  const none=make('div',{id:'noMusicControls'});card.append(none);
  for(const id of ['program','mood','ending'])field(none,id);
  move(none,'programInfo');
- for(const [id,label] of [['showWatch','▶ 花火大会を開演'],['showRebuild','プログラムを組み直す']])card.append(make('button',{id},label));
+ for(const [id,label] of [['showWatch','▶ 花火大会を開演'],['showRebuild','打ち上げ玉の構成を変える']])card.append(make('button',{id},label));
  const row=make('div',{className:'show-button-row'});card.append(row);
  for(const [id,label] of [['showStop','止める'],['showRestart','最初から']])row.append(make('button',{id},label));
  move(card,'autoMusicCancel');move(card,'autoMusicProgress');move(card,'autoMusicStatus');move(card,'autoMusicRebuildFeedback');card.append(make('p',{id:'showNotice',role:'status',className:'show-notice'}));
@@ -50,10 +50,13 @@ export function organizePanel(){
  const importPanel=details(card,'＋ 曲を取り込む','showImport');
  $('showRoom').after(importPanel);
  move(importPanel,'autoMusicDrop');
+ const feedback=make('section',{id:'analysisFeedback',className:'analysis-feedback',hidden:true});feedback.setAttribute('aria-live','polite');feedback.setAttribute('aria-atomic','true');
+ feedback.append(make('strong',{id:'analysisHeading'},'曲を解析中…'));move(feedback,'autoMusicProgress');move(feedback,'autoMusicStatus');move(feedback,'autoMusicCancel');importPanel.append(feedback);
+ $('showRebuild').after($('autoMusicRebuildFeedback'));
  const reanalysis=make('div',{id:'showReanalysis'});importPanel.append(reanalysis);move(reanalysis,'musicReanalyze');
  reanalysis.append(make('p',{},'保存した音源を、この端末でもう一度解析します。普段の組み直しには再解析は要りません。'));
  const advanced=details(card,'構成の詳細・調整','showAdvanced');
- move(advanced,'autoMusicRebuildFeedback');move(advanced,'autoMusicResult');move(advanced,'autoMusicAnalysisSource');field(advanced,'autoMusicPacing');
+ move(advanced,'autoMusicResult');move(advanced,'autoMusicAnalysisSource');field(advanced,'autoMusicPacing');
  move(advanced,'autoMusicExport');
  const scene=make('div',{id:'showSceneControls'});advanced.append(scene);field(scene,'musicScene');move(scene,'musicScenePlay');move(scene,'musicTimeline');move(scene,'musicTime');move(scene,'musicState');
  $('browserTab0').hidden=true;$('browserTab1').hidden=true;$('browserTab4').textContent='花火大会';

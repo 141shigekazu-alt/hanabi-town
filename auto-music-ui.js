@@ -5,19 +5,19 @@ import {applyMusicStructure} from './music-structure.js';
 import {compareChorus,timeLabel} from './chorus-reference.js';
 import {createAutoMusicPlan} from './auto-music-plan.js';
 // Audio and per-song analyses stay in this browser; rebuilding reuses decoded audio.
-export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,onManual,onPreview,onRoom,onState=()=>{},onCatalog=()=>{}}){
+export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,onManual,onPreview,onRoom,onState=()=>{},onCatalog=()=>{},onRebuilt=()=>{}}){
  const baseCatalog=catalog.map(t=>({...t}));
  const $=id=>document.getElementById(id),fileInput=$('autoMusicFile'),drop=$('autoMusicDrop');
  $('autoMusicEars').replaceChildren(...EAR_SCENES.map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.label;return o;}));
- $('autoMusicEars').value=earScene(localStorage.getItem('hanabi81-ear-scene')).id;
+ $('autoMusicEars').value=earScene(localStorage.getItem('hanabi82-ear-scene')).id;
  $('autoMusicFeeling').replaceChildren(...MUSIC_FEELINGS.map(f=>{const o=document.createElement('option');o.value=f.value;o.textContent=f.label;return o;}));
- let generation=0,worker=null,abort=null,cancelAnalysis=null,retained=null,busy=false,roomOpening=false,variation=0,modelId=null,rebuildTimer=null,preferenceQueue=Promise.resolve(),operationTitle='';
+ let generation=0,worker=null,abort=null,cancelAnalysis=null,retained=null,busy=false,roomOpening=false,variation=0,modelId=null,rebuildTimer=null,preferenceQueue=Promise.resolve(),operationTitle='',operation='';
  function syncCatalog(){const selected=$('autoMusicSample').value;$('autoMusicSample').replaceChildren(...catalog.filter(track=>!track.deleted).map(track=>{const o=document.createElement('option');o.value=track.id;o.textContent=track.title;return o;}));if(catalog.some(t=>t.id===selected))$('autoMusicSample').value=selected;onCatalog(catalog);}
  syncCatalog();
  function controls(){for(const id of ['autoMusicGenerate','autoMusicReanalyze','autoMusicRebuild','autoMusicWatch','autoMusicExport','autoMusicRoom'])$(id).disabled=busy||roomOpening||(!['autoMusicGenerate','autoMusicReanalyze'].includes(id)&&!retained)||(id==='autoMusicRoom'&&(!onRoom||$('mr').disabled));$('autoMusicManual').disabled=busy||roomOpening||!retained?.manualId;$('autoMusicManual').hidden=!!retained&&!retained.manualId;$('autoMusicCancel').hidden=!busy;$('autoMusicSample').disabled=busy||roomOpening;$('autoMusicFeeling').disabled=busy||roomOpening;$('autoMusicEars').disabled=busy||roomOpening;fileInput.disabled=busy||roomOpening;drop.setAttribute('aria-busy',String(busy||roomOpening));}
  function resetRebuildFeedback(){
   clearTimeout(rebuildTimer);rebuildTimer=null;
-  $('autoMusicRebuild').textContent='別の組み合わせで作り直す';$('autoMusicRebuild').classList.remove('is-complete');
+  $('autoMusicRebuild').textContent='打ち上げ玉の構成を変える';$('autoMusicRebuild').classList.remove('is-complete');
   $('autoMusicRebuildFeedback').hidden=true;
  }
  function rebuildFeedback(previous,plan){
@@ -30,10 +30,10 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
   $('autoMusicRebuild').textContent=`✓ 構成${number}を作成しました`;$('autoMusicRebuild').classList.add('is-complete');
   // The button returns to its normal action label; the adjacent confirmation stays.
   clearTimeout(rebuildTimer);rebuildTimer=setTimeout(()=>{
-   $('autoMusicRebuild').textContent='別の組み合わせで作り直す';$('autoMusicRebuild').classList.remove('is-complete');rebuildTimer=null;
+   $('autoMusicRebuild').textContent='打ち上げ玉の構成を変える';$('autoMusicRebuild').classList.remove('is-complete');rebuildTimer=null;
   },2400);
  }
- function status(text,value,error=false){$('autoMusicStatus').textContent=text;if(value!==undefined)$('autoMusicProgress').value=value;onState({busy,status:text,error,title:operationTitle});}
+ function status(text,value,error=false){$('autoMusicStatus').textContent=text;if(value!==undefined)$('autoMusicProgress').value=value;onState({busy,status:text,error,title:operationTitle,operation,progress:Number($('autoMusicProgress').value)});}
  function cancel(){if(modelId){fetch('/api/structure/cancel',{method:'POST',headers:{'X-Analysis-Id':modelId}}).catch(()=>{});modelId=null;}generation++;abort?.abort();abort=null;worker?.terminate();worker=null;cancelAnalysis?.(Error('解析を中止しました。'));cancelAnalysis=null;busy=false;controls();}
  function draw(plan){
   const canvas=$('autoMusicChart'),g=canvas.getContext('2d'),w=canvas.width,h=canvas.height;g.clearRect(0,0,w,h);g.fillStyle='#101e31';g.fillRect(0,0,w,h);
@@ -78,7 +78,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  function renderDirection(plan){
   $('autoMusicFeelingHint').textContent=plan.feelingDescription;
   const panel=$('autoMusicDirection');panel.replaceChildren();
-  if(plan.programmeStyle){const styleInfo=document.createElement('p');styleInfo.textContent='今回の作風：'+plan.programmeStyle.description+'。「別の組み合わせで作り直す」で作風も替わります。';panel.append(styleInfo);}
+  if(plan.programmeStyle){const styleInfo=document.createElement('p');styleInfo.textContent='今回の作風：'+plan.programmeStyle.description+'。「打ち上げ玉の構成を変える」で作風も替わります。';panel.append(styleInfo);}
   const feelingInfo=document.createElement('p');feelingInfo.textContent='曲調：'+plan.feelingLabel+'。'+plan.feelingDescription;panel.append(feelingInfo);
   const info=document.createElement('p');info.textContent=`${plan.directingProfile==='slow'?'ゆっくり・間を味わう。':'リズミカル。'}玉${plan.analysisSummary.shellKinds.length}種類・足元${plan.analysisSummary.groundModes.length}種類。金系３号${plan.analysisSummary.goldSmallShots}発。締め：${plan.finale.label}。`;panel.append(info);
   if(!plan.earPassages?.length){const ears=document.createElement('p');ears.textContent=plan.shots.some(s=>s.kind==='ear')?'穂はラストの余韻に絞った構成です。':'今回は穂を使わず、玉と足元で構成しています。';panel.append(ears);}
@@ -88,7 +88,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
   if(plan.flowerPassages?.length){const flowers=document.createElement('p');flowers.textContent='いろんな３号の花に上空の５号・尺玉を重ねる '+plan.flowerPassages.map(c=>c.duration+'秒').join('／')+' の花畑を組み込みました。';panel.append(flowers);}
   if(plan.repeatEntryCues?.length){const repeatInfo=document.createElement('p');repeatInfo.textContent=`自動解析の繰り返しの頭${plan.repeatEntryCues.length}か所で、大輪と足元を重ね、その後に金の３号をつないでいます。`;panel.append(repeatInfo);}
   if(plan.chorusOpeningDelay){const timing=document.createElement('p');timing.textContent=`サビの判定時刻はそのまま。大輪と、それにつながる金の３号・足元の合図を${plan.chorusOpeningDelay.toFixed(1)}秒遅らせています。`;panel.append(timing);}
-  const note=document.createElement('p');note.textContent='同時打ちも高さ・位置・開く時刻に微差をつけています。巻き戻しても同じ場面です。「別の組み合わせで作り直す」で配列とばらつきを替えられます。';panel.append(note);
+  const note=document.createElement('p');note.textContent='同時打ちも高さ・位置・開く時刻に微差をつけています。巻き戻しても同じ場面です。「打ち上げ玉の構成を変える」で配列とばらつきを替えられます。';panel.append(note);
   const buttons=document.createElement('div');buttons.className='auto-chorus-buttons';panel.append(buttons);
   const preview=(label,at)=>{const button=document.createElement('button');button.textContent=label;button.onclick=()=>{if(!retained||busy||roomOpening)return;onReady(retained);onPreview(Math.max(0,at));};buttons.append(button);};
   const small=plan.arrangements.find(a=>a.kind.startsWith('fast-phrase-')&&a.at>18)??plan.arrangements.find(a=>!a.kind.startsWith('ground-')&&a.at>18);
@@ -105,7 +105,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  }
  function install(analysis,buffer,title,manualId=null,trackId=null){
   const plan=createAutoMusicPlan(analysis,{title,feeling:$('autoMusicFeeling').value,pacing:$('autoMusicPacing').value,earScene:$('autoMusicEars').value,variation});
-  retained={analysis,buffer,title,manualId,trackId,plan};if(trackId)localStorage.setItem('hanabi81-selected',trackId);onReady({plan,buffer,title,manualId,trackId});draw(plan);renderDirection(plan);renderStructure(analysis,manualId);controls();
+  retained={analysis,buffer,title,manualId,trackId,plan};if(trackId)localStorage.setItem('hanabi82-selected',trackId);onReady({plan,buffer,title,manualId,trackId});draw(plan);renderDirection(plan);renderStructure(analysis,manualId);controls();
   const upper=plan.shots.filter(s=>s.kind!=='ear').length,ears=plan.shots.length-upper,confidence=analysis.beatConfidence<.15?'拍の目安は弱め':analysis.beatConfidence<.4?'拍の目安は中程度':'拍の目安は比較的明瞭';
   status(`${title} · ${Math.floor(Math.round(plan.duration)/60)}:${String(Math.round(plan.duration)%60).padStart(2,'0')}／推定 ${analysis.bpm.toFixed(1)} BPM。大・小玉${upper}発、穂${ears}発、地上${plan.fans.length}場面。${analysis.structure?'曲構造AI・サビ候補'+analysis.chorus.length+'区間・繰り返しで開花'+(plan.repeatEntryCues?.length||0)+'か所':confidence}。${plan.directingProfile==='slow'?'組み方はゆっくり（歩幅の目安 '+plan.effectiveTempo.toFixed(1)+' BPM）。':'組み方はリズミカル。'}`,1);
   $('autoMusicAnalysisSource').textContent=analysis.structure?.model?.includes('LinkSeg')?'この端末で解析した結果':'Macで用意した解析結果';
@@ -116,8 +116,8 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  }
  async function generate(file=null,trackId=null,forceReanalysis=false,feelingOverride=null){
   if(roomOpening)return;
-  operationTitle=file?file.name.replace(/\.[^.]+$/,''):catalog.find(t=>t.id===(trackId??$('autoMusicSample').value))?.title??'選んだ曲';
-  cancel();resetRebuildFeedback();const token=generation,started=performance.now(),previousVariation=variation;busy=true;variation=0;abort=new AbortController();const localSignal=abort.signal;controls();onBegin();$('autoMusicResult').hidden=true;status('曲を読み込み中…',.02);
+  operation=file||forceReanalysis?'analysis':'prepare';operationTitle=file?file.name.replace(/\.[^.]+$/,''):catalog.find(t=>t.id===(trackId??$('autoMusicSample').value))?.title??'選んだ曲';
+  cancel();resetRebuildFeedback();const token=generation,started=performance.now(),previousVariation=variation;busy=true;variation=0;abort=new AbortController();const localSignal=abort.signal;controls();onBegin();$('autoMusicResult').hidden=true;status(file||forceReanalysis?'解析中… 音源を読み込んでいます':'曲を読み込み中…',.02);
   try{
    let bytes,title,manualId=null,structure=null,sampleStructure=false,saved=null;const useStructure=forceReanalysis||$('autoMusicAnalysis').value==='structure';
    if(file){if(file.size>160*1024*1024)throw Error('160MB以下の音源を選んでください。');if(!/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(file.name))throw Error('MP3・WAVなどの音声ファイルを選んでください。');bytes=await file.arrayBuffer();title=file.name.replace(/\.[^.]+$/,'');}
@@ -131,7 +131,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
    if(token!==generation)return;if(buffer.duration<12||buffer.duration>600)throw Error('この試作では12秒〜10分の曲を選んでください。');
    if(useStructure&&saved?.analysis&&!forceReanalysis){busy=false;install(saved.analysis,buffer,title,manualId,trackId);status(`${title} · この端末に保存した解析で構成${variation+1}を準備しました。再解析はしていません。`,1);return retained;}
    if(useStructure&&(forceReanalysis||file||!saved?.analysis)){
-    const result=await analyzeInBrowser(buffer,{signal:localSignal,onProgress:(phase,progress)=>{if(token===generation)status(phase,progress);}});
+    operation='analysis';const result=await analyzeInBrowser(buffer,{signal:localSignal,onProgress:(phase,progress)=>{if(token===generation)status(phase,progress);}});
     if(token!==generation)return;
     createAutoMusicPlan(result.analysis,{title,feeling:$('autoMusicFeeling').value,pacing:$('autoMusicPacing').value,earScene:$('autoMusicEars').value,variation});
     const elapsed=+((performance.now()-started)/1000).toFixed(3);
@@ -149,7 +149,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
     const lo=Math.floor(i*ratio),hi=Math.min(buffer.length,Math.max(lo+1,Math.floor((i+1)*ratio)));let sum=0;for(let j=lo;j<hi;j++)for(const c of channels)sum+=c[j];mono[i]=sum/((hi-lo)*channels.length);
     if(i%131072===0){await new Promise(resolve=>setTimeout(resolve,0));if(token!==generation)return;}
    }
-   status('拍・強弱・音の変化を解析中…',.10);
+   operation='analysis';status('拍・強弱・音の変化を解析中…',.10);
    let analysis=await new Promise((resolve,reject)=>{
     cancelAnalysis=reject;
     const current=new Worker(new URL('./music-analysis-worker.js',import.meta.url),{type:'module'});worker=current;
@@ -179,6 +179,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
   }catch(error){if(token!==generation)return;variation=previousVariation;busy=false;controls();status(error.message||'曲を解析できませんでした。',0,true);if(retained){$('autoMusicResult').hidden=false;draw(retained.plan);}return null;}
  }
  async function generateOriginalTrack(id){
+  operation='original';
   if(roomOpening)return null;
   operationTitle=catalog.find(t=>t.id===id)?.title??'選んだ曲';
   cancel();resetRebuildFeedback();const token=generation;busy=true;abort=new AbortController();const signal=abort.signal;controls();onBegin();status('手作りの構成と音源を準備中…',.02);
@@ -190,7 +191,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
    if(token!==generation)return null;
    const decoder=new OfflineAudioContext(1,1,22050),buffer=await decoder.decodeAudioData(bytes.slice(0));
    if(token!==generation)return null;
-   await saveTrackFeeling(id,'original');localStorage.setItem('hanabi81-selected',id);
+   await saveTrackFeeling(id,'original');localStorage.setItem('hanabi82-selected',id);
    if(token!==generation)return null;busy=false;
    const result={trackId:id,title:track.title,buffer};onOriginalReady(result);controls();
    status(track.title+' · 手作りの構成（オリジナル）を準備しました。',1);return result;
@@ -218,7 +219,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicRebuild').onclick=()=>{
   if(!retained||busy||roomOpening)return;
   const previous=retained,previousVariation=variation;
-  try{variation++;install(previous.analysis,previous.buffer,previous.title,previous.manualId,previous.trackId);rebuildFeedback(previous.plan,retained.plan);}
+  try{variation++;install(previous.analysis,previous.buffer,previous.title,previous.manualId,previous.trackId);rebuildFeedback(previous.plan,retained.plan);onRebuilt(retained.plan);}
   catch(error){variation=previousVariation;retained=previous;resetRebuildFeedback();status('作り直せませんでした。'+(error.message||'もう一度お試しください。'));}
  };
  $('autoMusicRoom').onclick=async()=>{
@@ -230,7 +231,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicWatch').onclick=()=>{if(!retained||busy||roomOpening)return;onReady(retained);document.getElementById('musicShow').click();};
  $('autoMusicManual').onclick=()=>{if(retained?.manualId&&!busy&&!roomOpening)onManual(retained.manualId);};
  $('autoMusicExport').onclick=()=>{
-  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.81',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.82',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  for(const event of ['dragenter','dragover'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.add('dragging');});
  drop.addEventListener('dragleave',()=>drop.classList.remove('dragging'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('dragging');if(e.dataTransfer.files[0])generate(e.dataTransfer.files[0]);});

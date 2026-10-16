@@ -1,4 +1,4 @@
-import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.81';
+import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.82';
 import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.2.0';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
@@ -356,5 +356,25 @@ export class FireworkAudio{
  }
  play(explosion,x,z,size,mode='original',when,position=null,openingKey=null,variation=null,openingTail=null){if(size===2){if(mode==='recorded')return explosion?this.playRecordedCrackle(x,when,position,'golden-ear',openingKey??this.nextRecordedCrackle(),variation,size):this.playRecorded(false,x,size,when,position,null,variation);return this.playEar(explosion,x,when,position);}if(mode==='recorded')return this.playRecorded(explosion,x,size,when,position,openingKey,variation,openingTail);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
  const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.spatialPan(x,position);const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
+ }
+}
+
+// A quiet, non-spatial completion cue, independent of firework scheduling.
+export class CompletionChime{
+ constructor(){this.context=null;}
+ unlock(){
+  try{if(!this.context||this.context.state==='closed')this.context=new(window.AudioContext||window.webkitAudioContext)();void this.context.resume().catch(()=>{});}catch{}
+ }
+ play(){
+  const context=this.context;if(!context||context.state==='closed')return false;
+  if(context.state!=='running'){void context.resume().then(()=>{if(context.state==='running')this.play();}).catch(()=>{});return false;}
+  const start=context.currentTime+.015;
+  for(const [offset,frequency,level,decay] of [[0,587.33,.055,.62],[.16,783.99,.065,.85],[.16,1174.66,.015,.68]]){
+   const oscillator=context.createOscillator(),gain=context.createGain(),at=start+offset;
+   oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,at);
+   gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(level,at+.018);gain.gain.exponentialRampToValueAtTime(.0001,at+decay);
+   oscillator.connect(gain).connect(context.destination);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect();};oscillator.start(at);oscillator.stop(at+decay+.025);
+  }
+  return true;
  }
 }

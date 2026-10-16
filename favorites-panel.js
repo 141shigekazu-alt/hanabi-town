@@ -35,7 +35,7 @@ export class FavoritesPanel extends MRPanel{
 
  draw(){
   const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,800,1340,{border:'#ddc69585'});
-  this.text('お気に入り',32,47,41,panelTheme().text,600);this.text('好きな一曲を、自分の大会に。',32,91,21,panelTheme().muted);this.button('favoriteClose','閉じる',664,22,108,54,()=>this.close());
+  this.text('お気に入り',32,47,41,panelTheme().text,600);this.text('好きな一曲を、自分の大会に。',32,91,21,panelTheme().muted);this.button('favoriteClose','×',696,18,76,60,()=>this.close());
   const selected=s.rows.filter(r=>r.checked),seconds=selected.reduce((n,r)=>n+r.plan.showDuration,0)+Math.max(0,selected.length-1)*3;
   const sets=this.listMode==='setlists',rows=sets?s.setlists??[]:s.rows,key=sets?'setlistOffset':'offset';
   this.button('favoriteTab','♥の曲を選ぶ',28,124,360,54,()=>{this.listMode='favorites';this.menuId=null;},{selected:!sets});
