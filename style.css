@@ -141,3 +141,10 @@ html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaRevi
 #favoritesWindow .favorite-play{flex:0 0 44px;width:44px;min-height:56px;margin:0;padding:6px;font-size:22px;background:var(--panel-surface);color:var(--panel-accent);border:1px solid var(--panel-line)}
 #favoritesWindow .favorite-row.is-playing,#favoritesWindow .favorite-row.is-paused{border-color:var(--panel-accent);box-shadow:inset 3px 0 var(--panel-accent)}
 #favoritesWindow .favorite-play[aria-pressed=true]{background:var(--panel-accent);color:var(--panel-primaryInk,#172230)}
+
+#voiceStatus{font-size:1.15em;line-height:1.7;color:var(--panel-accent)}
+#voiceStatus:is([data-phase=permission],[data-phase=loading],[data-phase=starting])::before{content:"";display:inline-block;width:.85em;height:.85em;margin-right:.6em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-.1em;animation:voice-preparing-spin 1s linear infinite}
+#voiceStatus[data-phase=recording]{font-size:1.3em;font-weight:500}
+#voiceDetail{margin-bottom:12px}
+@keyframes voice-preparing-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#voiceStatus::before{animation:none!important}}

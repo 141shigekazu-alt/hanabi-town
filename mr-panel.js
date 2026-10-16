@@ -287,12 +287,15 @@ export class MRPanel{
  }
 
  drawVoiceControls(s){
-  const v=s.voice??{},c=this.ctx,recording=v.phase==='recording';
-  this.button('voiceOpen',recording?'■ 停止':'🎤',28,628,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
+  const v=s.voice??{},c=this.ctx,recording=v.phase==='recording',preparing=['permission','loading','starting'].includes(v.phase);
+  this.button('voiceOpen',recording?'■ 停止':preparing?'◌':'🎤',28,628,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
   this.text('あなたのイメージをAIに話す',132,650,23,panelTheme().text,620);
   this.text('20秒まで録音 · 話し終わったら「停止」',132,679,20,panelTheme().muted,620);
   if(v.busy){
-   this.wrap(v.status??'',32,730,736,3);
+   if(preparing){
+    const angle=performance.now()/650;c.save();c.strokeStyle=panelTheme().accent;c.lineWidth=4;c.beginPath();c.arc(55,748,15,angle,angle+Math.PI*1.45);c.stroke();c.restore();
+    this.wrap(v.status??'',90,730,674,2);this.wrap(v.detail??'',32,830,736,3);
+   }else this.wrap(v.status??'',32,730,736,3);
    if(recording){this.text('● '+Math.min(20,v.seconds??0).toFixed(1)+' / 20秒',32,838,26,panelTheme().accent);c.fillStyle=panelTheme().track;c.fillRect(32,877,736,10);c.fillStyle=panelTheme().accent;c.fillRect(32,877,736*Math.min(1,v.progress??0),10);}
   }else if(v.hasDraft||v.transcript){
    this.wrap(v.hasDraft?'✓ 希望を受け取りました。下の構成変更ボタンで反映します。':v.status??'',32,724,736,2);
