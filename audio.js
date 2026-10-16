@@ -1,4 +1,4 @@
-import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.92';
+import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.93';
 import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.2.0';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
@@ -142,45 +142,57 @@ export function reverbBuffer(context,opening=false){
  }
  return buffer;
 }
-export class FireworkAudio{
- constructor(context,volume){this.spatialMode="full";this.hrtfPanners=new Set();this.peakHRTF=0;this.lightPanners=0;this.context=context;this.pending=new Set();this.cache=new Map();this.reference=new Map();this.ready=Promise.resolve();this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=6;this.limiter.ratio.value=12;this.limiter.attack.value=.001;this.limiter.release.value=.15;
- // A compressor can overshoot at a sharp report. Guard the final mix, including
- // music, with an identity curve below .94 and a smooth bounded shoulder above.
- this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();const curve=new Float32Array(65537);
+// Keep only immutable waveforms and calibration values, never an AudioContext
+// or live node. stopShow still closes the old graph to cut every sound and tail.
+// Retain one sample rate, so repeated stops cannot grow a context/buffer history.
+let preparedAudioAssets=null;
+function audioAssets(context){
+ if(preparedAudioAssets?.sampleRate===context.sampleRate)return preparedAudioAssets;
+ const assets={sampleRate:context.sampleRate,cache:new Map()};
+ const curve=new Float32Array(65537);
  for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1,a=Math.abs(x),u=Math.min(1,Math.max(0,(a-.94)/.06));curve[i]=a<=.94?x:Math.sign(x)*(.94+.06*(u-u*u*u/3));}
- this.outputGuard.curve=curve;this.fxBoost=context.createGain();this.fxBoost.gain.value=7.2;this.master.connect(this.fxBoost).connect(this.limiter);this.fxHeadroom=context.createGain();this.fxHeadroom.gain.value=.88;this.limiter.connect(this.fxHeadroom).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
- // Retain the short space for launch/foot effects. Openings have a longer tail.
- this.reverb=context.createConvolver();this.reverb.buffer=reverbBuffer(context);
- this.openingReverb=context.createConvolver();this.openingReverb.buffer=reverbBuffer(context,true);
- this.wet=context.createGain();this.wet.gain.value=.22;
- this.reverb.connect(this.wet).connect(this.master);
- // Native normalization depends on IR RMS. Compensate by the RMS ratio;
- // its calibration cancels on every browser, keeping early reflections equal.
+ assets.outputCurve=curve;
+ assets.reverb=reverbBuffer(context);assets.openingReverb=reverbBuffer(context,true);
  const rms=buffer=>{let sum=0;for(let c=0;c<buffer.numberOfChannels;c++)for(const v of buffer.getChannelData(c))sum+=v*v;return Math.max(.000125,Math.sqrt(sum/(buffer.length*buffer.numberOfChannels)));};
- this.openingWet=context.createGain();this.openingWet.gain.value=.22*rms(this.openingReverb.buffer)/rms(this.reverb.buffer);
- this.openingReverb.connect(this.openingWet).connect(this.master);
- // Decode the selected recordings and prepare their short launch slices once.
- // Reuse one B convolver for every large opening; no per-shell convolution node.
- this.recordedReverb=context.createConvolver();this.recordedReverb.normalize=false;this.recordedReverb.buffer=recordedReverbBuffer(context,fadeTail);
- this.recordedWet=context.createGain();this.recordedWet.gain.value=.14;this.recordedReverb.connect(this.recordedWet).connect(this.master);
- this.lateReverb=context.createConvolver();this.lateReverb.normalize=false;this.lateReverb.buffer=recordedOutdoorReflectionBuffer(context,fadeTail,true);this.lateReverb.connect(this.master);
- this.outdoorReverb=context.createConvolver();this.outdoorReverb.normalize=false;this.outdoorReverb.buffer=recordedOutdoorReflectionBuffer(context,fadeTail);this.outdoorReverb.connect(this.master);
- this.recordedOnsets=new Map();const attackRms=new Map();
+ assets.openingWetRatio=rms(assets.openingReverb)/rms(assets.reverb);
+ assets.recordedReverb=recordedReverbBuffer(context,fadeTail);
+ assets.lateReverb=recordedOutdoorReflectionBuffer(context,fadeTail,true);
+ assets.outdoorReverb=recordedOutdoorReflectionBuffer(context,fadeTail);
+ assets.recordedOnsets=new Map();const attackRms=new Map();
  for(const key of [...new Set(Object.values(OPENING_VARIANTS).flat()),'Crack_B_01','Crack_B_02','Crack_A_01','Crack_A_03']){
-  const {data,rate,onset}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);if(key.startsWith('Crack_'))fadeTail(data,rate,.15);buffer.copyToChannel(data,0);this.cache.set('recorded-opening-'+key,buffer);
-  this.recordedOnsets.set(key,onset);const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
+  const {data,rate,onset}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);if(key.startsWith('Crack_'))fadeTail(data,rate,.15);buffer.copyToChannel(data,0);assets.cache.set('recorded-opening-'+key,buffer);
+  assets.recordedOnsets.set(key,onset);const start=Math.floor(onset*rate),end=Math.min(data.length,start+Math.round(.5*rate));let sum=0;for(let i=start;i<end;i++)sum+=data[i]*data[i];attackRms.set(key,Math.sqrt(sum/Math.max(1,end-start)));
   if(OPENING_VARIANTS[5].includes(key))buffer.copyToChannel(fiveGoOpeningDecay(data,rate,onset),0);
  }
- this.openingCodaBuffers=new Map(OPENING_VARIANTS[20].map(key=>[key,twoShakuCodaBuffer(context,key)]));this.openingCodas=new Set();
- this.openingLevels=new Map();
+ assets.openingCodaBuffers=new Map(OPENING_VARIANTS[20].map(key=>[key,twoShakuCodaBuffer(context,key)]));
+ assets.openingLevels=new Map();
  for(const [size,keys] of Object.entries(OPENING_VARIANTS)){
-  const reference=attackRms.get(keys[0]);for(const key of keys)this.openingLevels.set(key,Math.min(1.2,reference/Math.max(.0001,attackRms.get(key))));
+  const reference=attackRms.get(keys[0]);for(const key of keys)assets.openingLevels.set(key,Math.min(1.2,reference/Math.max(.0001,attackRms.get(key))));
  }
- this.openingBags=new Map();this.openingSeed=0x141740;
- this.crackleSerial=0;this.variationSeed=(Date.now()^0x141142)>>>0;this.textureBuffers=new Map();this.whistleBag=[];this.lastWhistle=null;this.whistles=new Map();this.whistleLevels=new Map();
- for(const key of WHISTLE_VARIANTS){const {data,rate}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set("recorded-whistle-"+key,buffer);let sum=0;for(const v of data)sum+=v*v;this.whistleLevels.set(key,Math.min(1.3,Math.max(.85,.048/Math.sqrt(sum/data.length))));}
- for(const key of Object.values(OPENING_VARIANTS).flat()){const {data,rate}=recordedLaunchSamples(key,fadeTail,OPENING_VARIANTS[5].includes(key)?5:3),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);this.cache.set('recorded-launch-'+key,buffer);}
+ assets.whistleLevels=new Map();
+ for(const key of WHISTLE_VARIANTS){const {data,rate}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);assets.cache.set("recorded-whistle-"+key,buffer);let sum=0;for(const v of data)sum+=v*v;assets.whistleLevels.set(key,Math.min(1.3,Math.max(.85,.048/Math.sqrt(sum/data.length))));}
+ for(const key of Object.values(OPENING_VARIANTS).flat()){const {data,rate}=recordedLaunchSamples(key,fadeTail,OPENING_VARIANTS[5].includes(key)?5:3),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);assets.cache.set('recorded-launch-'+key,buffer);}
+ preparedAudioAssets=assets;return assets;
+}
+export class FireworkAudio{
+ constructor(context,volume){
+ const assets=audioAssets(context);
+ this.spatialMode="full";this.hrtfPanners=new Set();this.peakHRTF=0;this.lightPanners=0;this.context=context;this.pending=new Set();this.cache=new Map(assets.cache);this.reference=new Map();this.ready=Promise.resolve();
+ this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=6;this.limiter.ratio.value=12;this.limiter.attack.value=.001;this.limiter.release.value=.15;
+ this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();this.outputGuard.curve=assets.outputCurve;
+ this.fxBoost=context.createGain();this.fxBoost.gain.value=7.2;this.master.connect(this.fxBoost).connect(this.limiter);this.fxHeadroom=context.createGain();this.fxHeadroom.gain.value=.88;this.limiter.connect(this.fxHeadroom).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
+ this.reverb=context.createConvolver();this.reverb.buffer=assets.reverb;
+ this.openingReverb=context.createConvolver();this.openingReverb.buffer=assets.openingReverb;
+ this.wet=context.createGain();this.wet.gain.value=.22;this.reverb.connect(this.wet).connect(this.master);
+ this.openingWet=context.createGain();this.openingWet.gain.value=.22*assets.openingWetRatio;this.openingReverb.connect(this.openingWet).connect(this.master);
+ this.recordedReverb=context.createConvolver();this.recordedReverb.normalize=false;this.recordedReverb.buffer=assets.recordedReverb;
+ this.recordedWet=context.createGain();this.recordedWet.gain.value=.14;this.recordedReverb.connect(this.recordedWet).connect(this.master);
+ this.lateReverb=context.createConvolver();this.lateReverb.normalize=false;this.lateReverb.buffer=assets.lateReverb;this.lateReverb.connect(this.master);
+ this.outdoorReverb=context.createConvolver();this.outdoorReverb.normalize=false;this.outdoorReverb.buffer=assets.outdoorReverb;this.outdoorReverb.connect(this.master);
+ this.recordedOnsets=new Map(assets.recordedOnsets);this.openingCodaBuffers=new Map(assets.openingCodaBuffers);this.openingCodas=new Set();this.openingLevels=new Map(assets.openingLevels);this.whistleLevels=new Map(assets.whistleLevels);
+ this.openingBags=new Map();this.openingSeed=0x141740;this.crackleSerial=0;this.variationSeed=(Date.now()^0x141142)>>>0;this.textureBuffers=new Map();this.whistleBag=[];this.lastWhistle=null;this.whistles=new Map();
  }
+
  startSource(source,when,offset=0){
  const at=Math.max(this.context.currentTime,when??this.context.currentTime),entry={source,at},onended=source.onended;
  source.onended=()=>{this.pending.delete(entry);onended?.();};

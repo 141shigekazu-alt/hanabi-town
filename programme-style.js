@@ -1,4 +1,4 @@
-import {paletteOptions} from './fireworks.js?v=1.2.92';
+import {paletteOptions} from './fireworks.js?v=1.2.93';
 
 export const SHOW_FAMILIES=['traditional','pop','modern','mixed'];
 const labels={traditional:'伝統の玉を味わう',pop:'ポップに弾む',modern:'創造花火を楽しむ',mixed:'いろんな玉の競演'};
