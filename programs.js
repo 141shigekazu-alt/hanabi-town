@@ -1,5 +1,5 @@
 import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
-import {TYPES} from './fireworks.js?v=1.2.90';
+import {TYPES} from './fireworks.js?v=1.2.91';
 import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';
@@ -41,7 +41,11 @@ export function programCue(plan,time,index,lively=false){
  if(plan.voiceRequest?.size&&!plan.voiceRequest?.sizeAccent){result.size=plan.voiceRequest.size==='large'?(index%3===0?10:5):plan.voiceRequest.size==='medium'?5:3;result.kind=styleKind(plan.programmeStyle,result.size,index)??'kiku';result.position.palette=stylePalette(plan.programmeStyle,result.kind,index);}
  result=normalVoiceShell(result,plan,index,time>=270);
  const localFinale=time>=270?plan.voiceRequest?.finale:null;
- if(plan.voiceRequest?.density==='sparse'&&!localFinale||localFinale?.energy==='quiet'||localFinale?.density==='sparse')result.interval=Math.max(9,result.interval);
+ if(plan.voiceRequest?.density==='sparse'&&!localFinale||localFinale?.energy==='quiet'||localFinale?.density==='sparse'){
+  result.interval=4.4+[.15,-.25,.3,-.1,0][index%5];
+  if(!plan.voiceRequest?.size&&!plan.voiceRequest?.sizeAccent&&!localFinale?.size){result.size=index%5===3?10:5;result.kind=styleKind(plan.programmeStyle,result.size,index)??'core';result.position.palette=stylePalette(plan.programmeStyle,result.kind,index);}
+ }
+
  if(plan.voiceRequest?.density==='dense'&&!localFinale||localFinale?.density==='dense')result.interval=Math.max(1.6,result.interval*.7);
  if(plan.programmeStyle?.color==='gold'&&!localFinale?.color){
   const colorful=styleHash(plan.programmeStyle.seed,90)%3===0,accent=(index*7+3)%20<(colorful?13:8);
@@ -57,7 +61,7 @@ export function programCue(plan,time,index,lively=false){
 export function normalVoiceShell(shell,plan,index,finale=false){
  const r=plan?.voiceRequest;if(!r?.sizeAccent&&!r?.finale)return shell;
  const f=finale?r.finale:null;let size=shell.size,kind=shell.kind;
- if(!finale&&r.sizeAccent){const chosen=index%5===2;size=chosen?(r.sizeAccent==='large'?(Math.floor(index/5)%3===0?10:5):r.sizeAccent==='medium'?5:3):r.size==='large'||r.size==='medium'?5:3;}
+ if(!finale&&r.sizeAccent){const chosen=index%5===2,sparseLarge=r.density==='sparse'&&r.sizeAccent==='large'&&!r.size;size=chosen?(r.sizeAccent==='large'?(sparseLarge||Math.floor(index/5)%3===0?10:5):r.sizeAccent==='medium'?5:3):r.size==='large'||r.size==='medium'||sparseLarge?5:3;}
  if(f?.size)size=f.size==='large'?Math.max(5,size):f.size==='medium'?5:3;
  if(f?.energy==='quiet'&&!f.size){size=5;kind='willow';}
  if(size<10&&['double','triple','quad','penta','candysenrin','senrin'].includes(kind))kind='core';

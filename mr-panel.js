@@ -289,26 +289,26 @@ export class MRPanel{
 
  drawVoiceControls(s){
   const v=s.voice??{},c=this.ctx,recording=v.phase==='recording',preparing=['permission','loading','starting'].includes(v.phase);
-  this.button('voiceOpen',recording?'■ 停止':preparing?'◌':'🎤',28,628,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
-  this.text('あなたのイメージをAIに話す',132,650,23,panelTheme().text,490);this.text('テスト版',640,650,18,panelTheme().muted,112);
-  this.text('20秒まで録音 · 話し終わったら「停止」',132,679,20,panelTheme().muted,620);
+  this.button('voiceOpen',recording?'■ 停止':preparing?'◌':'🎤',28,704,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
+  this.text('あなたのイメージをAIに話す',132,726,23,panelTheme().text,490);this.text('テスト版',640,726,18,panelTheme().muted,112);
+  this.text('20秒まで録音 · 話し終わったら「停止」',132,755,20,panelTheme().muted,620);
   if(v.busy){
    if(preparing){
-    const angle=performance.now()/650;c.save();c.strokeStyle=panelTheme().accent;c.lineWidth=4;c.beginPath();c.arc(55,748,15,angle,angle+Math.PI*1.45);c.stroke();c.restore();
-    this.wrap(v.status??'',90,730,674,2);this.wrap(v.detail??'',32,830,736,3);
-   }else this.wrap(v.status??'',32,730,736,3);
-   if(recording){this.text('● '+Math.min(20,v.seconds??0).toFixed(1)+' / 20秒',32,838,26,panelTheme().accent);c.fillStyle=panelTheme().track;c.fillRect(32,877,736,10);c.fillStyle=panelTheme().accent;c.fillRect(32,877,736*Math.min(1,v.progress??0),10);}
+    const angle=performance.now()/650;c.save();c.strokeStyle=panelTheme().accent;c.lineWidth=4;c.beginPath();c.arc(55,824,15,angle,angle+Math.PI*1.45);c.stroke();c.restore();
+    this.wrap(v.status??'',90,806,674,2);this.wrap(v.detail??'',32,906,736,3);
+   }else this.wrap(v.status??'',32,806,736,3);
+   if(recording){this.text('● '+Math.min(20,v.seconds??0).toFixed(1)+' / 20秒',32,914,26,panelTheme().accent);c.fillStyle=panelTheme().track;c.fillRect(32,953,736,10);c.fillStyle=panelTheme().accent;c.fillRect(32,953,736*Math.min(1,v.progress??0),10);}
   }else if(v.hasDraft||v.transcript){
-   this.wrap(v.hasDraft?'✓ 希望を受け取りました。下の構成変更ボタンで反映します。':v.status??'',32,724,736,2);
-   this.wrap(v.transcript?'「'+v.transcript+'」':'',32,795,736,2);
-   this.wrap(v.summary??'',32,864,736,3,28);
-   if(v.hasDraft)this.button('voiceDiscard','声の希望を取り消す',412,934,360,30,()=>this.click('voiceDiscard'),{quiet:true});
-  }else if(v.error){this.wrap(v.status??'',32,730,736,5);}
+   this.wrap(v.hasDraft?'✓ 希望を受け取りました。上のボタンで反映できます。':v.status??'',32,800,736,2);
+   this.wrap(v.transcript?'「'+v.transcript+'」':'',32,871,736,2);
+   this.wrap(v.summary??'',32,940,736,3,28);
+   this.button('voiceDiscard','取り消す',492,1010,280,54,()=>this.click('voiceDiscard'));
+  }else if(v.error){this.wrap(v.status??'',32,806,736,5);}
   else{
-   this.wrap('例：「夜空をイメージした曲なので、金色系の花火をたくさん出して」',32,730,736,2);
-   this.wrap('「海をイメージしたプログラムにしたい」',32,805,736,2);
-   this.text('「ぽつりぽつり」「しっとり上げて」もどうぞ。',32,876,22,panelTheme().muted,736);
-   this.text('録音は認識後に破棄します。',32,920,20,panelTheme().muted,736);
+   this.wrap('例：「夜空をイメージした曲なので、金色系の花火をたくさん出して」',32,806,736,2);
+   this.wrap('「海をイメージしたプログラムにしたい」',32,881,736,2);
+   this.text('「ぽつりぽつり」「しっとり上げて」もどうぞ。',32,952,22,panelTheme().muted,736);
+   this.text('録音は認識後に破棄します。',32,1000,20,panelTheme().muted,736);
   }
  }
  draw(){
@@ -381,9 +381,9 @@ export class MRPanel{
       if(!s.musicOriginal)this.selector('autoMusicEars','穂の風景',450,s.autoMusicEars);
       this.button('musicReanalyze','解析をやり直す',28,550,744,50,()=>this.click('musicReanalyze'),{disabled:!!s.voice?.busy});
      }
+     if(!s.musicOriginal||s.voice?.hasDraft)this.button('showRebuild',s.voice?.hasDraft?'このイメージで打ち上げる':'打ち上げ玉の構成を変える',28,610,744,64,()=>this.click('showRebuild'),{primary:!!s.voice?.hasDraft,disabled:!!s.voice?.busy});
      this.drawVoiceControls(s);
-     if(!s.musicOriginal||s.voice?.hasDraft)this.button('showRebuild','打ち上げ玉の構成を変える',28,976,744,64,()=>this.click('showRebuild'),{primary:!!s.voice?.hasDraft,disabled:!!s.voice?.busy});
-     this.wrap(s.voice?.phase==='complete'?s.voice.status:(s.showNotice||'')+' '+(s.readiness?.setting??''),32,1060,736,2);
+     if(!s.voice?.transcript)this.wrap((s.showNotice||'')+(s.voice?.open?'':' '+(s.readiness?.setting??'')),32,1070,736,1);
     }
     this.button('showStop','大会を止める',28,1118,360,50,()=>this.click('showStop'),{danger:true});
     this.button('showRestart','最初から観る',412,1118,360,50,()=>this.click('showRestart'));
@@ -453,7 +453,7 @@ export class MRPanel{
   }
 
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,panelTheme().muted,736);
-  if(child)this.button('detailBack','花火大会に戻る',28,1188,744,48,()=>{if(s.voice?.open)this.click('voiceClose');this.navigate(4);});
+  if(child)this.button('detailBack',this.adjusting?'大会に戻る':'花火大会に戻る',28,1188,744,48,()=>{if(s.voice?.open)this.click('voiceClose');this.navigate(4);});
   else{this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});}
   this.text(this.controllerGrabbed?'移動中 · 掴んだボタンを離すと、ここに置けます':'白い棒：トリガー／グリップで移動 · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
   if(this.page===4&&!this.adjusting&&s.trackMenuOpen&&!this.picker){

@@ -9,7 +9,7 @@ export class MRNameEditor{
   this.root.addEventListener('beforexrselect',event=>{if(this.dialog?.contains(event.target))event.preventDefault();});
   document.body.append(this.root);this.endHandler=()=>this.close();
  }
- sessionOptions(){return {requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking','dom-overlay'],domOverlay:{root:this.root}};}
+ sessionOptions(){return {requiredFeatures:['local-floor'],optionalFeatures:['hand-tracking','dom-overlay','anchors'],domOverlay:{root:this.root}};}
  open(row,session=null,{returnToMR=null,kind='favorite'}={}){
   this.close();
   if(session&&!session.domOverlayState)return false;

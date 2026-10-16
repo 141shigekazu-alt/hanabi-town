@@ -1,3 +1,4 @@
+import {spacedVoiceShots} from './voice-spacing.js';
 import {mirrorShellPosition} from './shell-flight.js';
 import {groundReservation} from './flower-programmes.js';
 import {stylePalette} from './programme-style.js';
@@ -8,17 +9,10 @@ export function directVoicePlan(plan,request,{shellTiming,shellPoints,planBudget
  const ending=s=>/^auto-finale/.test(s.group??'');
  const sparse=request.density==='sparse';
  if(sparse){
-  // Choose one flower of light per phrase, including the ending. Ground rows
-  // and long beds would conceal the requested quiet gaps, so omit them here.
-  const finalShots=request.finale?shots.filter(ending):[];
-  const candidates=shots.filter(s=>s.kind!=='ear'&&(!request.finale||!ending(s)));
-  const priority=s=>/^auto-finale/.test(s.group??'')?5:/auto-chorus-(entry|repeat)/.test(s.group??'')?4:s.size>=10?3:s.size>=5?2:1;
-  const chosen=[...finalShots];
-  for(const s of [...candidates].sort((a,b)=>priority(b)-priority(a)||a.opening-b.opening))if(!chosen.some(k=>Math.abs(k.opening-s.opening)<7.2))chosen.push(s);
-  shots=chosen.sort((a,b)=>a.at-b.at);fans=[];
+  shots=spacedVoiceShots(plan,request,{shellTiming});fans=[];
   for(const key of ['earPassages','flowerPassages','landscapeCreativeCues','creativeCues','soloCues','chorusFollowCues','repeatEntryCues','featureCues','chorusEntryCues'])plan[key]=[];
   plan.sections=plan.sections.filter(s=>!/(花畑|絨毯|田園|水田|海に|穂の)/.test(s.label??''));
-  plan.programmeStyle={...plan.programmeStyle,flowerFocus:false,flowerSceneCount:0,staging:'solos',stagingLabel:'ぽつりぽつり、間を味わう'};
+  plan.programmeStyle={...plan.programmeStyle,flowerFocus:false,flowerSceneCount:0,staging:'solos',stagingLabel:'一輪ずつ、余韻を残して次の花へ'};
   plan.programmeStyle.description=[plan.programmeStyle.label,plan.programmeStyle.colorLabel,plan.programmeStyle.stagingLabel].join(' · ');
  }
  if(request.finale?.energy==='quiet'||request.finale?.density==='sparse'){const first=Math.min(...shots.filter(ending).map(s=>s.at));fans=fans.filter(f=>groundReservation(f,plan.programmeStyle.seed).end<first-.3);}
@@ -46,10 +40,10 @@ export function directVoicePlan(plan,request,{shellTiming,shellPoints,planBudget
   const body=shots.filter(s=>s.kind!=='ear'&&!ending(s)&&!s.position?.earField&&!/^auto-flower-/.test(s.group??'')).sort((a,b)=>a.opening-b.opening);
   const target=Math.max(1,Math.round(body.length*.2)),selected=new Set();
   for(let i=0;i<target&&body.length;i++)selected.add(body[Math.min(body.length-1,Math.floor((i+.5)*body.length/target))]);
-  const baseSize=request.size==='large'?5:request.size==='medium'?5:3;
+  const baseSize=request.size==='large'?5:request.size==='medium'?5:sparse&&request.sizeAccent==='large'&&!request.size?5:3;
   for(const s of body.filter(s=>!selected.has(s))){const at=shots.indexOf(s);shots[at]=resize(s,baseSize);}
   for(const [i,s] of [...selected].entries()){
-   const size=request.sizeAccent==='large'?(i%3===0?10:5):request.sizeAccent==='medium'?5:3;
+   const size=request.sizeAccent==='large'?(sparse&&baseSize===5?10:i%3===0?10:5):request.sizeAccent==='medium'?5:3;
    const at=shots.indexOf(s);shots[at]=resize(s,size);
   }
  }

@@ -1,3 +1,5 @@
+import {MRReturnAnchor} from './mr-return-anchor.js';
+import {captureTownPlacement,restoreTownPlacement,placementDelta,restoreRelativePlacement} from './mr-return.js';
 import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js';
@@ -19,37 +21,37 @@ import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
 import {organizePanel} from './panel-layout.js';
 organizePanel();
-import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.90';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.2.90';
-import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.90';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.90';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.90';
-import {rainEarSequence} from './rain-ears.js?v=1.2.90';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.90';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.90';
-import {viewBoatPose} from './boat-cruise.js?v=1.2.90';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.90';
-import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.90';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.90';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.90';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.90';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.90';
+import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.91';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.2.91';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.91';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.91';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.91';
+import {rainEarSequence} from './rain-ears.js?v=1.2.91';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.91';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.91';
+import {viewBoatPose} from './boat-cruise.js?v=1.2.91';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.91';
+import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.91';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.91';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.91';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.91';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.2.91';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.90';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.91';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.90';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.90';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.90';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.90';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.90';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.90';
-import {TowerLighting} from './tower-lighting.js?v=1.2.90';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.90';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.90';
-import {WristMenu} from './wrist-menu.js?v=1.2.90';
-import {XRControls} from './xr-controls.js?v=1.2.90';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.90';
-import {EntryTip} from './entry-tip.js?v=1.2.90';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.91';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.91';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.91';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.91';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.91';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.91';
+import {TowerLighting} from './tower-lighting.js?v=1.2.91';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.91';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.91';
+import {WristMenu} from './wrist-menu.js?v=1.2.91';
+import {XRControls} from './xr-controls.js?v=1.2.91';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.91';
+import {EntryTip} from './entry-tip.js?v=1.2.91';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
@@ -274,7 +276,7 @@ function syncUnifiedControls(){
  if(favoriteRun&&['gap','loading','switch'].includes(favoriteRun.phase))$('showWatch').disabled=true;
  $('showWatch').textContent=selectionProblem||showPreparation.phase==='error'?'準備できませんでした':libraryRestoring||pending||showPreparation.phase==='preparing'?'準備中…':running?'Ⅱ 一時停止':showPlan&&!normalPrepared&&!showCompleted?'▶ 鑑賞を再開':showCompleted?'▶ もう一度開演':'▶ 花火大会を開演';
  $('showRebuild').hidden=original&&!voiceUI?.hasDraft;$('showRebuild').disabled=pending||!!selectionProblem||(!none&&!selectedMusic.autoGenerated&&!voiceUI?.hasDraft);
- $('showRebuild').textContent=none?'打ち上げ玉の構成を変える':'打ち上げ玉の構成を変える';
+ $('showRebuild').textContent=voiceUI?.hasDraft?'このイメージで打ち上げる':'打ち上げ玉の構成を変える';$('showRebuild').classList.toggle('voice-request-ready',!!voiceUI?.hasDraft);
  if(original){$('autoMusicFeelingHint').textContent='一緒に作った打ち上げの順序と時刻を、そのまま観られます。';$('autoMusicBuildNumber').textContent='手作りの構成 · オリジナル';}
  $('autoMusicProgress').hidden=!pending;
  $('musicTrack').disabled=libraryRestoring||pending;
@@ -900,6 +902,7 @@ try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');c
 setTowerColor();syncSize();syncPalette();syncFireworkVolume();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
 for(const id of settingsIds)$(id).addEventListener('change',()=>{if(dioramaSaved)return;try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
 let pendingDiorama=false,pendingPlace=false,mrStarting=false,mrSession=null,mrMetrics=null,mrMeta=null,lastMRReport=null,latestViewerTransform=null,pendingViewMode=null,pendingPanelOpen=false,pendingPanelPage=0,pendingBridge=false,vrSupported=false,pendingRenameReturn=null;
+const renameAnchor=new MRReturnAnchor();let renameExiting=false;
 let miniAngles=null;
 const desktopCamera={position:new T.Vector3(),quaternion:new T.Quaternion(),fov:55};
 $('height').oninput=applyTownHeight;
@@ -1120,7 +1123,7 @@ function finishMR(){
  soundEngine?.setSpatialMode?.(/OculusBrowser/.test(navigator.userAgent)&&new URLSearchParams(location.search).get('spatial')!=='full'?'adaptive':'full');
  cancelMusicRequest();
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();}
- voiceUI?.cancel();entryTip.end();cancelPreparation();
+ renameAnchor.cancel(mrSession);voiceUI?.cancel();entryTip.end();cancelPreparation();
  triggerEmbers.clear();manualBudget.reset();controls.end();cancelFutureSounds();if(bridgeView.active)leaveBridge();if(dioramaSaved)toggleDiorama();pendingDiorama=false;pendingPlace=false;pendingViewMode=null;pendingPanelOpen=false;pendingBridge=false;pendingRenameReturn=null;mrStarting=false;mrSession=null;latestViewerTransform=null;mrPanel.end();mrNameEditor?.close();favoritesPanel?.end();wristMenu.end();showInfo.end();betaReviewPanel.end();mrDimming.end();town.visible=true;
  if(running){if(showPlan?.music)time=music.pause();running=false;syncShowButtons();}
  $('status').textContent='鑑賞を終了して元のページへ戻りました。大会は一時停止しています。';
@@ -1139,9 +1142,9 @@ async function startXR(mode,bridge=false,panelPage=0,{renameReturn=null}={}){
   session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();betaReviewPanel.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);soundEngine?.setSpatialMode?.(new URLSearchParams(location.search).get('spatial')==='full'?'full':'adaptive');mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,nameEditor:session.domOverlayState?.type??'browser-fallback',startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
-  applyViewBackground();town.visible=false;pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;pendingPanelPage=panelPage;pendingRenameReturn=renameReturn;previous=0;$('mrExport').disabled=false;
+  applyViewBackground();town.visible=false;await renameAnchor.beginSession(session,renameReturn?.anchorHandle);if(renameReturn?.anchorHandle){renameReturn.anchor=await renameAnchor.restore(session,renameReturn.anchorHandle);renameReturn.anchorUntil=performance.now()+2000;}if(mrSession!==session){void renameAnchor.discard(session,renameReturn?.anchorHandle,renameReturn?.anchor);return;}pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;pendingPanelPage=panelPage;pendingRenameReturn=renameReturn;previous=0;$('mrExport').disabled=false;
   // Enter the room with an unlit sky; only the explicit show button starts it.
-  if(!bridge){const armed=favoriteRun?.armed?favoriteRun:null;if(armed)favoriteRun=null;stopShow();if(armed){favoriteRun=armed;favoritesUI?.setFestival('大会の準備完了 · '+armed.rows.length+'曲');}$('chapter').textContent='開演前 · 街を眺める';$('last').textContent='好きな位置に街を置いてください';$('status').textContent=panelPage===4?'曲はまだ始まりません。街を好きな位置へ置いてから、「'+$('musicShow').textContent+'」で開演してください。':'まずは街をじっくりどうぞ。台座へビームを合わせ、グリップで掴めます。サイドパネルの「花火大会を観る」で開演します。';}
+  if(!bridge&&!renameReturn){const armed=favoriteRun?.armed?favoriteRun:null;if(armed)favoriteRun=null;stopShow();if(armed){favoriteRun=armed;favoritesUI?.setFestival('大会の準備完了 · '+armed.rows.length+'曲');}$('chapter').textContent='開演前 · 街を眺める';$('last').textContent='好きな位置に街を置いてください';$('status').textContent=panelPage===4?'曲はまだ始まりません。街を好きな位置へ置いてから、「'+$('musicShow').textContent+'」で開演してください。':'まずは街をじっくりどうぞ。台座へビームを合わせ、グリップで掴めます。サイドパネルの「花火大会を観る」で開演します。';}
  }catch(e){if(session)await session.end().catch(()=>{});if(pendingDiorama&&!dioramaSaved){pendingDiorama=false;toggleDiorama();}mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
 }
 $('mr').onclick=()=>startXR('immersive-ar');
@@ -1178,14 +1181,25 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if(pose&&pendingViewMode){const mode=pendingViewMode;pendingViewMode=null;enterBridge(pose.transform,mode);mrPanel.draw();}
  const dt=previous&&xrVisible?Math.min((stamp-previous)/1000,.05):0;previous=xrVisible?stamp:0;
  mrNameEditor?.sync();if(xrVisible)advanceFavoriteInterval(dt);
- if(pendingPlace&&pose){
+ if(frame&&xrVisible)renameAnchor.frame(frame,renderer.xr.getReferenceSpace(),session);
+ let renamePose=null;const pendingReturn=pendingRenameReturn;
+ if(pendingReturn?.anchor){try{renamePose=frame?.getPose(pendingReturn.anchor.anchorSpace,renderer.xr.getReferenceSpace())?.transform??null;}catch{}}
+ const waitingForRenameAnchor=pendingReturn?.anchor&&!renamePose&&stamp<pendingReturn.anchorUntil;
+ if(pendingPlace&&pose&&!waitingForRenameAnchor){
   showInfo.reanchor();
-  const placement=placementFromPose(pose.transform,Number($('distance').value),Number($('height').value),town.rotation.y,-groundBottomY*town.scale.y);
-  town.position.set(placement.x,placement.y,placement.z);town.rotation.y=placement.yaw;town.visible=true;pendingPlace=false;
-  mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
-  if(pendingDiorama){pendingDiorama=false;toggleDiorama();}if(pendingBridge){enterBridge(pose.transform,pendingBridge===true?'bridge':pendingBridge);pendingBridge=false;}
+  const returning=pendingRenameReturn;
+  if(returning?.town){
+   restoreRenameTown(returning,pose.transform,renamePose);void renameAnchor.discard(session,returning.anchorHandle,returning.anchor);returning.anchor=null;
+  }else{
+   const placement=placementFromPose(pose.transform,Number($('distance').value),Number($('height').value),town.rotation.y,-groundBottomY*town.scale.y);
+   town.position.set(placement.x,placement.y,placement.z);town.rotation.y=placement.yaw;
+   mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
+   if(pendingDiorama){pendingDiorama=false;toggleDiorama();}
+  }
+  town.visible=true;pendingPlace=false;
+  if(pendingBridge){enterBridge(pose.transform,pendingBridge===true?'bridge':pendingBridge);pendingBridge=false;}
  }
- if(pendingPanelOpen&&pose){
+ if(pendingPanelOpen&&pose&&!pendingPlace){
   wristMenu.reanchor(pose.transform);mrPanel.begin(pose.transform);setPanelTab(pendingPanelPage);controls.begin(pose.transform);
   const returning=pendingRenameReturn;pendingRenameReturn=null;
   if(returning){restoreRenamePanels(returning,pose.transform);entryTip.end();}
@@ -1394,7 +1408,7 @@ function updateAutomaticPreparation(state){
  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('analysisDebug')==='1'){
   const status=state.title?state.status.replace(state.title,'選んだ曲'):state.status;
   const key=JSON.stringify([state.busy,!!state.error,status]);
-  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.90',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
+  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.91',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
  }
 
  if(state.busy)showPreparation.begin({title:state.title||pendingAutomaticTrack?.title||selectedMusic.title,setting:state.status});
@@ -1427,6 +1441,7 @@ const autoMusicUI=mountAutoMusic({catalog:MUSIC_CATALOG,onRebuilt:()=>analysisCh
 }});
 
 voiceUI=mountVoiceInput({
+ onDiscard:()=>{normalVoiceRequest=null;autoMusicUI.clearVoiceRequest();$('showNotice').textContent='声の入力を取り消しました。もう一度話せます。';$('autoMusicRebuildFeedback').hidden=true;syncShowButtons();mrPanel.draw();},
  onPause:()=>{analysisChime.unlock();if(showPlan?.music&&running)time=music.pause();else music.pause();running=false;previewPaused=true;cancelFutureSounds();clearFireworks();clearFans();if(favoriteRun&&['gap','loading','switch'].includes(favoriteRun.phase))favoriteRun.gapPaused=true;syncShowButtons();mrPanel.draw();},
  onCancel:()=>{autoMusicUI.cancel();selectionRequest++;pendingAutomaticTrack=null;musicBusy=false;markShowReady(noMusicMode?showPlan:MUSIC_PLAN);syncShowButtons();},
  onChange:()=>{if(voiceUI?.open&&mrPanel.active){mrPanel.page=4;mrPanel.adjusting=true;}syncShowButtons();mrPanel.draw();},
@@ -1546,20 +1561,28 @@ function advanceFavoriteInterval(dt){
  }
  if(run.phase==='switch'){const next=run.nextLoaded;run.nextLoaded=null;installFavoriteLoaded(next);startLoadedMusicShow();}
 }
-// Save UI before session.end() closes both panels. Re-anchor positions against
-// the returning viewer's position/yaw so a new XR reference origin is safe.
+// Capture the town and panels before session.end(). A temporary spatial anchor
+// supplies one room transform on return; head movement never relocates the town.
 function captureRenamePanels(){
- const snapshot=panel=>({visible:panel.visible,page:panel.page,offset:panel.offset,listMode:panel.listMode,setlistOffset:panel.setlistOffset,moved:panel.moved,yawOffset:panel.yawOffset,position:panel.mesh.position.clone(),quaternion:panel.mesh.quaternion.clone()});
- const pose=latestViewerTransform??mrPanel.lastTransform;
- return {main:snapshot(mrPanel),favorites:snapshot(favoritesPanel),viewer:pose?{position:new T.Vector3(pose.position.x,pose.position.y,pose.position.z),yaw:Math.atan2(pose.matrix[8],pose.matrix[10])}:null};
+ const snapshot=panel=>({visible:panel.visible,page:panel.page,offset:panel.offset,listMode:panel.listMode,setlistOffset:panel.setlistOffset,listScroll:panel.listScroll,setlistScroll:panel.setlistScroll,moved:panel.moved,yawOffset:panel.yawOffset,position:panel.mesh.position.clone(),quaternion:panel.mesh.quaternion.clone()});
+ return {town:captureTownPlacement(bridgeView.active?bridgeView.saved:town),townSettings:Object.fromEntries(['scale','height','distance'].map(id=>[id,Object.fromEntries(['min','max','step','value'].map(k=>[k,$(id)[k]]))])),diorama:dioramaSaved?{placement:captureTownPlacement(dioramaSaved),camera:dioramaSaved.camera.clone(),settings:structuredClone(dioramaSaved.settings)}:null,viewMode:bridgeView.active?bridgeView.mode:null,main:snapshot(mrPanel),favorites:snapshot(favoritesPanel)};
+}
+function restoreRenameTown(saved,pose,anchorPose=null){
+ restoreTownPlacement(town,saved.town,anchorPose);saved.roomDelta=placementDelta(saved.town,town);
+ for(const [id,values] of Object.entries(saved.townSettings))Object.assign($(id),values);
+ pendingDiorama=false;
+ if(saved.diorama){const d=saved.diorama,obj=restoreRelativePlacement(new T.Object3D(),d.placement,saved.roomDelta);dioramaSaved={position:obj.position.clone(),quaternion:obj.quaternion.clone(),scale:obj.scale.clone(),camera:d.camera.clone(),settings:structuredClone(d.settings)};controls.diorama=true;bridgeView.miniaturePointScale=town.scale.x;$('diorama').textContent='通常サイズに戻る';}
+ else{controls.diorama=false;bridgeView.miniaturePointScale=1;}
+ bridgeView.syncPoints();pendingBridge=saved.viewMode??false;
+ mrMeta?.placements.push({showTime:time,...mrSettings(),restoredAfterRename:true});
+ $('status').textContent='名前の編集前の街の位置・向き・大きさに戻りました。';
 }
 function restoreRenamePanels(saved,pose){
  favoritesUI.close();favoritesPanel.active=true;favoritesPanel.preview=false;favoritesPanel.menuId=null;
- favoritesPanel.offset=saved.favorites.offset;favoritesPanel.listMode=saved.favorites.listMode??'favorites';favoritesPanel.setlistOffset=saved.favorites.setlistOffset??0;
+ favoritesPanel.listScroll=saved.favorites.listScroll??0;favoritesPanel.setlistScroll=saved.favorites.setlistScroll??0;favoritesPanel.offset=saved.favorites.offset;favoritesPanel.listMode=saved.favorites.listMode??'favorites';favoritesPanel.setlistOffset=saved.favorites.setlistOffset??0;
  favoritesPanel.openAt(pose,{side:-.42,distance:1.05,drop:.08});
- const delta=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),Math.atan2(pose.matrix[8],pose.matrix[10])-(saved.viewer?.yaw??0));
  for(const [panel,state] of [[mrPanel,saved.main],[favoritesPanel,saved.favorites]]){
-  if(saved.viewer){panel.mesh.position.copy(state.position).sub(saved.viewer.position).applyQuaternion(delta).add(new T.Vector3(pose.position.x,pose.position.y,pose.position.z));panel.mesh.quaternion.copy(state.quaternion).premultiply(delta);panel.moved=state.moved;panel.yawOffset=state.yawOffset;panel.mesh.updateMatrixWorld(true);}
+  if(saved.roomDelta){panel.mesh.position.copy(state.position).applyQuaternion(saved.roomDelta.turn).add(saved.roomDelta.shift);panel.mesh.quaternion.copy(state.quaternion).premultiply(saved.roomDelta.turn);panel.moved=state.moved;panel.yawOffset=state.yawOffset;panel.mesh.updateMatrixWorld(true);}
   panel.mesh.visible=state.visible;panel.lastTransform=pose;panel.draw();
  }
 }
@@ -1573,15 +1596,15 @@ async function saveSetlistName(id,name){
  return ok;
 }
 async function renameFavoriteFromMR(id,kind='favorite'){
- const row=(kind==='setlist'?favoritesUI.state.setlists:favoritesUI.state.rows).find(row=>row.id===id);if(!row)return;
+ const row=(kind==='setlist'?favoritesUI.state.setlists:favoritesUI.state.rows).find(row=>row.id===id);if(!row||renameExiting)return;
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind});return;}
  // System keyboard focus suspends XR input on this device. Keep partial text
  // editing native, rather than pretending the canvas has a working caret.
- const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();
+ const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();renameExiting=true;
  try{
-  await session.end();
+  returning.anchorHandle=await renameAnchor.capture(session,returning.town);await session.end();
   mrNameEditor.open(row,null,{kind,returnToMR:()=>{void startXR(mode,false,returning.main.page,{renameReturn:returning});}});
- }catch(error){favoritesUI.message('名前の編集を開けませんでした：'+error.message);}
+ }catch(error){void renameAnchor.discard(session,returning.anchorHandle);favoritesUI.message('名前の編集を開けませんでした：'+error.message);}finally{renameExiting=false;}
 }
 
 let removedTrackUndo=null,trackEditBusy=false;
@@ -1615,14 +1638,14 @@ async function saveTrackName(id,name){
  syncMusicChoices();syncShowButtons();mrPanel.draw();await favoritesUI.refreshHeart();return true;
 }
 async function renameSelectedTrack(){
- if(trackEditBusy||$('trackMenuToggle').disabled)return;
+ if(trackEditBusy||renameExiting||$('trackMenuToggle').disabled)return;
  const id=$('musicTrack').value,track=playableMusicChoices(generatedMusic).find(t=>t.id===id);if(!track)return;
  $('trackMenu').hidden=true;$('trackMenuToggle').setAttribute('aria-expanded','false');mrPanel.draw();
  const row={id,name:track.title};
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind:'track'});return;}
- const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();
- try{await session.end();mrNameEditor.open(row,null,{kind:'track',returnToMR:()=>{void startXR(mode,false,returning.main.page,{renameReturn:returning});}});}
- catch(error){$('showNotice').textContent='曲名の編集を開けませんでした：'+error.message;}
+ const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();renameExiting=true;
+ try{returning.anchorHandle=await renameAnchor.capture(session,returning.town);await session.end();mrNameEditor.open(row,null,{kind:'track',returnToMR:()=>{void startXR(mode,false,returning.main.page,{renameReturn:returning});}});}
+ catch(error){void renameAnchor.discard(session,returning.anchorHandle);$('showNotice').textContent='曲名の編集を開けませんでした：'+error.message;}finally{renameExiting=false;}
 }
 
 function openFavoriteList(){

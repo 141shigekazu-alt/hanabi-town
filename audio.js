@@ -1,4 +1,4 @@
-import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.90';
+import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.2.91';
 import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.2.0';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
 export function fadeTail(data,rate,seconds){
