@@ -21,37 +21,37 @@ import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
 import {organizePanel} from './panel-layout.js';
 organizePanel();
-import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.91';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.2.91';
-import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.91';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.91';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.91';
-import {rainEarSequence} from './rain-ears.js?v=1.2.91';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.91';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.91';
-import {viewBoatPose} from './boat-cruise.js?v=1.2.91';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.91';
-import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.91';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.91';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.91';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.91';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.91';
+import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.92';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.2.92';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.92';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.92';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.92';
+import {rainEarSequence} from './rain-ears.js?v=1.2.92';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.92';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.92';
+import {viewBoatPose} from './boat-cruise.js?v=1.2.92';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.92';
+import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.92';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.92';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.92';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.92';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.2.92';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.91';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.92';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.91';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.91';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.91';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.91';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.91';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.91';
-import {TowerLighting} from './tower-lighting.js?v=1.2.91';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.91';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.91';
-import {WristMenu} from './wrist-menu.js?v=1.2.91';
-import {XRControls} from './xr-controls.js?v=1.2.91';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.91';
-import {EntryTip} from './entry-tip.js?v=1.2.91';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.92';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.92';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.92';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.92';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.92';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.92';
+import {TowerLighting} from './tower-lighting.js?v=1.2.92';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.92';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.92';
+import {WristMenu} from './wrist-menu.js?v=1.2.92';
+import {XRControls} from './xr-controls.js?v=1.2.92';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.92';
+import {EntryTip} from './entry-tip.js?v=1.2.92';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
@@ -309,7 +309,10 @@ function betaTimeLabel(value){return betaClock(Math.min(value,MUSIC_PLAN.duratio
 function betaRandom(seed){let n=seed>>>0;return()=>((n=(Math.imul(n,1664525)+1013904223)>>>0)/4294967296);}
 function betaSeed(index){let seed=0x141718;for(const c of selectedMusic.id)seed=(Math.imul(seed,31)+c.charCodeAt(0))>>>0;return(seed+Math.imul(index+1,2654435761))>>>0;}
 
-function prepareProgram(){normalBuildNumber++;normalPrepared=true;$('showNotice').textContent=`✓ 構成${normalBuildNumber}を作成しました · ${PROGRAM_NAMES[$('program').value]}`;showCompleted=false;const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.voiceRequest=normalVoiceRequest;showPlan.programmeStyle=voiceProgrammeStyle(showPlan.programmeStyle,normalVoiceRequest);if(normalVoiceRequest?.density==='sparse'){showPlan.slots=[];showPlan.senrinAt=[];showPlan.bigAt=Infinity;}if(normalVoiceRequest?.finale?.energy==='grand'&&!showPlan.slots.includes(270))showPlan.slots.push(270);if(normalVoiceRequest?.finale?.energy==='quiet')showPlan.slots=showPlan.slots.filter(at=>at<235);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalVoiceRequest?.landscape==='sea'&&normalVoiceRequest?.density!=='sparse'?seaSunsetPassage({firstOpening:2.53,seed,long:true}):normalEarSequence(seed,.8,normalVoiceRequest?.density==='sparse'?0:3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,Number.isFinite(intro.finishAt)?intro.finishAt:.8);$('programInfo').textContent=showPlan.name;markShowReady(showPlan); }
+function setRebuildFeedback(heading,details=''){
+ $('autoMusicRebuildComplete').textContent=heading;$('autoMusicRebuildDetails').textContent=details;$('autoMusicRebuildFeedback').hidden=false;
+}
+function prepareProgram(){normalBuildNumber++;normalPrepared=true;setRebuildFeedback(`✓ 構成${normalBuildNumber}に変えました`,PROGRAM_NAMES[$('program').value]);$('showNotice').textContent=`✓ 構成${normalBuildNumber}を作成しました · ${PROGRAM_NAMES[$('program').value]}`;showCompleted=false;const seed=crypto.getRandomValues(new Uint32Array(1))[0];showPlan=createProgram($('program').value,seed);showPlan.voiceRequest=normalVoiceRequest;showPlan.programmeStyle=voiceProgrammeStyle(showPlan.programmeStyle,normalVoiceRequest);if(normalVoiceRequest?.density==='sparse'){showPlan.slots=[];showPlan.senrinAt=[];showPlan.bigAt=Infinity;}if(normalVoiceRequest?.finale?.energy==='grand'&&!showPlan.slots.includes(270))showPlan.slots.push(270);if(normalVoiceRequest?.finale?.energy==='quiet')showPlan.slots=showPlan.slots.filter(at=>at<235);showPlan.wideFinale=(++showNumber%3===0);showPlan.special=[{kind:'triple',size:20},{kind:'quad',size:10},{kind:'penta',size:10}][(showNumber-1)%3];showPlan.earSeed=seed;const intro=normalVoiceRequest?.landscape==='sea'&&normalVoiceRequest?.density!=='sparse'?seaSunsetPassage({firstOpening:2.53,seed,long:true}):normalEarSequence(seed,.8,normalVoiceRequest?.density==='sparse'?0:3);burstQueue.push(...intro.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=Math.max(nextLaunch,Number.isFinite(intro.finishAt)?intro.finishAt:.8);$('programInfo').textContent=showPlan.name;markShowReady(showPlan); }
 function prepareMusicProgram(){
  showCompleted=false;
  showPlan={name:'音楽付き · '+selectedMusic.title,music:true};
@@ -924,7 +927,7 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={voice:voiceUI?.state??null,analysisFeedback:analysisFeedback?{...analysisFeedback}:null,flowerDescription:$('flowerDescription').textContent,trackUndo:!$('trackUndo').hidden,trackMenuOpen:!$('trackMenu').hidden,trackCanRename:!$('trackMenuToggle').disabled,entryTipEnabled:!entryTip.suppressed,favoriteSaved:!!favoritesUI?.state.saved,favoriteCanSave:!!favoritesUI?.state.canSave&&!favoritesUI?.state.busy,musicless:noMusicMode&&!pendingAutomaticTrack&&!selectionProblem,musicOriginal:!!selectedMusic.original&&!pendingAutomaticTrack&&!selectionProblem,selectionFailed:!!selectionProblem,showWatchLabel:$('showWatch').textContent,showWatchDisabled:$('showWatch').disabled,readiness:{phase:$('showReadiness').dataset.phase,heading:$('showReadinessHeading').textContent,title:$('showReadinessTitle').textContent,setting:$('showReadinessSetting').textContent},showNotice:!noMusicMode&&!selectedMusic.original&&!$('autoMusicRebuildFeedback').hidden?$('autoMusicRebuildComplete').textContent:$('showNotice').textContent,normalBuildNumber,betaMusicReview:true,betaTCEnabled,betaMusicClock:betaTimeLabel(betaDragging?Number($('betaMusicSeek').value):time),betaMusicCurrent:betaClock(Math.min(betaDragging?Number($('betaMusicSeek').value):time,MUSIC_PLAN.duration)),betaMusicDuration:betaClock(MUSIC_PLAN.duration),betaMusicSeek:{value:(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration},diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicFeeling:musicFeelingLabel(),musicAnalysisBusy:directingBusy||musicBusy||!!pendingAutomaticTrack,musicAutoGenerated:!!selectedMusic.autoGenerated&&!pendingAutomaticTrack,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ const result={rebuildFeedback:!$('autoMusicRebuildFeedback').hidden?{heading:$('autoMusicRebuildComplete').textContent,details:$('autoMusicRebuildDetails').textContent}:null,voice:voiceUI?.state??null,analysisFeedback:analysisFeedback?{...analysisFeedback}:null,flowerDescription:$('flowerDescription').textContent,trackUndo:!$('trackUndo').hidden,trackMenuOpen:!$('trackMenu').hidden,trackCanRename:!$('trackMenuToggle').disabled,entryTipEnabled:!entryTip.suppressed,favoriteSaved:!!favoritesUI?.state.saved,favoriteCanSave:!!favoritesUI?.state.canSave&&!favoritesUI?.state.busy,musicless:noMusicMode&&!pendingAutomaticTrack&&!selectionProblem,musicOriginal:!!selectedMusic.original&&!pendingAutomaticTrack&&!selectionProblem,selectionFailed:!!selectionProblem,showWatchLabel:$('showWatch').textContent,showWatchDisabled:$('showWatch').disabled,readiness:{phase:$('showReadiness').dataset.phase,heading:$('showReadinessHeading').textContent,title:$('showReadinessTitle').textContent,setting:$('showReadinessSetting').textContent},showNotice:!noMusicMode&&!selectedMusic.original&&!$('autoMusicRebuildFeedback').hidden?$('autoMusicRebuildComplete').textContent:$('showNotice').textContent,normalBuildNumber,betaMusicReview:true,betaTCEnabled,betaMusicClock:betaTimeLabel(betaDragging?Number($('betaMusicSeek').value):time),betaMusicCurrent:betaClock(Math.min(betaDragging?Number($('betaMusicSeek').value):time,MUSIC_PLAN.duration)),betaMusicDuration:betaClock(MUSIC_PLAN.duration),betaMusicSeek:{value:(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration},diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicFeeling:musicFeelingLabel(),musicAnalysisBusy:directingBusy||musicBusy||!!pendingAutomaticTrack,musicAutoGenerated:!!selectedMusic.autoGenerated&&!pendingAutomaticTrack,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
  for(const id of ['flowerPattern','flowerTiming','flowerSpacing','flowerColor','flowerSize','program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack','autoMusicFeeling','autoMusicEars','helpTopic','setlistSelect','panelTheme']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',disabled:el.disabled,options:[...el.options].map(o=>({value:o.value,label:o.textContent,disabled:o.disabled}))};
  }
@@ -1408,7 +1411,7 @@ function updateAutomaticPreparation(state){
  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('analysisDebug')==='1'){
   const status=state.title?state.status.replace(state.title,'選んだ曲'):state.status;
   const key=JSON.stringify([state.busy,!!state.error,status]);
-  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.91',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
+  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.92',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
  }
 
  if(state.busy)showPreparation.begin({title:state.title||pendingAutomaticTrack?.title||selectedMusic.title,setting:state.status});
@@ -1442,20 +1445,20 @@ const autoMusicUI=mountAutoMusic({catalog:MUSIC_CATALOG,onRebuilt:()=>analysisCh
 
 voiceUI=mountVoiceInput({
  onDiscard:()=>{normalVoiceRequest=null;autoMusicUI.clearVoiceRequest();$('showNotice').textContent='声の入力を取り消しました。もう一度話せます。';$('autoMusicRebuildFeedback').hidden=true;syncShowButtons();mrPanel.draw();},
- onPause:()=>{analysisChime.unlock();if(showPlan?.music&&running)time=music.pause();else music.pause();running=false;previewPaused=true;cancelFutureSounds();clearFireworks();clearFans();if(favoriteRun&&['gap','loading','switch'].includes(favoriteRun.phase))favoriteRun.gapPaused=true;syncShowButtons();mrPanel.draw();},
+ onPause:()=>{$('autoMusicRebuildFeedback').hidden=true;analysisChime.unlock();if(showPlan?.music&&running)time=music.pause();else music.pause();running=false;previewPaused=true;cancelFutureSounds();clearFireworks();clearFans();if(favoriteRun&&['gap','loading','switch'].includes(favoriteRun.phase))favoriteRun.gapPaused=true;syncShowButtons();mrPanel.draw();},
  onCancel:()=>{autoMusicUI.cancel();selectionRequest++;pendingAutomaticTrack=null;musicBusy=false;markShowReady(noMusicMode?showPlan:MUSIC_PLAN);syncShowButtons();},
  onChange:()=>{if(voiceUI?.open&&mrPanel.active){mrPanel.page=4;mrPanel.adjusting=true;}syncShowButtons();mrPanel.draw();},
  onApply:async(request,isCurrent)=>{
   if(!isCurrent())return false;
   analysisFeedback=null;$('analysisFeedback').hidden=true;
-  if(noMusicMode){normalVoiceRequest=request;stopShow();prepareProgram();$('showNotice').textContent='✓ 声で構成を作成 · '+request.summary;markShowReady(showPlan);syncShowButtons();analysisChime.play();return true;}
+  if(noMusicMode){normalVoiceRequest=request;stopShow();prepareProgram();$('showNotice').textContent='✓ 声で構成を作成 · '+request.summary;setRebuildFeedback(`✓ 構成${normalBuildNumber}に変えました`,request.summary);markShowReady(showPlan);syncShowButtons();analysisChime.play();return true;}
   const id=selectedMusic.id;
   let result;
   if(!selectedMusic.original&&autoMusicUI.result?.trackId===id)result=autoMusicUI.applyVoiceRequest(request);
   else result=await autoMusicUI.generateTrack(id,request.feeling??'auto',request);
   if(!isCurrent()||!result)return false;
   clearFavoriteFestival();$('showNotice').textContent='✓ 声で構成を作成 · '+request.summary;
-  $('autoMusicRebuildComplete').textContent='✓ 声のイメージで構成を作りました';$('autoMusicRebuildDetails').textContent=request.summary;$('autoMusicRebuildFeedback').hidden=false;
+  setRebuildFeedback(`✓ 構成${(MUSIC_PLAN.analysisSummary?.variation??0)+1}に変えました`,request.summary);
   markShowReady(MUSIC_PLAN);syncShowButtons();mrPanel.draw();analysisChime.play();return true;
  }
 });

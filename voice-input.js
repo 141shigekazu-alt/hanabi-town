@@ -4,12 +4,12 @@ import {parseVoiceRequest} from './voice-request.js';
 export function mountVoiceInput({onPause,onApply,onChange=()=>{},onCancel=()=>{},onDiscard=()=>{}}){
  const maxSeconds=20;
  const $=id=>document.getElementById(id);
- const state={open:false,phase:'idle',detail:'',status:'「金色の大玉を、ぽつりぽつり」などと話してください。',transcript:'',summary:'',progress:0,seconds:0,level:0,error:false,maxSeconds,draft:null};
+ const state={open:false,phase:'idle',detail:'',status:'マイクを押して、イメージを話してください。',transcript:'',summary:'',progress:0,seconds:0,level:0,error:false,maxSeconds,draft:null};
  let generation=0,loadTimer=null,worker=null,stream=null,context=null,recorder=null,chunks=[],timer=null,ticker=null,analyser=null,peak=0,started=0,pendingLoad=null,returnTimer=null;
  const busy=()=>['loading','permission','starting','recording','recognizing','applying'].includes(state.phase);
  function render(){
   const preparing=['permission','loading','starting'].includes(state.phase);
-  $('voiceCard').hidden=!state.open;$('voiceStatus').textContent=state.status;$('voiceStatus').dataset.error=String(state.error);$('voiceStatus').dataset.phase=state.phase;$('voiceOpen').setAttribute('aria-busy',String(preparing));$('voiceDetail').textContent=preparing?state.detail:'';$('voiceDetail').hidden=!preparing||!state.detail;
+  $('voiceCard').hidden=!state.open;$('voiceCard').querySelector('.voice-examples').hidden=!!state.transcript;$('voiceStatus').textContent=state.status;$('voiceStatus').dataset.error=String(state.error);$('voiceStatus').dataset.phase=state.phase;$('voiceOpen').setAttribute('aria-busy',String(preparing));$('voiceDetail').textContent=preparing?state.detail:'';$('voiceDetail').hidden=!preparing||!state.detail;
   $('voiceTranscript').textContent=state.transcript?`「${state.transcript}」`:'';$('voiceSummary').textContent=state.summary;
   $('voiceProgress').hidden=state.phase!=='recording';$('voiceProgress').value=state.progress;
   $('voiceRecord').textContent=state.phase==='recording'?'■ 停止':preparing?'準備中…':state.phase==='recognizing'?'声を読み取り中…':state.phase==='applying'?'構成へ反映中…':state.phase==='complete'?'🎤 もう一度話す':'🎤 話す（20秒まで）';$('voiceRecord').disabled=busy()&&state.phase!=='recording';
@@ -79,7 +79,7 @@ export function mountVoiceInput({onPause,onApply,onChange=()=>{},onCancel=()=>{}
   try{const result=await onApply(request,()=>token===generation);if(token!==generation)return false;if(!result)throw Error('構成を準備できませんでした。曲の準備状態を確認して、もう一度どうぞ。');state.draft=null;state.phase='complete';state.status='✓ 声のイメージで構成を作りました。花火大会へ戻って開演できます。';render();return true;}
   catch(error){fail(error,token);return false;}
  }
- function resetDraft({keepOpen=false}={}){if(busy())cancel();state.open=keepOpen;state.draft=null;state.transcript='';state.summary='';state.phase='idle';state.status='「金色の大玉を、ぽつりぽつり」などと話してください。';render();}
+ function resetDraft({keepOpen=false}={}){if(busy())cancel();state.open=keepOpen;state.draft=null;state.transcript='';state.summary='';state.phase='idle';state.status='マイクを押して、イメージを話してください。';render();}
  $('voiceOpen').onclick=()=>{if(busy())return;state.open=true;render();void start();};$('voiceRecord').onclick=()=>state.phase==='recording'?stopRecording():void start();$('voiceClose').onclick=()=>cancel();$('voiceCancel').onclick=()=>cancel();$('voiceDiscard').onclick=()=>{if(busy())return;resetDraft({keepOpen:true});onDiscard();};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&busy())cancel();});window.addEventListener('pagehide',()=>cancel());
  return{get state(){return {...state,busy:busy(),hasDraft:!!state.draft,microphoneActive:!!stream?.getAudioTracks().some(t=>t.readyState==='live'),workerActive:!!worker,bufferedChunks:chunks.length};},get busy(){return busy();},get open(){return state.open;},get hasDraft(){return !!state.draft;},start,cancel,tick,applyPending,resetDraft};

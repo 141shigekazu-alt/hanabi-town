@@ -267,10 +267,10 @@ export class MRPanel{
   if(!compact){this.text(seek?'はじめ':id==='roomBrightness'?'暗い':'小さい',32,y+115,23,panelTheme().muted);this.text(seek?'曲末':id==='roomBrightness'?'明るい':'大きい',660,y+115,23,panelTheme().muted);}
  }
 
- wrap(text,x,y,maxWidth,lines=3,lineHeight=34){
-  const c=this.ctx;c.font=panelFont(23);let line='',row=0;
-  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*lineHeight,23,panelTheme().muted);row++;line='';if(row>=lines)return;}line+=char;}
-  if(line)this.text(line,x,y+row*lineHeight,23,panelTheme().muted);
+ wrap(text,x,y,maxWidth,lines=3,lineHeight=34,color=panelTheme().muted,size=23){
+  const c=this.ctx;c.font=panelFont(size);let line='',row=0;
+  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*lineHeight,size,color);row++;line='';if(row>=lines)return;}line+=char;}
+  if(line)this.text(line,x,y+row*lineHeight,size,color);
  }
  drawPreparation(s){
   const p=s.preparing,hand=p.hand==='left'?'左':'右',fields=['kind','size','palette'];
@@ -287,30 +287,39 @@ export class MRPanel{
   this.button('prepareCancel','戻る（変更しない）',28,958,744,48,()=>this.click('prepareCancel'));
  }
 
+ drawRebuildFeedback(s){
+  const result=s.rebuildFeedback;if(!result)return;
+  const c=this.ctx,p=panelTheme();c.fillStyle=p.successSurface;c.strokeStyle=p.successLine;c.lineWidth=1.5;
+  c.beginPath();c.roundRect(28,686,744,78,12);c.fill();c.stroke();
+  this.text(result.heading,44,714,26,p.success,712);
+  this.text(result.details,44,746,20,p.muted,712);
+ }
  drawVoiceControls(s){
   const v=s.voice??{},c=this.ctx,recording=v.phase==='recording',preparing=['permission','loading','starting'].includes(v.phase);
-  this.button('voiceOpen',recording?'■ 停止':preparing?'◌':'🎤',28,704,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
-  this.text('あなたのイメージをAIに話す',132,726,23,panelTheme().text,490);this.text('テスト版',640,726,18,panelTheme().muted,112);
-  this.text('20秒まで録音 · 話し終わったら「停止」',132,755,20,panelTheme().muted,620);
+  this.button('voiceOpen',recording?'■ 停止':preparing?'◌':'🎤',28,784,88,62,()=>this.click(recording?'voiceRecord':'voiceOpen'),{primary:recording,disabled:!!v.busy&&!recording});
+  this.text('あなたのイメージをAIに話す',132,806,23,panelTheme().text,490);this.text('テスト版',640,806,18,panelTheme().muted,112);
+  this.text('20秒まで録音 · 話し終わったら「停止」',132,835,20,panelTheme().muted,620);
   if(v.busy){
    if(preparing){
-    const angle=performance.now()/650;c.save();c.strokeStyle=panelTheme().accent;c.lineWidth=4;c.beginPath();c.arc(55,824,15,angle,angle+Math.PI*1.45);c.stroke();c.restore();
-    this.wrap(v.status??'',90,806,674,2);this.wrap(v.detail??'',32,906,736,3);
-   }else this.wrap(v.status??'',32,806,736,3);
-   if(recording){this.text('● '+Math.min(20,v.seconds??0).toFixed(1)+' / 20秒',32,914,26,panelTheme().accent);c.fillStyle=panelTheme().track;c.fillRect(32,953,736,10);c.fillStyle=panelTheme().accent;c.fillRect(32,953,736*Math.min(1,v.progress??0),10);}
+    const angle=performance.now()/650;c.save();c.strokeStyle=panelTheme().accent;c.lineWidth=4;c.beginPath();c.arc(55,888,15,angle,angle+Math.PI*1.45);c.stroke();c.restore();
+    this.wrap(v.status??'',90,880,674,2);this.wrap(v.detail??'',32,956,736,3,28);
+   }else this.wrap(v.status??'',32,880,736,3);
+   if(recording){this.text('● '+Math.min(20,v.seconds??0).toFixed(1)+' / 20秒',32,988,26,panelTheme().accent);c.fillStyle=panelTheme().track;c.fillRect(32,1027,736,10);c.fillStyle=panelTheme().accent;c.fillRect(32,1027,736*Math.min(1,v.progress??0),10);}
   }else if(v.hasDraft||v.transcript){
-   this.wrap(v.hasDraft?'✓ 希望を受け取りました。上のボタンで反映できます。':v.status??'',32,800,736,2);
-   this.wrap(v.transcript?'「'+v.transcript+'」':'',32,871,736,2);
-   this.wrap(v.summary??'',32,940,736,3,28);
-   this.button('voiceDiscard','取り消す',492,1010,280,54,()=>this.click('voiceDiscard'));
-  }else if(v.error){this.wrap(v.status??'',32,806,736,5);}
+   this.wrap(v.hasDraft?'✓ 希望を受け取りました。上のボタンで反映できます。':v.status??'',32,876,736,2,28);
+   this.wrap(v.transcript?'「'+v.transcript+'」':'',32,938,736,2,28,panelTheme().text);
+   this.wrap(v.summary??'',32,1000,736,2,28);
+   this.button('voiceDiscard','取り消す',492,1048,280,54,()=>this.click('voiceDiscard'));
+  }else if(v.error){this.wrap(v.status??'',32,880,736,5,28);}
   else{
-   this.wrap('例：「夜空をイメージした曲なので、金色系の花火をたくさん出して」',32,806,736,2);
-   this.wrap('「海をイメージしたプログラムにしたい」',32,881,736,2);
-   this.text('「ぽつりぽつり」「しっとり上げて」もどうぞ。',32,952,22,panelTheme().muted,736);
-   this.text('録音は認識後に破棄します。',32,1000,20,panelTheme().muted,736);
+   this.text('入力例',32,875,18,panelTheme().example,736);
+   this.wrap('「夜空をイメージした曲なので、金色系の花火をたくさん出して」',32,902,736,1,27,panelTheme().example,21);
+   this.text('「海をイメージしたプログラムにしたい」など。',32,929,21,panelTheme().example,736);
+   this.text('「ぽつりぽつり」「しっとり上げて」もどうぞ。',32,956,20,panelTheme().example,736);
+   this.text('録音は認識後に破棄します。',32,1040,18,panelTheme().muted,736);
   }
  }
+
  draw(){
   const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&this.adjusting;this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
   this.text('花火街',36,49,43,panelTheme().text);this.text('v'+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
@@ -382,8 +391,8 @@ export class MRPanel{
       this.button('musicReanalyze','解析をやり直す',28,550,744,50,()=>this.click('musicReanalyze'),{disabled:!!s.voice?.busy});
      }
      if(!s.musicOriginal||s.voice?.hasDraft)this.button('showRebuild',s.voice?.hasDraft?'このイメージで打ち上げる':'打ち上げ玉の構成を変える',28,610,744,64,()=>this.click('showRebuild'),{primary:!!s.voice?.hasDraft,disabled:!!s.voice?.busy});
-     this.drawVoiceControls(s);
-     if(!s.voice?.transcript)this.wrap((s.showNotice||'')+(s.voice?.open?'':' '+(s.readiness?.setting??'')),32,1070,736,1);
+     this.drawRebuildFeedback(s);this.drawVoiceControls(s);
+     if(!s.rebuildFeedback&&!s.voice?.transcript&&!s.voice?.busy)this.wrap((s.showNotice||'')+(s.voice?.open?'':' '+(s.readiness?.setting??'')),32,1090,736,1,28);
     }
     this.button('showStop','大会を止める',28,1118,360,50,()=>this.click('showStop'),{danger:true});
     this.button('showRestart','最初から観る',412,1118,360,50,()=>this.click('showRestart'));
