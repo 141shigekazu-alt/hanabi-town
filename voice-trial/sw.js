@@ -1,0 +1,5 @@
+const CACHE='hanabi-voice-ui-v1';
+const FILES=['./','./index.html','./trial.js','./recognizer.js','./vendor/transformers.min.js','./vendor/ort-wasm-simd-threaded.asyncify.mjs','./vendor/ort-wasm-simd-threaded.asyncify.wasm','./vendor/transformers-LICENSE.txt','./vendor/onnxruntime-LICENSE.txt','../vendor/three.module.js','../fonts/NotoSansJP-variable.ttf','../fonts/OFL.txt'].map(p=>new URL(p,self.location.href).href);
+self.addEventListener('install',e=>e.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const url of FILES){const response=await fetch(url,{cache:'reload'});if(!response.ok)throw Error('Save failed: '+new URL(url).pathname);await cache.put(url,response);}await self.skipWaiting();})()));
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const url=new URL(e.request.url);url.search='';if(!FILES.includes(url.href))return;e.respondWith((async()=>{const hit=await(await caches.open(CACHE)).match(url.href);return hit??fetch(e.request);})());});

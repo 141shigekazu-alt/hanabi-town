@@ -1,0 +1,9 @@
+Transformers.js 4.3.1 — Apache-2.0
+https://github.com/huggingface/transformers.js
+ONNX Runtime Web 1.31.0-dev.20260914-8d85527a0 — MIT
+https://github.com/microsoft/onnxruntime
+Whisper-base ONNX — OpenAI WhisperをONNX Communityが変換。モデルはHugging Faceから端末へ取得。
+https://huggingface.co/onnx-community/whisper-base
+https://github.com/openai/whisper
+Three.js・Noto Sans JPは花火街の既存公開資産とライセンスを参照。
+音声認識はQuest内のWorkerで行う。音声・文字を認識サーバーへ送るAPIはない。
