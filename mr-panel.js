@@ -67,7 +67,7 @@ export class MRPanel{
   controller.addEventListener('selectend',()=>this.release(controller));
 
  }
- openAt(transform,{side=.88,distance=1.2,drop=.12}={}){
+ openAt(transform,{side=1.28,distance=1.2,drop=.12}={}){
   if(!transform)return;this.endChildView();this.lastTransform=transform;
   const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10];const length=Math.hypot(x,z);
   if(length<.001){x=0;z=-1;}else{x/=length;z/=length;}
