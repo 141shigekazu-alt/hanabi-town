@@ -1,5 +1,5 @@
 import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
-import {TYPES} from './fireworks.js?v=1.2.83';
+import {TYPES} from './fireworks.js?v=1.2.84';
 import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';
@@ -38,6 +38,7 @@ export function programCue(plan,time,index,lively=false){
   result.position=stylePosition(style,result.position,index);result.position.palette=stylePalette(style,result.kind,index);
   if(['butterfly','planet','drum'].includes(result.kind))result.interval=Math.max(result.interval,3.2+TYPES[result.kind].life+.8);
  }
+ if(plan.programmeStyle?.color==='gold')result.position.palette='programme-gold';
  return result;
 }
 

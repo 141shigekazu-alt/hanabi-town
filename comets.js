@@ -1,6 +1,6 @@
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
-import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.83';
+import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.2.84';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.16';
@@ -75,6 +75,7 @@ export function makeComet(shot,start){
  const samples=shot.motion?.tailSamples??80;
  const tail=Array.from({length:samples*style.lanes},(_,i)=>({at:(Math.floor(i/style.lanes)+random()*.85)/samples*burn,dx:(random()-.5)*style.spread,dy:(random()-.5)*.025,dz:(random()-.5)*style.spread,life:(shot.motion?.afterglow??style.afterglow)*(.65+random()*.5),glint:.80+random()*.35}));
  const comet={...shot,start,character,burn,drag,gravity,vy,vx:shot.motion?.vx===undefined?Math.tan(angle)*vy:shot.motion.vx*Math.sqrt(character.height)+character.lean*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
+ if(shot.programmeGold){comet.headColor.setHex(0xffcf77);comet.tailColor.setHex(0xffbc61);}
  for(const s of tail){const birth=cometPosition(comet,s.at),remaining=Math.exp(-drag*s.at);s.x=birth.x;s.y=birth.y;s.z=birth.z;s.dx+=comet.vx*remaining*.04;s.dy+=vy*remaining*.025;s.dz+=comet.vz*.05;}
  return comet;
 }
@@ -99,7 +100,7 @@ export class CometField{
   const group=++this.group;this.seed=(this.seed+0x9e3779b9)>>>0;
   const shots=createCometPattern(pattern,style,options.reviewSeed??this.seed,options);
   if(this.active.length+this.pending.length+shots.length>this.capacity){this.dropped++;return false;}
-  for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
+  for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(options.programmeGold?{programmeGold:true}:{}),...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
  update(time){

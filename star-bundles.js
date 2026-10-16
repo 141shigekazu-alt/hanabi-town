@@ -81,7 +81,8 @@ export function makeStarBundle(shot,start,style){
   star.vx=(star.summitTarget.x-star.x)/q;star.vy=(height+star.gravity*(end-q)/star.drag)/q;
  }
  if(style.headPalette)for(let i=0;i<stars.length;i++){const color=candyColor(i,shot.seed,style.headPalette);stars[i].headColor=new T.Color(color);stars[i].tailColor=new T.Color(color);}
- return {...shot,start,character,stars,span:shot.burnOnRise?span*.6:span,timeScale,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:(Math.max(...stars.map(s=>s.at+s.life))+(shot.burnOnRise?0:span))*timeScale};
+ const bundle={...shot,start,character,stars,span:shot.burnOnRise?span*.6:span,timeScale,colored:!!style.headPalette,headGain:style.headGain??1.65,tailGain:style.tailGain??.65,headColor:new T.Color(shot.style==='gold'?0xffcf77:style.head),tailColor:new T.Color(style.tail),end:(Math.max(...stars.map(s=>s.at+s.life))+(shot.burnOnRise?0:span))*timeScale};
+ if(shot.programmeGold){bundle.headColor.setHex(0xffcf77);bundle.tailColor.setHex(0xffbc61);for(const star of stars){star.headColor?.setHex(0xffcf77);star.tailColor?.setHex(0xffbc61);}}return bundle;
 }
 
 export class StarBundleField{
@@ -104,7 +105,7 @@ export class StarBundleField{
   const used=this.active.reduce((n,s)=>n+s.stars.length,0)+this.pending.reduce((n,s)=>n+total(s),0);
   if(used+shots.reduce((n,s)=>n+total(s),0)>this.capacity){this.dropped++;return false;}
   const group='small-'+(++this.group);
-  for(const shot of shots)this.pending.push({...shot,at:at+shot.at,group,timeScale:this.timeScale/Math.max(.25,Math.min(2,Number(options.motionRate)||1))});
+  for(const shot of shots)this.pending.push({...shot,at:at+shot.at,group,...(options.programmeGold?{programmeGold:true}:{}),timeScale:this.timeScale/Math.max(.25,Math.min(2,Number(options.motionRate)||1))});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
  update(time){

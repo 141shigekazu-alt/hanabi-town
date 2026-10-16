@@ -1,6 +1,6 @@
 import {drawProgrammeStyle,styleHash,styleKind,stylePalette,stylePosition,shellFamily} from './programme-style.js';
 import {groundReservation} from './flower-programmes.js';
-import {TYPES} from './fireworks.js?v=1.2.83';
+import {TYPES} from './fireworks.js?v=1.2.84';
 const overlap=(a,b)=>a.start<b.end&&b.start<a.end;
 // Keep accepted landscape beds, chorus timing/replies and the final tableau.
 // Entry/feature shells may change family without moving their musical anchors.
@@ -93,7 +93,14 @@ export function applyProgrammeStyle(plan,analysis,options,helpers){
   shots=shots.filter(x=>!touching.includes(x));soloCues.push({at:s.opening,start:s.at,end:span(s).end,kind:s.kind});
  }
  shots.sort((a,b)=>a.at-b.at);
- plan.shots=shots;plan.programmeStyle=style;plan.creativeCues=creativeCues.sort((a,b)=>a.at-b.at);plan.landscapeCreativeCues=landscapeCues;plan.soloCues=soloCues;
+ if(style.color==='gold'){
+  shots=shots.map(s=>({...s,position:{...s.position,palette:'programme-gold'}}));
+  plan.fans=plan.fans.map(f=>({...f,options:{...f.options,programmeGold:true}}));
+ }
+ const flowerCount=plan.flowerPassages?.length??0;
+ const stagingLabel=flowerCount?'緑の茎と葉に花が咲く':style.staging==='garden'?'小玉から大輪へ':style.stagingLabel;
+ const actualStyle={...style,flowerFocus:flowerCount>0,staging:!flowerCount&&style.staging==='garden'?'flow':style.staging,stagingLabel,flowerSceneCount:flowerCount,description:[style.label,style.colorLabel,stagingLabel].join(' · ')};
+ plan.shots=shots;plan.programmeStyle=actualStyle;plan.creativeCues=creativeCues.sort((a,b)=>a.at-b.at);plan.landscapeCreativeCues=landscapeCues;plan.soloCues=soloCues;
  const counts={traditional:0,pop:0,modern:0};for(const s of shots.filter(s=>!styleProtected(s))){const f=shellFamily(s.kind);if(f)counts[f]++;}
  plan.styleSummary={changed,bodyCounts:counts,showcases:creativeCues.length};
  plan.analysisSummary.shellKinds=[...new Set(shots.filter(s=>s.kind!=='ear').map(s=>s.kind))];

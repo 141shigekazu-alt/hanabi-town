@@ -16,7 +16,7 @@ const PALETTES={
  drum:[{id:'original',label:'白銀の扇 × 紅の先端',colors:[0xff453c,0xfff3e2,0xffe4bc]},{id:'drum-blue',label:'白銀の扇 × 青の先端',colors:[0x548bff,0xf0f6ff,0xd8e4ff]},{id:'drum-gold',label:'金の扇 × 桃の先端',colors:[0xff73c8,0xffe2a0,0xffbd60]},{id:'drum-candy',label:'全部キャンディー · ５色',colors:CANDY_PALETTES[0].colors,coloredTail:true}]
 };
 export const creativePalettes=kind=>PALETTES[kind]??[];
-export const creativeTailColor=(kind,id='original')=>{const p=creativePalettes(kind).find(p=>p.id===id)??creativePalettes(kind)[0];return p?.tailColor??p?.colors[2];};
+export const creativeTailColor=(kind,id='original')=>{if(id==='programme-gold')return 0xffc16b;const p=creativePalettes(kind).find(p=>p.id===id)??creativePalettes(kind)[0];return p?.tailColor??p?.colors[2];};
 export const creativePointScale=(star,trail)=>star.group==='waist-ring'?(trail===0?2.85:1):star.group==='wing'?(trail===0?2.15:trail===1?1.35:.85):star.group==='fan'?(trail===0?2.65:trail===1?1.45:.80):1;
 export function creativeCounts(kind,size){const large=size===10;return kind==='butterfly'?4*(large?24:18)*2+12:kind==='drum'?2*(large?34:24)+(large?20:16):kind==='planet'?(large?220:150)+(large?174:118)+(large?164:116):0;}
 export const creativePoints=(kind,size)=>creativeCounts(kind,size)*CREATIVE_PROFILES[kind].trails;
