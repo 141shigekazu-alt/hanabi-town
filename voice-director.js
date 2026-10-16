@@ -1,3 +1,4 @@
+import {mirrorShellPosition} from './shell-flight.js';
 import {groundReservation} from './flower-programmes.js';
 // Keep musical opening times. Every resized shell is checked with ground stars.
 export function directVoicePlan(plan,request,{shellTiming,shellPoints,planBudget}){
@@ -41,7 +42,7 @@ export function directVoicePlan(plan,request,{shellTiming,shellPoints,planBudget
  if(request.density==='dense'){
   for(const [i,s] of [...shots].entries()){
    if(i%3||s.kind==='ear'||s.position?.earField||/^auto-flower-|^auto-finale/.test(s.group??''))continue;
-   const shift=1.15,c={...s,at:s.at+shift,opening:s.opening+shift,anchor:(s.anchor??s.opening)+shift,group:'voice-more',position:{...s.position,x:-(s.position.x??0),startAt:s.at+shift}};
+   const shift=1.15,c={...s,at:s.at+shift,opening:s.opening+shift,anchor:(s.anchor??s.opening)+shift,group:'voice-more',position:mirrorShellPosition(s.position,s.at+shift)};
    if(c.opening<plan.duration-4&&fits(c,shots))shots.push(c);
   }
  }

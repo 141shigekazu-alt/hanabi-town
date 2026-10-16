@@ -1,3 +1,4 @@
+import {repairLegacyVoicePlan} from './shell-flight.js';
 import {replaceRetiredPlan} from './retired-shells.js';
 // A favorite is an immutable programme and its original audio, never a recipe to reroll.
 const clone=value=>structuredClone(value);
@@ -26,7 +27,7 @@ export class FavoriteRepository{
  async list(){
   const db=await this.open();let rows;
   try{rows=await new Promise((resolve,reject)=>{const tx=db.transaction(['programmes','settings']),a=tx.objectStore('programmes').getAll(),b=tx.objectStore('settings').get('view');tx.oncomplete=()=>resolve(orderedFavorites(a.result.filter(row=>!row.deletedAt),b.result));tx.onerror=()=>reject(tx.error);});}finally{db.close();}
-  return Promise.all(rows.map(async row=>{const plan=replaceRetiredPlan(row.plan);if(plan===row.plan)return row;const playbackKey=await programmeKey(captureProgramme({...row,plan}));return {...row,plan,playbackKey};}));
+  return Promise.all(rows.map(async row=>{const plan=repairLegacyVoicePlan(replaceRetiredPlan(row.plan));if(plan===row.plan)return row;const playbackKey=await programmeKey(captureProgramme({...row,plan}));return {...row,plan,playbackKey};}));
  }
  async write(stores,action){const db=await this.open();try{await new Promise((resolve,reject)=>{const tx=db.transaction(stores,'readwrite');tx.oncomplete=resolve;tx.onabort=tx.onerror=()=>reject(tx.error??Error('保存を完了できませんでした。'));try{action(tx);}catch(e){tx.abort();reject(e);}});}finally{db.close();}}
  async save(snapshot,bytes){

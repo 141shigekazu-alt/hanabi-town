@@ -41,12 +41,12 @@ export class FavoritesPanel extends MRPanel{
   this.button('favoriteTab','♥の曲を選ぶ',28,124,360,54,()=>{this.listMode='favorites';this.menuId=null;},{selected:!sets});
   this.button('setlistTab','セットリスト',412,124,360,54,()=>{this.listMode='setlists';this.menuId=null;},{selected:sets});
   this.text(sets?rows.length+'件のセットリスト':`${selected.length}曲 · 約${Math.floor(seconds/60)}分${Math.round(seconds)%60}秒`,28,207,23,panelTheme().accent);
-  this.wrap(s.message||(sets?'名前を押すと、その曲順・花火で大会を準備':s.festival||'☑で選び、⠿をつまんで順番を変える'),350,207,422,1);
+  this.wrap(s.message||(sets?'名前を押すと、その曲順・花火で大会を準備':s.festival||'▶で１曲再生・Ⅱで一時停止、☑で選ぶ'),350,207,422,1);
   this[key]=Math.max(0,Math.min(Math.max(0,rows.length-ROWS),this[key]));
   if(!rows.length)this.wrap(sets?'♥の曲を選んで並べ、「このセットリストを保存する」を押してください。':'気に入った構成で、サイドパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
   rows.slice(this[key],this[key]+ROWS).forEach((row,i)=>{
-   const index=this[key]+i,y=TOP+i*PITCH;
-   c.fillStyle=this.dragRow?.id===row.id?panelTheme().hover:!sets&&row.checked?panelGradient(c,20,y,760,0,panelTheme().selectedCard):panelTheme().surface;c.beginPath();c.roundRect(20,y-4,760,122,16);c.fill();c.strokeStyle=!sets&&row.checked?panelTheme().selectedLine:panelTheme().line;c.lineWidth=1;c.stroke();
+   const index=this[key]+i,y=TOP+i*PITCH,active=!sets&&s.playback?.id===row.id,playing=active&&s.playback.running,paused=active&&s.playback.active&&!s.playback.completed&&!playing;
+   c.fillStyle=this.dragRow?.id===row.id?panelTheme().hover:!sets&&row.checked?panelGradient(c,20,y,760,0,panelTheme().selectedCard):panelTheme().surface;c.beginPath();c.roundRect(20,y-4,760,122,16);c.fill();c.strokeStyle=!sets&&row.checked?panelTheme().selectedLine:panelTheme().line;if(playing||paused)c.strokeStyle=panelTheme().accent;c.lineWidth=playing||paused?3:1;c.stroke();
    if(sets){
     this.button('setlistLoad:'+row.id,row.name,28,y,586,58,()=>this.choose('setlistLoad',row.id),{disabled:s.busy});
     this.text(row.entries.length+'曲 · 約'+Math.floor(row.duration/60)+'分'+Math.round(row.duration)%60+'秒',40,y+86,22,panelTheme().muted,560);
@@ -54,8 +54,9 @@ export class FavoritesPanel extends MRPanel{
    }
    this.button('drag:'+row.id,'⠿',28,y,58,100,()=>{}, {disabled:s.busy});const drag=this.controls.at(-1);Object.assign(drag,{slider:!s.busy,favoriteDrag:true,favoriteId:row.id,index});
    this.button('check:'+row.id,row.checked?'☑':'☐',98,y,64,100,()=>this.choose('check',row.id),{selected:row.checked,disabled:s.busy});
-   this.button('load:'+row.id,row.name,176,y,438,58,()=>this.choose('load',row.id),{disabled:s.busy,quiet:true});
-   this.text(`${Math.floor(Math.round(row.plan.duration)/60)}:${String(Math.round(row.plan.duration)%60).padStart(2,'0')} · ${row.plan.feelingLabel??'オリジナル'}`,184,y+86,22,panelTheme().muted,420);
+   this.button('play:'+row.id,playing?'Ⅱ':'▶',176,y,68,100,()=>this.choose('play',row.id),{disabled:s.busy,selected:playing});
+   this.button('load:'+row.id,row.name,254,y,360,58,()=>this.choose('load',row.id),{disabled:s.busy,quiet:true});
+   this.text(`${playing?'再生中 · ':paused?'一時停止中 · ':active&&s.playback.completed?'再生終了 · ':''}${Math.floor(Math.round(row.plan.duration)/60)}:${String(Math.round(row.plan.duration)%60).padStart(2,'0')} · ${row.plan.feelingLabel??'オリジナル'}`,262,y+86,22,panelTheme().muted,352);
    this.button('menu:'+row.id,'…',628,y,140,100,()=>{this.menuId=row.id;},{disabled:s.busy,quiet:true});
   });
   if(this.dragRow){

@@ -1,8 +1,8 @@
-import {paletteOptions} from './fireworks.js?v=1.2.86';
+import {paletteOptions} from './fireworks.js?v=1.2.87';
 
 export const SHOW_FAMILIES=['traditional','pop','modern','mixed'];
 const labels={traditional:'伝統の玉を味わう',pop:'ポップに弾む',modern:'創造花火を楽しむ',mixed:'いろんな玉の競演'};
-const colorLabels={multi:'彩り豊か',warm:'赤と夕焼け',cool:'水色・青・紫',violet:'紫とキャンディーの彩り',gold:'金色・黄色の花火で統一'};
+const colorLabels={multi:'彩り豊か',warm:'赤と夕焼け',cool:'水色・青・紫',violet:'紫とキャンディーの彩り',gold:'金色中心・控えめな差し色'};
 const stagingLabels={flow:'小玉から大輪へ',dialogue:'左右の掛け合い',solos:'一玉を見せる',garden:'花を主役に'};
 export function styleHash(seed,index=0){let x=(Number(seed)^Math.imul(index+1,0x9e3779b9))>>>0;x=Math.imul(x^(x>>>16),0x21f0aaad);x=Math.imul(x^(x>>>15),0x735a2d97);return(x^(x>>>15))>>>0;}
 export function drawProgrammeStyle(seed,variation=0,{feeling='auto',bpm=120}={}){
