@@ -18,7 +18,7 @@ export function mountVoiceInput({onPause,onApply,onChange=()=>{},onCancel=()=>{}
  function releaseContext(){const c=context;context=null;if(c&&c.state!=='closed')void c.close().catch(()=>{});}
  function cleanup(){releaseMic();chunks=[];releaseContext();releaseWorker();}
  function cancel(close=true){const applying=state.phase==='applying';generation++;clearTimeout(returnTimer);returnTimer=null;cleanup();if(applying)onCancel();state.phase='idle';state.error=false;state.status='音声リクエストを中止しました。花火は停止したままです。';if(close)state.open=false;render();}
- function fail(error,token){if(token!==generation)return;generation++;cleanup();state.phase='error';state.error=true;state.status=error?.name==='NotAllowedError'?'マイクを許可してください。必要ならブラウザ画面で許可してから、MRでお試しください。':error?.name==='NotFoundError'?'マイクが見つかりません。':error?.message??'声を聞き取れませんでした。もう一度お試しください。';render();}
+ function fail(error,token){if(token!==generation)return;const applying=state.phase==='applying';generation++;cleanup();if(applying)onCancel();state.phase='error';state.error=true;state.status=error?.name==='NotAllowedError'?'マイクを許可してください。必要ならブラウザ画面で許可してから、MRでお試しください。':error?.name==='NotFoundError'?'マイクが見つかりません。':error?.message??'声を聞き取れませんでした。もう一度お試しください。';render();}
  function load(token){return new Promise((resolve,reject)=>{
   worker=new Worker(new URL('./voice-recognizer.js',import.meta.url),{type:'module'});pendingLoad={resolve,reject};const files=new Map();
   worker.onerror=e=>{const error=Error(e.message||'音声AIを準備できませんでした。通信と空き容量を確認してください。');if(pendingLoad){pendingLoad.reject(error);pendingLoad=null;}else fail(error,token);};

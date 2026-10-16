@@ -1400,7 +1400,7 @@ function updateAutomaticPreparation(state){
   const justCompleted=analysisFeedback?.busy&&!state.busy&&!state.error&&state.progress===1;
   if(state.busy)analysisFeedback={inChild:started?mrPanel.active&&mrPanel.adjusting:!!analysisFeedback?.inChild,busy:true,phase:'busy',title:state.title,status:state.status,progress:state.progress};
   else if(analysisFeedback?.busy)analysisFeedback={inChild:!!analysisFeedback?.inChild,busy:false,phase:state.error?'error':state.progress===1?'complete':'cancelled',title:state.title,status:state.status,progress:state.progress};
-  if(justCompleted)analysisChime.play();
+  if(justCompleted&&!voiceUI?.busy)analysisChime.play();
   const feedback=$('analysisFeedback');feedback.hidden=!analysisFeedback;
   if(analysisFeedback){$('analysisHeading').textContent=analysisFeedback.phase==='busy'?'曲を解析中…':analysisFeedback.phase==='complete'?'✓ 解析が終わりました':analysisFeedback.phase==='error'?'解析できませんでした':'解析を中止しました';}
   if(analysisFeedback?.phase==='complete'&&analysisFeedback.inChild&&!analysisReturnTimer){analysisReturnTimer=setTimeout(()=>{analysisReturnTimer=null;if(analysisFeedback?.phase==='complete'&&analysisFeedback.inChild&&mrPanel.page===4&&mrPanel.adjusting){analysisFeedback.inChild=false;mrPanel.navigate(4);}},1800);}
@@ -1423,7 +1423,7 @@ const autoMusicUI=mountAutoMusic({catalog:MUSIC_CATALOG,onRebuilt:()=>analysisCh
 
 voiceUI=mountVoiceInput({
  onPause:()=>{analysisChime.unlock();if(showPlan?.music&&running)time=music.pause();else music.pause();running=false;previewPaused=true;cancelFutureSounds();clearFireworks();clearFans();if(favoriteRun)favoriteRun.gapPaused=true;syncShowButtons();mrPanel.draw();},
- onCancel:()=>{autoMusicUI.cancel();selectionRequest++;pendingAutomaticTrack=null;musicBusy=false;syncShowButtons();},
+ onCancel:()=>{autoMusicUI.cancel();selectionRequest++;pendingAutomaticTrack=null;musicBusy=false;markShowReady(noMusicMode?showPlan:MUSIC_PLAN);syncShowButtons();},
  onChange:()=>{syncShowButtons();mrPanel.draw();},
  onApply:async(request,isCurrent)=>{
   if(!isCurrent())return false;
