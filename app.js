@@ -1,3 +1,4 @@
+import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js';
 import {voiceProgrammeStyle} from './voice-request.js';
@@ -18,37 +19,37 @@ import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
 import {organizePanel} from './panel-layout.js';
 organizePanel();
-import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.89';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.2.89';
-import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.89';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.89';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.89';
-import {rainEarSequence} from './rain-ears.js?v=1.2.89';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.89';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.89';
-import {viewBoatPose} from './boat-cruise.js?v=1.2.89';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.89';
-import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.89';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.89';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.89';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.89';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.89';
+import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.90';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.2.90';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.90';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.90';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.90';
+import {rainEarSequence} from './rain-ears.js?v=1.2.90';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.90';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.90';
+import {viewBoatPose} from './boat-cruise.js?v=1.2.90';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.90';
+import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.90';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.90';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.90';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.90';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.2.90';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.89';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.90';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.89';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.89';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.89';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.89';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.89';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.89';
-import {TowerLighting} from './tower-lighting.js?v=1.2.89';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.89';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.89';
-import {WristMenu} from './wrist-menu.js?v=1.2.89';
-import {XRControls} from './xr-controls.js?v=1.2.89';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.89';
-import {EntryTip} from './entry-tip.js?v=1.2.89';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.90';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.90';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.90';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.90';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.90';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.90';
+import {TowerLighting} from './tower-lighting.js?v=1.2.90';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.90';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.90';
+import {WristMenu} from './wrist-menu.js?v=1.2.90';
+import {XRControls} from './xr-controls.js?v=1.2.90';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.90';
+import {EntryTip} from './entry-tip.js?v=1.2.90';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
@@ -390,7 +391,7 @@ function launch(kind='core',size=5,position=null){
  if(voiceUI?.busy)return false;
  ({kind,size,position}=replaceRetiredShell({kind,size,position}));
  if(showPlan&&!showPlan.music&&!previewing&&showPlan.programmeStyle?.color==='gold'&&!position?.manual)position={...position,palette:'programme-gold'};
- if(isCreativeShell(kind)&&![5,10].includes(size))return false;
+ if(isCreativeShell(kind)&&!creativeSizes(kind).includes(size))return false;
  if(kind==='candysenrin'&&size!==10)return false;
  if(kind==='candy'&&![3,5,10].includes(size))return false;
  if((kind==='candyburst'||kind==='longstar')&&size!==5&&size!==10)return false;
@@ -883,11 +884,11 @@ function adjustTownDistance(){
 }
 $('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}};$('distance').oninput=adjustTownDistance;
 function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*2-1,y=1-(e.clientY-r.top)/r.height*2;if(mrPanel.childView)return mrPanel.previewPointer(x,y,camera,activate);return entryTip?.previewPointer(x,y,camera,activate)||favoritesPanel?.previewPointer(x,y,camera,activate)||mrPanel.previewPointer(x,y,camera,activate);}
-canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onpointercancel=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onwheel=e=>{if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
+canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onpointercancel=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onwheel=e=>{if(panelPreview&&favoritesPanel?.visible&&!favoritesPanel.menuId&&!mrNameEditor?.state){e.preventDefault();favoritesPanel.scrollList(e.deltaY);return;}if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){if(isCreativeShell(kind))return ['5','10'].includes(value);if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isCreativeShell(kind)&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
+function allowedSize(kind,value){if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label||'この花火の配色';return option;}));
@@ -1393,7 +1394,7 @@ function updateAutomaticPreparation(state){
  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('analysisDebug')==='1'){
   const status=state.title?state.status.replace(state.title,'選んだ曲'):state.status;
   const key=JSON.stringify([state.busy,!!state.error,status]);
-  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.89',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
+  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.90',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
  }
 
  if(state.busy)showPreparation.begin({title:state.title||pendingAutomaticTrack?.title||selectedMusic.title,setting:state.status});
@@ -1793,7 +1794,7 @@ if(new URLSearchParams(location.search).has("rainMusicTrial")){setPanelTab(4);se
 function beginFlowerStudy(seek=null){
  syncFlowerControls();beginPreview();
  const flowerOptions={timing:$('flowerTiming').value,spacing:$('flowerSpacing').value,color:$('flowerColor').value,size:Number($('flowerSize').value)};
- flowerStudy=$('flowerPattern').value.startsWith('garden-')?flowerGardenPassage({firstOpening:3.2,duration:$('flowerPattern').value==='garden-15'?15:10,...flowerOptions}):$('flowerPattern').value.startsWith('sustain-')?flowerCarpetPassage({firstOpening:3.2,duration:$('flowerPattern').value==='sustain-15'?15:10,...flowerOptions}):flowerScene($('flowerPattern').value,flowerOptions);
+ flowerStudy=$('flowerPattern').value.startsWith('garden-')?flowerGardenPassage({firstOpening:3.2,creativeUpper:true,duration:$('flowerPattern').value==='garden-15'?15:10,...flowerOptions}):$('flowerPattern').value.startsWith('sustain-')?flowerCarpetPassage({firstOpening:3.2,duration:$('flowerPattern').value==='sustain-15'?15:10,...flowerOptions}):flowerScene($('flowerPattern').value,flowerOptions);
  burstQueue=structuredClone(flowerStudy.shots);fanQueue=structuredClone(flowerStudy.fans);cometFinishAt=flowerStudy.end;
  if($('flowerPattern').value.startsWith('garden-')&&!renderer.xr.isPresenting&&!bridgeView.active&&!panelPreview){camera.position.set(0,1.45,3.6);pitch=.35;}
  $('flowerSeek').max=String(flowerStudy.end);$('flowerSeek').value=String(seek??0);
@@ -1832,9 +1833,9 @@ function creativeShoot(age=null){
  $('creativeSeek').max=String(CREATIVE_PROFILES[creativeKind].life+.1);$('creativeSeek').value=String(age??0);$('creativePause').textContent='一時停止';
  $('creativeDescription').textContent=creativeDescriptions[creativeKind];
  if(age!==null){time=fireworks[0].ascent+age;cancelFutureSounds();fireworks[0].soundPlayed=true;updateFireworks();previewPaused=true;$('creativePause').textContent='再開';}
- $('status').textContent=CREATIVE_PROFILES[creativeKind].label+' · '+(size===10?'尺玉':'５号玉')+'の試作。開花後のバーで途中の形も見比べられます。';mrPanel.draw();
+ $('status').textContent=CREATIVE_PROFILES[creativeKind].label+' · '+(size===10?'尺玉':size===3?'３号玉':'５号玉')+'の試作。開花後のバーで途中の形も見比べられます。';mrPanel.draw();
 }
-function selectCreative(kind,palette=null){creativeKind=kind;$('creativeColor').replaceChildren(...paletteOptions(kind).map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));if(palette&&paletteOptions(kind).some(p=>p.id===palette))$('creativeColor').value=palette;creativeShoot();}
+function selectCreative(kind,palette=null){creativeKind=kind;for(const o of $('creativeSize').options)o.disabled=!creativeSizes(kind).includes(Number(o.value));if(!creativeSizes(kind).includes(Number($('creativeSize').value)))$('creativeSize').value='5';$('creativeColor').replaceChildren(...paletteOptions(kind).map(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.label;return o;}));if(palette&&paletteOptions(kind).some(p=>p.id===palette))$('creativeColor').value=palette;creativeShoot();}
 for(const kind of ['Butterfly','Planet','Drum'])$('creative'+kind).onclick=()=>selectCreative(kind.toLowerCase());
 $('creativeReplay').onclick=()=>creativeShoot();$('creativeShow').onclick=()=>selectCreative(creativeKind);
 $('creativeNew').onclick=()=>{creativeSeed=crypto.getRandomValues(new Uint32Array(1))[0];creativeShoot();};

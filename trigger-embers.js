@@ -1,12 +1,12 @@
-import {isCreativeShell,creativePoints} from './creative-shells.js';
+import {creativeSizes,isCreativeShell,creativePoints} from './creative-shells.js';
 import {petalGeometry} from './flower-scenes.js';
-import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.89';
-import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.89';
+import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.90';
+import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.90';
 import {isSenrin} from './fireworks.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 
 export function manualPointCost(kind,size,sizes,types){
- if(isCreativeShell(kind))return [5,10].includes(size)?creativePoints(kind,size):Infinity;
+ if(isCreativeShell(kind))return creativeSizes(kind).includes(size)?creativePoints(kind,size):Infinity;
  if(kind==='petalflower'||kind==='goldflower'){if(![3,5,10].includes(size))return Infinity;const p=petalGeometry(size);return(p.rays*p.strands+p.coreStars)*p.trails;}
  const spec=types[kind],scale=sizes[size];if(!spec||!scale)return Infinity;
  if(kind==='sparklelarge'){if(![5,10,20].includes(size))return Infinity;const c=sparkleCounts(size);return (c.large+c.companions+c.core)*SPARKLE_PROFILE.trails;}

@@ -122,14 +122,30 @@ function gardenAllocation(shots,fans){
 // A lower mixed carpet and independent, stemless 5-go/shaku flowers above it.
 export function flowerGardenPassage(options={}){
  const bed=flowerCarpetPassage({...options,mixed:options.mixed??true}),upperShots=[];
- const {firstOpening,duration,seed,color}=bed,upperRandom=variationRandom(seed,0x76f10a);
+ const {firstOpening,duration,seed,color}=bed,upperRandom=variationRandom(seed,0x76f10a),flockScene=options.creativeUpper&&variationRandom(seed,0xb1790)()<.7;
  for(let index=0,offset=.9;offset<duration-.25;index++,offset+=2.7){
-  const family=upperShots.length%3,last=duration-offset<3.6,roll=upperRandom(),kind=options.creativeUpper&&index%3===1?(roll<.7?'butterfly':roll<.9?'planet':'drum'):family===0&&!last?'sunflower':family===1?'petalflower':'goldflower';
+  const family=upperShots.length%3,last=duration-offset<3.6,roll=upperRandom(),kind=flockScene&&index===0?'butterfly':options.creativeUpper&&index%3===1?(roll<.7?'butterfly':roll<.9?'planet':'drum'):family===0&&!last?'sunflower':family===1?'petalflower':'goldflower';
   const size=!['sunflower','butterfly','planet','drum'].includes(kind)&&index%2===1?10:5,ascent=size===10?3.12:(1+size*.035)*1.2*(2.62/1.62);
   const reviewSeed=(seed+Math.imul(index+501,7919))>>>0,flight=flowerFlight(size,reviewSeed);
   const x=flight.dx+[-.62,.52,.04,-.36,.68,-.1][index%6],z=flight.dz-.94-(index%2)*.06;
   const headY=flight.heightOffset+(size===10?1.85:1.46)+(index%3-1)*.025;
   const palette=kind==='drum'?'drum-candy':kind==='sunflower'||isCreativeShell(kind)?'original':(FLOWER_COLORS.find(c=>c.id===color)??FLOWER_COLORS[(index+2)%5]).id;
+  // A small flock is one gesture: commit all three or leave the intact bed.
+  // Each butterfly has its own fuse, height and seeded spatial orientation.
+  if(kind==='butterfly'){
+   if(upperShots.some(s=>s.position.butterflyFlock))continue;
+   const flockSize=roll<.48?3:5,flockAscent=(1+flockSize*.035)*1.2*(2.62/1.62);
+   for(const shift of [0,.25,.5,.75,1,1.25,1.5,-.25]){
+    const flock=Array.from({length:3},(_,bird)=>{
+     const birdSeed=(reviewSeed+Math.imul(bird+1,0x9e3779b9))>>>0,f=flowerFlight(flockSize,birdSeed),anchor=firstOpening+offset+shift+bird*.07,at=anchor-flockAscent;
+     return {at,opening:anchor+f.ascentOffset+f.ignitionDelay,anchor,kind:'butterfly',size:flockSize,group:'auto-flower-garden-upper',position:{x:(bird-1)*.68+f.dx,z:-.99+f.dz,heightOffset:(flockSize===3?1.27:1.48)+(bird===1?.09:0)+f.heightOffset-(flockSize===3?.8:1.04),startAt:at,ignitionDelay:f.ignitionDelay,ascentOffset:f.ascentOffset,reviewSeed:birdSeed,flowerFlight:f,palette:'original',flowerProgramme:true,butterflyFlock:reviewSeed}};
+    });
+    if(flock.some(s=>s.at<bed.shots[0].at||s.opening>bed.lastOpening+.01))continue;
+    const b=gardenAllocation([...bed.shots,...upperShots,...flock],bed.fans);
+    if(b.peakUpper<=14&&b.peakPoints<=64000){upperShots.push(...flock);break;}
+   }
+   continue;
+  }
   // The bed retains every small flower. Place upper shells only in available
   // slots; a small timing adjustment never weakens or deletes the lower carpet.
   for(const shift of [0,.25,.5,.75,1,1.25,1.5,-.25]){

@@ -14,7 +14,14 @@ function canonical(value){
 }
 export async function hashBytes(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');}
 export function programmeKey(snapshot){const copy=clone(snapshot);if(copy.identityTitle){copy.title=copy.identityTitle;delete copy.identityTitle;}return hashBytes(new TextEncoder().encode(JSON.stringify(canonical(copy))));}
-export function favoriteName(s){return `${s.title}　${s.original?'オリジナル':'構成'+((s.plan.analysisSummary?.variation??0)+1)}　${s.plan.feelingLabel??(s.original?'手作り':'自動')}`;}
+export function favoriteName(s){return s.title;}
+// Display old generated names compactly without rewriting the saved record.
+// An explicitly renamed favourite keeps its chosen name.
+export function favoriteDisplay(row){
+ const variant=row.original?'オリジナル':'構成'+((row.plan.analysisSummary?.variation??0)+1),feeling=row.plan.feelingLabel??(row.original?'手作り':'自動');
+ const legacy=`${row.title}　${variant}　${feeling}`;
+ return {title:row.name===legacy||!row.name?row.title:row.name,detail:variant+' · '+feeling};
+}
 export function moveFavorite(ids,id,index){const next=ids.filter(value=>value!==id);if(!ids.includes(id))return [...ids];next.splice(Math.max(0,Math.min(next.length,index)),0,id);return next;}
 export function orderedFavorites(items,view={}){
  const map=new Map(items.map(item=>[item.id,item]));

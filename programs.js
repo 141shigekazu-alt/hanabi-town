@@ -1,5 +1,5 @@
 import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
-import {TYPES} from './fireworks.js?v=1.2.89';
+import {TYPES} from './fireworks.js?v=1.2.90';
 import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';
@@ -34,7 +34,7 @@ export function programCue(plan,time,index,lively=false){
  let result={...c,position:{x,z,...(palette?{palette}:{})}};
  if(plan.programmeStyle&&part!=='大フィナーレ'&&time<235){
   const style=plan.programmeStyle;result.kind=styleKind(style,c.size,index)??c.kind;
-  if(c.size>=5&&index%9===6)result.kind=['butterfly','planet','drum'][(styleHash(style.seed)+Math.floor(index/9))%3];
+  if(time>=30&&index>=3&&c.size>=5&&index%9===6)result.kind=['butterfly','planet','drum'][(styleHash(style.seed)+Math.floor(index/9))%3];
   result.position=stylePosition(style,result.position,index);result.position.palette=stylePalette(style,result.kind,index);
   if(['butterfly','planet','drum'].includes(result.kind))result.interval=Math.max(result.interval,3.2+TYPES[result.kind].life+.8);
  }
@@ -43,7 +43,13 @@ export function programCue(plan,time,index,lively=false){
  const localFinale=time>=270?plan.voiceRequest?.finale:null;
  if(plan.voiceRequest?.density==='sparse'&&!localFinale||localFinale?.energy==='quiet'||localFinale?.density==='sparse')result.interval=Math.max(9,result.interval);
  if(plan.voiceRequest?.density==='dense'&&!localFinale||localFinale?.density==='dense')result.interval=Math.max(1.6,result.interval*.7);
- if(plan.programmeStyle?.color==='gold'&&!localFinale?.color)result.position.palette='programme-gold';
+ if(plan.programmeStyle?.color==='gold'&&!localFinale?.color){
+  const colorful=styleHash(plan.programmeStyle.seed,90)%3===0,accent=(index*7+3)%20<(colorful?13:8);
+  if(accent){if(['longstar','sparklelarge'].includes(result.kind))result.kind=result.size===20?'triple':'core';result.position.palette=['gold-accent-blue','gold-accent-purple','gold-accent-pink','gold-accent-aqua'][index%4];result.position.programmeGoldAccent=true;}
+  else result.position.palette='programme-gold';
+ }
+ if((time<30||index<3)&&['butterfly','planet','drum','sunflower','petalflower','goldflower'].includes(result.kind)){result.kind=result.size===3?'kiku':result.size===20?'triple':'core';if(!result.position.programmeGoldAccent)result.position.palette=plan.programmeStyle?.color==='gold'?'programme-gold':result.size===3?'aqua':'blue-gold';}
+
  return result;
 }
 

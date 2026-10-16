@@ -1,6 +1,6 @@
 import {drawProgrammeStyle,styleHash,styleKind,stylePalette,stylePosition,shellFamily} from './programme-style.js';
 import {groundReservation} from './flower-programmes.js';
-import {TYPES} from './fireworks.js?v=1.2.89';
+import {TYPES} from './fireworks.js?v=1.2.90';
 const overlap=(a,b)=>a.start<b.end&&b.start<a.end;
 // Keep accepted landscape beds, chorus timing/replies and the final tableau.
 // Entry/feature shells may change family without moving their musical anchors.
@@ -106,5 +106,41 @@ export function applyProgrammeStyle(plan,analysis,options,helpers){
  plan.analysisSummary.shellKinds=[...new Set(shots.filter(s=>s.kind!=='ear').map(s=>s.kind))];
  plan.budget=planBudget(shots);plan.showDuration=Math.max(plan.showDuration,...shots.map(s=>span(s).end+1));
  plan.method+='; seeded family, colour direction and staging; isolated creative showcases with ground-inclusive capacity checks.';
+ return plan;
+}
+
+export function naturalProgrammeOpening(plan,{shellTiming,shellPoints,planBudget}){
+ const upper=plan.shots.filter(s=>s.kind!=='ear').sort((a,b)=>a.opening-b.opening);
+ if(!upper.length)return plan;
+ const groups=[];for(const s of upper)if(!groups.length||s.opening-groups.at(-1)>.65)groups.push(s.opening);
+ const end=Math.max(Math.min(30,plan.duration*.18),upper[0].opening+12,(groups[2]??groups.at(-1))+.65);
+ const firstGroupsEnd=(groups[2]??groups.at(-1))+.65;
+ const ground=plan.fans.map(f=>{const g=groundReservation(f,plan.programmeStyle.seed);return {...g,points:g.cost*(g.small?11:362)};});
+ function fits(candidate,kept){
+  const start=candidate.at,end=candidate.opening+shellTiming(candidate.kind,candidate.size).life+.1,events=[];
+  const add=(a,b,n,upper=0)=>{a=Math.max(a,start);b=Math.min(b,end);if(a<b)events.push({at:a,n,upper},{at:b,n:-n,upper:-upper});};
+  for(const x of [...kept,candidate])add(x.at,x.opening+shellTiming(x.kind,x.size).life+.1,shellPoints(x.kind,x.size,x.position?.wide,x.position?.starDensity??1),x.kind==='ear'?0:1);
+  for(const g of ground)add(g.start,g.end,g.points);
+  events.sort((a,b)=>a.at-b.at||a.n-b.n);let n=0,upper=0;for(const e of events){n+=e.n;upper+=e.upper;if(n>64000||upper>14)return false;}return true;
+ }
+ let shots=[...plan.shots];
+ for(const s of [...shots]){
+  const creative=['butterfly','planet','drum'].includes(s.kind),ordinaryFirst=s.kind!=='ear'&&s.opening<firstGroupsEnd&&!/^auto-flower-/.test(s.group??'');
+  if(s.opening>=end||!creative&&!ordinaryFirst)continue;
+  if(!creative&&['kiku','core','double','triple','quad','penta','silver','willow'].includes(s.kind))continue;
+  const kind=s.size===3?'kiku':s.size===20?'triple':'core';
+  const palette=s.position?.palette==='programme-gold'?'programme-gold':s.size===3?'aqua':'blue-gold';
+  const next={...s,kind,position:{...s.position,palette,...(s.kind==='candy'&&s.size===3?{starDensity:.65}:{}),butterflyFlock:undefined}},kept=shots.filter(x=>x!==s);
+  // Traditional shells can burn longer than a butterfly. Check that added
+  // tail before committing; a crowded optional early silhouette can yield.
+  if(fits(next,kept))shots[shots.indexOf(s)]=next;else if(creative)shots=kept;
+ }
+ plan.shots=shots;
+ const live=cue=>plan.shots.some(s=>s.kind===cue.kind&&Math.abs(s.opening-cue.at)<.15);
+ plan.creativeCues=(plan.creativeCues??[]).filter(live);
+ for(const cues of [plan.soloCues??[],plan.featureCues??[]])for(const c of cues){const s=plan.shots.find(s=>Math.abs((s.anchor??s.opening)-c.at)<.15);if(s){c.kind=s.kind;c.size=s.size;}}
+ for(const c of plan.landscapeCreativeCues??[]){c.kinds=c.kinds.filter(k=>plan.shots.some(s=>s.kind===k.kind&&Math.abs(s.opening-k.opening)<.01));c.count=c.kinds.length;}
+ plan.openingDirection={end,firstGroups:3,label:'菊や芯入りから始め、創造花火はその後に'};
+ plan.analysisSummary.shellKinds=[...new Set(plan.shots.filter(s=>s.kind!=='ear').map(s=>s.kind))];plan.budget=planBudget(plan.shots);
  return plan;
 }

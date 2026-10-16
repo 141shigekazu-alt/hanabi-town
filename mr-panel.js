@@ -156,6 +156,7 @@ export class MRPanel{
    entry.beam.visible=!!pose;if(!pose)continue;
    const hit=this.hitController(entry.controller);entry.beam.scale.z=hit?.distance??1.6;
    if(hit&&(!nearest||hit.distance<nearest.distance))nearest=hit;
+   if(hit?.object===this.mesh&&!held&&!this.controllerGrabbed&&this.scrollContent?.(source.gamepad?.axes?.[3]??0,(1-hit.uv.y)*H,scrollDt))this.scrollSources.add(source);
    if(!this.picker&&this.page===3&&hit?.object===this.mesh&&!held&&!this.controllerGrabbed&&this.helpMaxScroll>0){const y=(1-hit.uv.y)*H-HEADER_GROWTH,axis=source.gamepad?.axes?.[3]??0;if(y>=390&&y<=980&&Math.abs(axis)>.18){this.scrollSources.add(source);this.scrollHelp(Math.sign(axis)*(Math.abs(axis)-.18)/.82*600*scrollDt);}}
    if(this.picker&&hit?.object===this.mesh&&!held&&Math.abs(source.gamepad?.axes?.[3]??0)>.45&&stamp-this.pickerScrollAt>160){this.scrollPicker(Math.sign(source.gamepad.axes[3])*92);this.pickerScrollAt=stamp;}
   }

@@ -42,10 +42,10 @@ export function addFlowerPassages(plan,analysis,options,helpers){
  const regions=[];
  for(let i=0;i<sections.length;i++){
   const s=sections[i],next=sections[i+1];
-  const kind=s.role==='intro'?'intro':s===firstVerse?'verse-start':['break','inst','solo'].includes(s.role)?'interlude':!s.role&&i===0?'opening-estimate':null;
+  const kind=s.role==='intro'?'intro':s===firstVerse?'verse-start':['break','inst','instrumental','solo'].includes(s.role)?'interlude':!s.role&&i===0?'opening-estimate':null;
   if(!kind)continue;
   let end=s.end;
-  if(kind==='intro'){let j=i;while(sections[j+1]?.role==='intro')end=sections[++j].end;if(sections[j+1]===firstVerse)end=firstVerse.end;}
+  if(kind==='intro'){let j=i;while(sections[j+1]?.role==='intro')end=sections[++j].end;if(sections[j+1]===firstVerse||s.at>30&&sections[j+1]?.role==='verse')end=sections[j+1].end;}
   const level=Number(s.level)||0;
   if(!['bright','festival'].includes(feeling)&&level<.25)continue;
   regions.push({start:Math.max(.1,s.at),end:Math.min(end,endLimit),kind});
@@ -74,7 +74,7 @@ export function addFlowerPassages(plan,analysis,options,helpers){
    // Musical anchor shells keep their time and shape. Yield only optional upper
    // flowers when they need room above the complete lower carpet.
    const fieldFits=()=>flowerProgrammeBudget(shots.filter(s=>overlap(window,{start:s.at,end:s.opening+shellTiming(s.kind,s.size).life+.1})),fans.filter(f=>overlap(window,groundReservation(f,planSeed))),helpers,planSeed).peakPoints<=64000;
-   while(!earProgrammeFits(shots,helpers)||!fieldFits()){const upper=passageShots.find(s=>s.group==='auto-flower-garden-upper');if(!upper)break;passageShots=passageShots.filter(s=>s!==upper);shots=[...keptShots,...passageShots];}
+   while(!earProgrammeFits(shots,helpers)||!fieldFits()){const upper=passageShots.find(s=>s.group==='auto-flower-garden-upper');if(!upper)break;passageShots=passageShots.filter(s=>upper.position?.butterflyFlock?s.position?.butterflyFlock!==upper.position.butterflyFlock:s!==upper);shots=[...keptShots,...passageShots];}
    const b=planBudget(shots),g=groundCapacity(fans,planSeed);
    if(!earProgrammeFits(shots,helpers)||!fieldFits()||g.small>1536||g.large>96)continue;
    // New passage allocation must leave room for both aerial and ground fields.

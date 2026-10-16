@@ -1,6 +1,6 @@
 import {CREATIVE_PROFILES,creativePalettes,isCreativeShell} from './creative-shells.js';
 import {FLOWER_COLORS,PETAL_PROFILE,PHOTO_FLOWER_PROFILE} from './flower-scenes.js';
-import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.89';
+import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.90';
 import {SUNFLOWER_PROFILE,PETAL_MOTION_PROFILE} from './sunflower-motion.js?v=1.1.16';
 import {CANDY_PALETTES} from './candy-colors.js?v=1.1.16';
 import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';
@@ -55,6 +55,9 @@ export const KAMURO_PALETTES=Object.freeze([
 export const RAIN_EAR_PALETTES=Object.freeze([{id:'original',label:'金の穂',colors:[TYPES.ear.colors[0]]},{id:'ear-aqua',label:'水色の穂',colors:[LONG_STAR_PROFILE.headColor]},{id:'ear-blue',label:'青の穂',colors:[LONG_STAR_PALETTES.find(p=>p.id==='long-blue').colors[0]]},{id:'ear-red',label:'赤の穂',colors:[0xff393f]},{id:'ear-orange',label:'オレンジの穂',colors:[0xff8b32]},{id:'ear-purple',label:'紫の穂',colors:[0xb67bff]},{id:'ear-green',label:'緑の穂',colors:[0x67f591]}].map(p=>Object.freeze({...p,colors:Object.freeze(p.colors)})));
 export function paletteOptions(kind){return isCreativeShell(kind)?creativePalettes(kind):kind==='goldflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[0xffc56a,c.color]})):kind==='petalflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[c.color,c.core]})):kind==='silver'?KAMURO_PALETTES:kind==='ear'?RAIN_EAR_PALETTES:(kind==='longstar'||kind==='sparklelarge')?LONG_STAR_PALETTES:kind==='candyburst'?CANDY_PALETTES.filter(p=>p.colors.length===1):(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
 export function shellPalette(kind,id='original'){
+ // A visible coloured outer bloom, with gold retained in the inner layer.
+ const accents={'gold-accent-blue':0x548bff,'gold-accent-purple':0xb67bff,'gold-accent-pink':0xff73c8,'gold-accent-aqua':0x66ddff};
+ if(accents[id])return {id,label:'色の親星と金の芯',colors:Array.from({length:Math.max(1,TYPES[kind]?.colors?.length??1,TYPES[kind]?.radii?.length??1)},(_,i)=>i%2===0?accents[id]:0xffcf70)};
  if(id==='programme-gold')return {id,label:'金色・黄色で統一',colors:Array.from({length:Math.max(1,TYPES[kind]?.colors?.length??1,TYPES[kind]?.radii?.length??1)},(_,i)=>[0xffcc72,0xffdfa0,0xffbc61,0xffd98d,0xffc66e,0xffe2a7][i%6])};
  return paletteOptions(kind).find(p=>p.id===id)??{id:'original',label:'',colors:TYPES[kind]?.colors??[]};
 }

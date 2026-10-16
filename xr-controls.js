@@ -71,7 +71,7 @@ export class XRControls{
     if(before){if(now[0]&&!before[0]){if(s.handedness==='left')this.wrist.toggle(viewer);else if(s.handedness==='right'){for(const [controller,grab] of this.grabs)if(grab.panel===this.sidebar)this.release(controller);this.sidebar.toggle();}}if(now[1]&&!before[1]&&s.handedness==='right')this.pause();}
    }
    const g=this.grabs.get(e.controller);
-   if(!g&&s.handedness==='left'&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.sidebar.picker&&!this.sidebar.scrollSources?.has(s)&&!this.panels.some(p=>p.grab||p.sliderDrag))this.bridge.move(stickValue(gp.axes[2]),stickValue(gp.axes[3]),dt,viewer);
+   if(!g&&s.handedness==='left'&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.sidebar.picker&&!this.panels.some(p=>p.scrollSources?.has(s))&&!this.panels.some(p=>p.grab||p.sliderDrag))this.bridge.move(stickValue(gp.axes[2]),stickValue(gp.axes[3]),dt,viewer);
    if(g){
     const x=stickValue(gp?.axes[2]),y=stickValue(gp?.axes[3]);
     if(g.town){

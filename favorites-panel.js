@@ -1,29 +1,48 @@
+import {favoriteDisplay} from './favorite-programmes.js';
 import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
 import {drawPanelSurface} from './panel-surface.js';
 import * as T from './vendor/three.module.js';
 import {MRPanel} from './mr-panel.js';
-const TOP=240,PITCH=132,ROWS=6;
+const TOP=240,PITCH=132,ROWS=6,BOTTOM=TOP+ROWS*PITCH;
 export function favoriteDropIndex(y,offset,count){return Math.max(0,Math.min(count-1,offset+Math.floor((y-TOP)/PITCH)));}
 export function favoriteInsertionSlot(y,offset,count){return Math.max(offset,Math.min(count,offset+ROWS,offset+Math.floor((y-TOP+PITCH/2)/PITCH)));}
 export function favoriteMoveTarget(slot,source,count){return Math.max(0,Math.min(count-1,slot>source?slot-1:slot));}
 export class FavoritesPanel extends MRPanel{
- constructor(options){super(options);this.offset=0;this.setlistOffset=0;this.listMode='favorites';this.dragRow=null;}
+ constructor(options){super(options);this.offset=0;this.setlistOffset=0;this.listMode='favorites';this.dragRow=null;this.listScroll=0;this.setlistScroll=0;}
  beginSlider(control,controller,ray){
+  if(control.favoriteScroll){this.sliderDrag={control,controller};this.slideToRay(ray);return;}
   if(!control.favoriteDrag)return super.beginSlider(control,controller,ray);
   this.sliderDrag={control,controller};this.dragRow={id:control.favoriteId,source:control.index,slot:control.index,target:control.index};this.slideToRay(ray);
  }
  slideToRay(ray){
-  if(!this.sliderDrag?.control.favoriteDrag)return super.slideToRay(ray);
+  if(!this.sliderDrag?.control.favoriteDrag&&!this.sliderDrag?.control.favoriteScroll)return super.slideToRay(ray);
   this.mesh.updateMatrixWorld(true);this.sliderPlane.setFromNormalAndCoplanarPoint(new T.Vector3(0,0,1).applyQuaternion(this.mesh.quaternion),this.mesh.position);
   if(!ray.intersectPlane(this.sliderPlane,this.sliderPoint))return;
   this.mesh.worldToLocal(this.sliderPoint);const y=(.5-this.sliderPoint.y/(.68*1340/800))*1340;
-  const count=this.read().rows.length;this.dragRow.slot=favoriteInsertionSlot(y,this.offset,count);this.dragRow.target=favoriteMoveTarget(this.dragRow.slot,this.dragRow.source,count);this.draw();
+  if(this.sliderDrag.control.favoriteScroll){const h=ROWS*PITCH;this.scrollTo((y-TOP)/h);return;}
+  if(y<TOP+28)this.scrollList(-18);else if(y>BOTTOM-28)this.scrollList(18);
+  const count=this.read().rows.length;this.dragRow.slot=favoriteInsertionSlot(y+(this.listScroll%PITCH),this.offset,count);this.dragRow.target=favoriteMoveTarget(this.dragRow.slot,this.dragRow.source,count);this.draw();
+ }
+ scrollList(delta){
+  const sets=this.listMode==='setlists',key=sets?'setlistScroll':'listScroll',rows=sets?this.read().setlists??[]:this.read().rows;
+  this[key]=Math.max(0,Math.min(Math.max(0,rows.length*PITCH-ROWS*PITCH),this[key]+delta));this.draw();
+ }
+ scrollTo(fraction){const sets=this.listMode==='setlists',count=(sets?this.read().setlists??[]:this.read().rows).length,key=sets?'setlistScroll':'listScroll';this[key]=Math.max(0,Math.min(1,fraction))*Math.max(0,(count-ROWS)*PITCH);this.draw();}
+ scrollContent(axis,y,dt){
+  if(this.menuId||this.read().rename||y<TOP||y>BOTTOM||Math.abs(axis)<=.18)return false;
+  this.scrollList(Math.sign(axis)*(Math.abs(axis)-.18)/.82*650*dt);return true;
  }
  release(controller){
+  if(this.sliderDrag?.control.favoriteScroll&&(!controller||this.sliderDrag.controller===controller)){this.sliderDrag=null;this.hover='';}
   if(this.sliderDrag?.control.favoriteDrag&&(!controller||this.sliderDrag.controller===controller)){
    const row=this.dragRow;this.sliderDrag=null;this.dragRow=null;if(row)this.choose('reorder',{id:row.id,index:row.target});
   }
   super.release(controller);
+ }
+ titleLines(label,x,y,width,size=25,lines=2){
+  const c=this.ctx;c.font=panelFont(size);const parts=[];let line='';
+  for(const char of label){if(c.measureText(line+char).width>width){parts.push(line);line=char;}else line+=char;}if(line)parts.push(line);
+  for(let i=0;i<Math.min(lines,parts.length);i++){let t=parts[i];if(i===lines-1&&parts.length>lines){while(c.measureText(t+'…').width>width)t=t.slice(0,-1);t+='…';}this.text(t,x,y+i*28,size,panelTheme().text);}
  }
  drawRename(edit){
   const c=this.ctx;c.fillStyle=panelTheme().overlay;c.beginPath();c.roundRect(12,200,776,1120,24);c.fill();this.controls=[];
@@ -37,36 +56,45 @@ export class FavoritesPanel extends MRPanel{
   const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,800,1340,{border:'#ddc69585'});
   this.text('お気に入り',32,47,41,panelTheme().text,600);this.text('好きな一曲を、自分の大会に。',32,91,21,panelTheme().muted);this.button('favoriteClose','×',696,18,76,60,()=>this.close());
   const selected=s.rows.filter(r=>r.checked),seconds=selected.reduce((n,r)=>n+r.plan.showDuration,0)+Math.max(0,selected.length-1)*3;
-  const sets=this.listMode==='setlists',rows=sets?s.setlists??[]:s.rows,key=sets?'setlistOffset':'offset';
+  const sets=this.listMode==='setlists',rows=sets?s.setlists??[]:s.rows,key=sets?'setlistOffset':'offset',scrollKey=sets?'setlistScroll':'listScroll';
   this.button('favoriteTab','♥の曲を選ぶ',28,124,360,54,()=>{this.listMode='favorites';this.menuId=null;},{selected:!sets});
   this.button('setlistTab','セットリスト',412,124,360,54,()=>{this.listMode='setlists';this.menuId=null;},{selected:sets});
   this.text(sets?rows.length+'件のセットリスト':`${selected.length}曲 · 約${Math.floor(seconds/60)}分${Math.round(seconds)%60}秒`,28,207,23,panelTheme().accent);
-  this.wrap(s.message||(sets?'名前を押すと、その曲順・花火で大会を準備':s.festival||'▶で１曲再生・Ⅱで一時停止、☑で選ぶ'),350,207,422,1);
-  this[key]=Math.max(0,Math.min(Math.max(0,rows.length-ROWS),this[key]));
+  this.wrap(s.message||(sets?'名前で大会を準備':s.festival||'▶ 再生・Ⅱ 停止 / ☑ 選曲'),350,207,422,1);
+  this[scrollKey]=Math.max(0,Math.min(Math.max(0,(rows.length-ROWS)*PITCH),this[scrollKey]));this[key]=Math.floor(this[scrollKey]/PITCH);const remainder=this[scrollKey]%PITCH;
+  const listControls=this.controls.length;c.save();c.beginPath();c.rect(18,TOP-4,758,BOTTOM-TOP+4);c.clip();
   if(!rows.length)this.wrap(sets?'♥の曲を選んで並べ、「このセットリストを保存する」を押してください。':'気に入った構成で、サイドパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
-  rows.slice(this[key],this[key]+ROWS).forEach((row,i)=>{
-   const index=this[key]+i,y=TOP+i*PITCH,active=!sets&&s.playback?.id===row.id,playing=active&&s.playback.running,paused=active&&s.playback.active&&!s.playback.completed&&!playing;
+  rows.slice(this[key],this[key]+ROWS+(remainder>0?1:0)).forEach((row,i)=>{
+   const index=this[key]+i,y=TOP+i*PITCH-remainder,active=!sets&&s.playback?.id===row.id,playing=active&&s.playback.running,paused=active&&s.playback.active&&!s.playback.completed&&!playing;
    c.fillStyle=this.dragRow?.id===row.id?panelTheme().hover:!sets&&row.checked?panelGradient(c,20,y,760,0,panelTheme().selectedCard):panelTheme().surface;c.beginPath();c.roundRect(20,y-4,760,122,16);c.fill();c.strokeStyle=!sets&&row.checked?panelTheme().selectedLine:panelTheme().line;if(playing||paused)c.strokeStyle=panelTheme().accent;c.lineWidth=playing||paused?3:1;c.stroke();
    if(sets){
     this.button('setlistLoad:'+row.id,row.name,28,y,586,58,()=>this.choose('setlistLoad',row.id),{disabled:s.busy});
     this.text(row.entries.length+'曲 · 約'+Math.floor(row.duration/60)+'分'+Math.round(row.duration)%60+'秒',40,y+86,22,panelTheme().muted,560);
-    this.button('setlistMenu:'+row.id,'…',628,y,140,100,()=>{this.menuId=row.id;},{disabled:s.busy,quiet:true});return;
+    this.button('setlistMenu:'+row.id,'…',704,y,64,100,()=>{this.menuId=row.id;},{disabled:s.busy,quiet:true});return;
    }
    this.button('drag:'+row.id,'⠿',28,y,58,100,()=>{}, {disabled:s.busy});const drag=this.controls.at(-1);Object.assign(drag,{slider:!s.busy,favoriteDrag:true,favoriteId:row.id,index});
    this.button('check:'+row.id,row.checked?'☑':'☐',98,y,64,100,()=>this.choose('check',row.id),{selected:row.checked,disabled:s.busy});
    this.button('play:'+row.id,playing?'Ⅱ':'▶',176,y,68,100,()=>this.choose('play',row.id),{disabled:s.busy,selected:playing});
-   this.button('load:'+row.id,row.name,254,y,360,58,()=>this.choose('load',row.id),{disabled:s.busy,quiet:true});
-   this.text(`${playing?'再生中 · ':paused?'一時停止中 · ':active&&s.playback.completed?'再生終了 · ':''}${Math.floor(Math.round(row.plan.duration)/60)}:${String(Math.round(row.plan.duration)%60).padStart(2,'0')} · ${row.plan.feelingLabel??'オリジナル'}`,262,y+86,22,panelTheme().muted,352);
-   this.button('menu:'+row.id,'…',628,y,140,100,()=>{this.menuId=row.id;},{disabled:s.busy,quiet:true});
+   this.button('load:'+row.id,'',254,y,444,66,()=>this.choose('load',row.id),{disabled:s.busy,quiet:true});
+   const label=favoriteDisplay(row);this.titleLines(label.title,262,y+19,428,25,2);
+   this.text(`${playing?'再生中 · ':paused?'一時停止中 · ':active&&s.playback.completed?'再生終了 · ':''}${Math.floor(Math.round(row.plan.duration)/60)}:${String(Math.round(row.plan.duration)%60).padStart(2,'0')} · ${favoriteDisplay(row).detail}`,262,y+97,20,panelTheme().muted,432);
+   this.button('menu:'+row.id,'…',704,y,64,100,()=>{this.menuId=row.id;},{disabled:s.busy,quiet:true});
   });
   if(this.dragRow){
-   const slot=Math.max(this.offset,Math.min(this.offset+ROWS,this.dragRow.slot)),y=TOP+(slot-this.offset)*PITCH-8;
+   const slot=Math.max(this.offset,Math.min(this.offset+ROWS,this.dragRow.slot)),y=TOP+(slot-this.offset)*PITCH-remainder-8;
    c.fillStyle=panelTheme().accent;c.fillRect(20,y-3,760,6);c.beginPath();c.moveTo(20,y-11);c.lineTo(36,y);c.lineTo(20,y+11);c.closePath();c.fill();
    c.fillRect(492,y-19,278,31);this.text('ここに入れる',516,y-3,23,panelTheme().primaryInk,240);
   }
-  this.button('previous','前の一覧',28,1064,240,52,()=>{this[key]=Math.max(0,this[key]-ROWS);},{disabled:this[key]===0});
-  this.text(`${rows.length?this[key]+1:0}–${Math.min(this[key]+ROWS,rows.length)} / ${rows.length}`,310,1090,25,panelTheme().muted);
-  this.button('next','次の一覧',532,1064,240,52,()=>{this[key]=Math.min(Math.max(0,rows.length-ROWS),this[key]+ROWS);},{disabled:this[key]+ROWS>=rows.length});
+  c.restore();
+  // Match hit rectangles to the clipped rows, including partially visible ends.
+  this.controls=this.controls.filter((a,i)=>{if(i<listControls)return true;const end=Math.min(BOTTOM,a.y+a.h);a.y=Math.max(TOP,a.y);a.h=Math.max(0,end-a.y);return a.h>0;});
+  if(rows.length>ROWS){
+   const h=ROWS*PITCH,thumb=Math.max(48,h*ROWS/rows.length),max=(rows.length-ROWS)*PITCH;
+   c.fillStyle=panelTheme().track;c.fillRect(780,TOP,10,h);c.fillStyle=panelTheme().accent;c.fillRect(780,TOP+(h-thumb)*this[scrollKey]/max,10,thumb);
+   this.controls.push({id:'favoriteScroll',x:774,y:TOP,w:24,h,slider:true,favoriteScroll:true});
+  }
+  this.text('スティックでスクロール',28,1090,23,panelTheme().muted);
+  this.text(`${rows.length?this[key]+1:0}–${Math.min(this[key]+ROWS+(remainder>0?1:0),rows.length)} / ${rows.length}`,560,1090,23,panelTheme().muted);
   if(sets)this.button('setlistCreate','♥の曲を選んで新しく作る',28,1132,744,62,()=>{this.listMode='favorites';});
   else{
    this.button('setlistSave','このセットリストを保存する',28,1132,744,62,()=>this.click('setlistSave'),{disabled:s.busy||!selected.length});

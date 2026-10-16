@@ -18,18 +18,19 @@ const PALETTES={
 export const creativePalettes=kind=>PALETTES[kind]??[];
 export const creativeTailColor=(kind,id='original')=>{if(id==='programme-gold')return 0xffc16b;const p=creativePalettes(kind).find(p=>p.id===id)??creativePalettes(kind)[0];return p?.tailColor??p?.colors[2];};
 export const creativePointScale=(star,trail)=>star.group==='waist-ring'?(trail===0?2.85:1):star.group==='wing'?(trail===0?2.15:trail===1?1.35:.85):star.group==='fan'?(trail===0?2.65:trail===1?1.45:.80):1;
-export function creativeCounts(kind,size){const large=size===10;return kind==='butterfly'?4*(large?24:18)*2+12:kind==='drum'?2*(large?34:24)+(large?20:16):kind==='planet'?(large?220:150)+(large?174:118)+(large?164:116):0;}
+export function creativeCounts(kind,size){const large=size===10;return kind==='butterfly'?4*(large?24:size===3?12:18)*2+12:kind==='drum'?2*(large?34:24)+(large?20:16):kind==='planet'?(large?220:150)+(large?174:118)+(large?164:116):0;}
+export const creativeSizes=kind=>kind==='butterfly'?[3,5,10]:[5,10];
 export const creativePoints=(kind,size)=>creativeCounts(kind,size)*CREATIVE_PROFILES[kind].trails;
 const unit=(x,y,z)=>{const n=Math.hypot(x,y,z);return[x/n,y/n,z/n];};
 function rotate(v,roll,yaw,pitch){let[x,y,z]=v,c=Math.cos(roll),s=Math.sin(roll);[x,y]=[c*x-s*y,s*x+c*y];c=Math.cos(yaw);s=Math.sin(yaw);[x,z]=[c*x+s*z,-s*x+c*z];c=Math.cos(pitch);s=Math.sin(pitch);return[x,c*y-s*z,s*y+c*z];}
 
 export function createCreativeStars(kind,size,seed,{pose='natural'}={}){
- if(!isCreativeShell(kind)||![5,10].includes(size))throw Error('創造花火は５号／尺玉で試作中です。');
+ if(!isCreativeShell(kind)||!creativeSizes(kind).includes(size))throw Error('この創造花火では選べない大きさです。');
  const r=variationRandom(seed,0xc4ea7171),stars=[],large=size===10;
  const signed=()=>r()*2-1;
  let roll=(kind==='planet'?-.55:kind==='butterfly'?-.10:0)+signed()*.07;
  let yaw=pose==='side'?.88:pose==='front'?0:signed()*.22,pitch=pose==='front'?0:signed()*.09;
- if(kind==='drum'&&pose==='natural'){const orientation=variationRandom(seed,0xd2a08601);roll=orientation()*Math.PI;yaw=(orientation()*2-1)*.65;pitch=(orientation()*2-1)*.38;}
+ if((kind==='drum'||kind==='butterfly')&&pose==='natural'){const orientation=variationRandom(seed,kind==='butterfly'?0xb27790:0xd2a08601);roll=orientation()*Math.PI;yaw=(orientation()*2-1)*.65;pitch=(orientation()*2-1)*.38;}
  const sx=1+signed()*.025,sy=1+signed()*.025;
  const add=(vector,group,extra={})=>{
   const len=Math.hypot(...vector),direction=rotate(unit(...vector),roll,yaw,pitch);
@@ -41,7 +42,7 @@ export function createCreativeStars(kind,size,seed,{pose='natural'}={}){
    phase:r()*Math.PI*2,head:group==='wing'?(r()<.65?0:1):group==='fan'?(r()<.22?0:1):group==='outer'?0:group==='core'?1:2,...extra});
  };
  if(kind==='butterfly'){
-  const rays=large?24:18;
+  const rays=large?24:size===3?12:18;
   for(let side of [-1,1])for(let lobe of [-1,1])for(let k=0;k<rays;k++){
    const u=(k+.3+r()*.4)/rays,angle=((lobe===1?14+64*u:-65+53*u)+signed()*.65)*Math.PI/180;
    const speed=(lobe===1?1.28:1.05)*(.83+.17*Math.sin(Math.PI*u));
