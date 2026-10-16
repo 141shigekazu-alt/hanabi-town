@@ -135,3 +135,5 @@ html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaRevi
 .analysis-feedback progress{width:100%}
 .analysis-feedback p{margin:10px 0;line-height:1.6}
 #autoMusicRebuildFeedback{margin:8px 0 18px;padding:12px;border-left:3px solid var(--panel-accent,#d0ae69)}
+
+.voice-entry{display:flex;align-items:center;gap:12px;margin:14px 0}.voice-entry button{width:58px;min-height:52px;flex:0 0 58px;font-size:24px}.voice-entry small{font-size:13px;color:var(--muted,#a7b5c6)}.voice-card{position:relative;border:1px solid var(--accent,#e4ba62);border-radius:16px;padding:18px;margin:12px 0;background:var(--panel,#101b2a)}.voice-card[hidden]{display:none}.voice-close{position:absolute;right:10px;top:10px;width:42px}.voice-card h2{padding-right:40px}.voice-card progress{width:100%}.voice-card small{display:block;line-height:1.7;color:var(--muted,#a7b5c6)}#voiceStatus[data-error="true"]{color:#ffb8a5}#voiceSummary{color:var(--accent,#e4ba62)}

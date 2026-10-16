@@ -9,9 +9,9 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  const baseCatalog=catalog.map(t=>({...t}));
  const $=id=>document.getElementById(id),fileInput=$('autoMusicFile'),drop=$('autoMusicDrop');
  $('autoMusicEars').replaceChildren(...EAR_SCENES.map(f=>{const o=document.createElement('option');o.value=f.id;o.textContent=f.label;return o;}));
- $('autoMusicEars').value=earScene(localStorage.getItem('hanabi84-ear-scene')).id;
+ $('autoMusicEars').value=earScene(localStorage.getItem('hanabi85-ear-scene')).id;
  $('autoMusicFeeling').replaceChildren(...MUSIC_FEELINGS.map(f=>{const o=document.createElement('option');o.value=f.value;o.textContent=f.label;return o;}));
- let generation=0,worker=null,abort=null,cancelAnalysis=null,retained=null,busy=false,roomOpening=false,variation=0,modelId=null,rebuildTimer=null,preferenceQueue=Promise.resolve(),operationTitle='',operation='';
+ let generation=0,worker=null,abort=null,cancelAnalysis=null,retained=null,busy=false,roomOpening=false,variation=0,modelId=null,rebuildTimer=null,preferenceQueue=Promise.resolve(),operationTitle='',operation='',voiceRequest=null;
  function syncCatalog(){const selected=$('autoMusicSample').value;$('autoMusicSample').replaceChildren(...catalog.filter(track=>!track.deleted).map(track=>{const o=document.createElement('option');o.value=track.id;o.textContent=track.title;return o;}));if(catalog.some(t=>t.id===selected))$('autoMusicSample').value=selected;onCatalog(catalog);}
  syncCatalog();
  function controls(){for(const id of ['autoMusicGenerate','autoMusicReanalyze','autoMusicRebuild','autoMusicWatch','autoMusicExport','autoMusicRoom'])$(id).disabled=busy||roomOpening||(!['autoMusicGenerate','autoMusicReanalyze'].includes(id)&&!retained)||(id==='autoMusicRoom'&&(!onRoom||$('mr').disabled));$('autoMusicManual').disabled=busy||roomOpening||!retained?.manualId;$('autoMusicManual').hidden=!!retained&&!retained.manualId;$('autoMusicCancel').hidden=!busy;$('autoMusicSample').disabled=busy||roomOpening;$('autoMusicFeeling').disabled=busy||roomOpening;$('autoMusicEars').disabled=busy||roomOpening;fileInput.disabled=busy||roomOpening;drop.setAttribute('aria-busy',String(busy||roomOpening));}
@@ -104,8 +104,8 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
   preview('ラスト · '+plan.finale.label,plan.finalPreviewStart);
  }
  function install(analysis,buffer,title,manualId=null,trackId=null){
-  const plan=createAutoMusicPlan(analysis,{title,feeling:$('autoMusicFeeling').value,pacing:$('autoMusicPacing').value,earScene:$('autoMusicEars').value,variation});
-  retained={analysis,buffer,title,manualId,trackId,plan};if(trackId)localStorage.setItem('hanabi84-selected',trackId);onReady({plan,buffer,title,manualId,trackId});draw(plan);renderDirection(plan);renderStructure(analysis,manualId);controls();
+  const plan=createAutoMusicPlan(analysis,{title,feeling:$('autoMusicFeeling').value,pacing:$('autoMusicPacing').value,earScene:$('autoMusicEars').value,variation,voiceRequest});
+  retained={analysis,buffer,title,manualId,trackId,plan};if(trackId)localStorage.setItem('hanabi85-selected',trackId);onReady({plan,buffer,title,manualId,trackId});draw(plan);renderDirection(plan);renderStructure(analysis,manualId);controls();
   const upper=plan.shots.filter(s=>s.kind!=='ear').length,ears=plan.shots.length-upper,confidence=analysis.beatConfidence<.15?'拍の目安は弱め':analysis.beatConfidence<.4?'拍の目安は中程度':'拍の目安は比較的明瞭';
   status(`${title} · ${Math.floor(Math.round(plan.duration)/60)}:${String(Math.round(plan.duration)%60).padStart(2,'0')}／推定 ${analysis.bpm.toFixed(1)} BPM。大・小玉${upper}発、穂${ears}発、地上${plan.fans.length}場面。${analysis.structure?'曲構造AI・サビ候補'+analysis.chorus.length+'区間・繰り返しで開花'+(plan.repeatEntryCues?.length||0)+'か所':confidence}。${plan.directingProfile==='slow'?'組み方はゆっくり（歩幅の目安 '+plan.effectiveTempo.toFixed(1)+' BPM）。':'組み方はリズミカル。'}`,1);
   $('autoMusicAnalysisSource').textContent=analysis.structure?.model?.includes('LinkSeg')?'この端末で解析した結果':'Macで用意した解析結果';
@@ -114,8 +114,9 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
   $('autoMusicWatch').textContent=`構成${plan.analysisSummary.variation+1}をこの画面で観る`;
   $('autoMusicRoom').textContent=`構成${plan.analysisSummary.variation+1}をMRで観る`;
  }
- async function generate(file=null,trackId=null,forceReanalysis=false,feelingOverride=null){
+ async function generate(file=null,trackId=null,forceReanalysis=false,feelingOverride=null,voiceOverride=null){
   if(roomOpening)return;
+  voiceRequest=voiceOverride;
   operation=file||forceReanalysis?'analysis':'prepare';operationTitle=file?file.name.replace(/\.[^.]+$/,''):catalog.find(t=>t.id===(trackId??$('autoMusicSample').value))?.title??'選んだ曲';
   cancel();resetRebuildFeedback();const token=generation,started=performance.now(),previousVariation=variation;busy=true;variation=0;abort=new AbortController();const localSignal=abort.signal;controls();onBegin();$('autoMusicResult').hidden=true;status(file||forceReanalysis?'解析中… 音源を読み込んでいます':'曲を読み込み中…',.02);
   try{
@@ -133,7 +134,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
    if(useStructure&&(forceReanalysis||file||!saved?.analysis)){
     operation='analysis';const result=await analyzeInBrowser(buffer,{signal:localSignal,onProgress:(phase,progress)=>{if(token===generation)status(phase,progress);}});
     if(token!==generation)return;
-    createAutoMusicPlan(result.analysis,{title,feeling:$('autoMusicFeeling').value,pacing:$('autoMusicPacing').value,earScene:$('autoMusicEars').value,variation});
+    createAutoMusicPlan(result.analysis,{title,feeling:$('autoMusicFeeling').value,pacing:$('autoMusicPacing').value,earScene:$('autoMusicEars').value,variation,voiceRequest});
     const elapsed=+((performance.now()-started)/1000).toFixed(3);
     const savedTrack=await saveLocalTrack({bytes,title,trackId,analysis:result.analysis,structure:result.structure,endToEndSeconds:elapsed,workerTotalSeconds:result.workerTotalSeconds,signal:localSignal});
     if(token!==generation)return;
@@ -191,7 +192,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
    if(token!==generation)return null;
    const decoder=new OfflineAudioContext(1,1,22050),buffer=await decoder.decodeAudioData(bytes.slice(0));
    if(token!==generation)return null;
-   await saveTrackFeeling(id,'original');localStorage.setItem('hanabi84-selected',id);
+   await saveTrackFeeling(id,'original');localStorage.setItem('hanabi85-selected',id);
    if(token!==generation)return null;busy=false;
    const result={trackId:id,title:track.title,buffer};onOriginalReady(result);controls();
    status(track.title+' · 手作りの構成（オリジナル）を準備しました。',1);return result;
@@ -202,12 +203,12 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicCancel').onclick=()=>{cancel();status('解析を中止しました。別の曲を選べます。',0);if(retained){variation=retained.plan.analysisSummary.variation;$('autoMusicResult').hidden=false;}};
  $('autoMusicEars').onchange=()=>{
   if(!retained||busy||roomOpening)return;
-  resetRebuildFeedback();install(retained.analysis,retained.buffer,retained.title,retained.manualId,retained.trackId);
+  voiceRequest=null;resetRebuildFeedback();install(retained.analysis,retained.buffer,retained.title,retained.manualId,retained.trackId);
  };
- $('autoMusicPacing').onchange=()=>{if(retained&&!busy&&!roomOpening){resetRebuildFeedback();install(retained.analysis,retained.buffer,retained.title,retained.manualId,retained.trackId);}};
+ $('autoMusicPacing').onchange=()=>{if(retained&&!busy&&!roomOpening){voiceRequest=null;resetRebuildFeedback();install(retained.analysis,retained.buffer,retained.title,retained.manualId,retained.trackId);}};
  $('autoMusicFeeling').onchange=()=>{
   if(busy||roomOpening)return;
-  const chosen=$('autoMusicSample').value,feeling=$('autoMusicFeeling').value;
+  voiceRequest=null;const chosen=$('autoMusicSample').value,feeling=$('autoMusicFeeling').value;
   preferenceQueue=preferenceQueue.catch(()=>{}).then(()=>saveTrackFeeling(chosen,feeling));
   preferenceQueue.catch(e=>status('曲調を保存できませんでした：'+e.message));
   $('autoMusicFeelingHint').textContent=musicFeeling(feeling).description;
@@ -231,7 +232,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicWatch').onclick=()=>{if(!retained||busy||roomOpening)return;onReady(retained);document.getElementById('musicShow').click();};
  $('autoMusicManual').onclick=()=>{if(retained?.manualId&&!busy&&!roomOpening)onManual(retained.manualId);};
  $('autoMusicExport').onclick=()=>{
-  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.84',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.85',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  for(const event of ['dragenter','dragover'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.add('dragging');});
  drop.addEventListener('dragleave',()=>drop.classList.remove('dragging'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('dragging');if(e.dataTransfer.files[0])generate(e.dataTransfer.files[0]);});
@@ -264,5 +265,5 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
   if(retained?.trackId===id){retained.title=named.title;operationTitle=named.title;$('autoMusicResultTitle').textContent=named.title+' · 自動構成';}
   syncCatalog();return named;
  }
- return {restoreLibrary,renameTrack,deleteTrack,restoreTrack,generateOriginalTrack,reanalyzeTrack(id){$('autoMusicSample').value=id;$('autoMusicAnalysis').value='structure';return generate(null,id,true);},get result(){return retained;},get busy(){return busy;},cancel,generateTrack(id,feeling=null){$('autoMusicSample').value=id;return generate(null,id,false,feeling);},useSavedTrack(track,buffer,selectedVariation=0){cancel();variation=Math.max(0,Math.floor(Number(selectedVariation)||0));resetRebuildFeedback();install(track.analysis,buffer,track.title,null,null);}};
+ return {restoreLibrary,renameTrack,deleteTrack,restoreTrack,generateOriginalTrack,reanalyzeTrack(id){$('autoMusicSample').value=id;$('autoMusicAnalysis').value='structure';return generate(null,id,true);},get result(){return retained;},applyVoiceRequest(request){if(!retained||busy||roomOpening)return null;const before=retained,oldVariation=variation,oldVoice=voiceRequest;try{variation++;voiceRequest=request;install(before.analysis,before.buffer,before.title,before.manualId,before.trackId);rebuildFeedback(before.plan,retained.plan);return retained;}catch(e){voiceRequest=oldVoice;variation=oldVariation;retained=before;throw e;}},get busy(){return busy;},cancel,generateTrack(id,feeling=null,request=null){$('autoMusicSample').value=id;return generate(null,id,false,feeling,request);},useSavedTrack(track,buffer,selectedVariation=0){cancel();variation=Math.max(0,Math.floor(Number(selectedVariation)||0));resetRebuildFeedback();install(track.analysis,buffer,track.title,null,null);}};
 }

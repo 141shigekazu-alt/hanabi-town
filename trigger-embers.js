@@ -1,7 +1,7 @@
 import {isCreativeShell,creativePoints} from './creative-shells.js';
 import {petalGeometry} from './flower-scenes.js';
-import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.84';
-import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.84';
+import {sparkleCounts,SPARKLE_PROFILE} from './sparkling-stars.js?v=1.2.85';
+import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.2.85';
 import {isSenrin} from './fireworks.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
 

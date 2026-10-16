@@ -1,5 +1,5 @@
 import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
-import {TYPES} from './fireworks.js?v=1.2.84';
+import {TYPES} from './fireworks.js?v=1.2.85';
 import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';
@@ -38,6 +38,9 @@ export function programCue(plan,time,index,lively=false){
   result.position=stylePosition(style,result.position,index);result.position.palette=stylePalette(style,result.kind,index);
   if(['butterfly','planet','drum'].includes(result.kind))result.interval=Math.max(result.interval,3.2+TYPES[result.kind].life+.8);
  }
+ if(plan.voiceRequest?.size){result.size=plan.voiceRequest.size==='large'?(index%3===0?10:5):plan.voiceRequest.size==='medium'?5:3;result.kind=styleKind(plan.programmeStyle,result.size,index)??'kiku';result.position.palette=stylePalette(plan.programmeStyle,result.kind,index);}
+ if(plan.voiceRequest?.density==='sparse')result.interval=Math.max(9,result.interval);
+ if(plan.voiceRequest?.density==='dense')result.interval=Math.max(1.6,result.interval*.7);
  if(plan.programmeStyle?.color==='gold')result.position.palette='programme-gold';
  return result;
 }

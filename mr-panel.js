@@ -286,19 +286,31 @@ export class MRPanel{
   this.button('prepareCancel','戻る（変更しない）',28,958,744,48,()=>this.click('prepareCancel'));
  }
  draw(){
-  const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&this.adjusting;this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
+  const s=this.read(),c=this.ctx;const child=!!s.voice?.open||!!s.preparing||this.page===1||this.page===4&&this.adjusting;this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
   this.text('花火街',36,49,43,panelTheme().text);this.text('v'+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
   this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
-  if(child){this.button('detailClose','×',696,18,76,60,()=>this.navigate(4));this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
+  if(child){this.button('detailClose','×',696,18,76,60,()=>s.voice?.open?this.click('voiceClose'):this.navigate(4));this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
   else{
   this.button('favoriteToggle',s.favoriteSaved?'♥':'♡',696,18,76,60,()=>this.click('favoriteToggle'),{selected:!!s.favoriteSaved,disabled:!s.favoriteCanSave,heart:true});
   this.button('favoriteListOpen','一覧',608,18,76,60,()=>this.click('favoriteListOpen'));
   this.text('右A：サイドパネル · 左X：クルッとパネル',36,132,21,panelTheme().muted);
   }
   c.save();c.translate(0,HEADER_GROWTH);
-  if(child)this.button('showParent',this.page===1&&this.studyMode?'‹ 花火玉の仕込みへ戻る':'‹ 花火大会へ戻る',28,126,744,64,()=>{if(this.page===1&&this.studyMode){this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.draw();}else this.navigate(4);});
+  if(child)this.button('showParent',this.page===1&&this.studyMode?'‹ 花火玉の仕込みへ戻る':'‹ 花火大会へ戻る',28,126,744,64,()=>{if(this.page===1&&this.studyMode){this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.draw();}else if(s.voice?.open)this.click('voiceClose');else this.navigate(4);});
   else [[4,'花火大会'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>this.button('page'+page,label,28+i*254,126,236,68,()=>this.navigate(page),{selected:this.page===page,nav:true}));
-  if(s.preparing){this.drawPreparation(s);}
+  if(s.voice?.open){
+   const v=s.voice;this.text('花火大会  ›  声でリクエスト',32,236,22,panelTheme().muted,736);
+   this.text('あなたのイメージをAIに話す',32,296,31,panelTheme().text,736);
+   this.wrap('たとえば「夜空をイメージした曲なので、金色系の花火をたくさん出して」',32,350,736,3);
+   this.wrap('「海をイメージしたプログラムにしたい」',32,445,736,2);
+   this.wrap(v.status,32,530,736,3);
+   if(['loading','recording'].includes(v.phase)){c.fillStyle=panelTheme().track;c.fillRect(32,642,736,10);c.fillStyle=panelTheme().accent;c.fillRect(32,642,736*Math.max(0,Math.min(1,v.progress??0)),10);}
+   if(v.phase==='recording')this.text('● '+Math.min(8,v.seconds??0).toFixed(1)+' / 8秒',32,684,27,panelTheme().accent);
+   this.wrap(v.transcript?'「'+v.transcript+'」':'',32,708,736,3);
+   this.wrap(v.summary??'',32,825,736,3);
+   this.button('voiceRecord',v.phase==='recording'?'■ 話し終わる':v.busy?'準備しています…':'🎤 もう一度話す',28,950,744,64,()=>this.click('voiceRecord'),{primary:true,disabled:v.busy&&v.phase!=='recording'});
+   this.text('録音は認識後に破棄します。端末への音声保存なし。',32,1064,21,panelTheme().muted,736);
+  }else if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
    this.button('play',s.playLabel??(s.running?'ひと休み':s.resumeShow?'大会を再開':'花火大会を観る'),28,238,744,64,()=>this.click('play'),{selected:!s.running});
    if(s.awaitingShow){
@@ -322,7 +334,9 @@ export class MRPanel{
    this.button('showWatch',s.showWatchLabel??'▶ 花火大会を開演',28,365,744,88,()=>this.click('showWatch'),{primary:true,disabled:!!s.showWatchDisabled});
    if(s.setlistSelect?.options?.length>1)this.button('setlistSelect',s.setlistSelect.selected+'  ▾',28,475,744,60,()=>{this.picker={id:'setlistSelect',offset:0};});
    else this.text('気に入った大会は、右上の ♥ から保存できます',32,505,23,panelTheme().muted,736);
-   this.button('showAdjust','演出を調整する  ›',28,563,744,60,()=>{this.adjusting=true;},{quiet:true});
+   this.button('showAdjust','演出を調整する  ›',28,563,360,60,()=>{this.adjusting=true;},{quiet:true});
+   this.button('voiceOpen','🎤',412,563,72,60,()=>this.click('voiceOpen'),{disabled:!!s.musicAnalysisBusy||!!s.selectionFailed});
+   this.text('あなたのイメージを',496,580,20,panelTheme().muted,276);this.text('AIに話す',496,608,20,panelTheme().muted,276);
    c.strokeStyle=panelTheme().line;c.beginPath();c.moveTo(28,559);c.lineTo(772,559);c.moveTo(28,631);c.lineTo(772,631);c.stroke();
    this.button('showTrialOpen','トリガーに花火玉を仕込む  ›',28,656,744,62,()=>this.navigate(1));
    if(s.selectionFailed||s.musicAnalysisBusy){
@@ -429,7 +443,7 @@ export class MRPanel{
   }
 
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,panelTheme().muted,736);
-  if(child)this.button('detailBack','花火大会に戻る',28,1188,744,48,()=>this.navigate(4));
+  if(child)this.button('detailBack','花火大会に戻る',28,1188,744,48,()=>s.voice?.open?this.click('voiceClose'):this.navigate(4));
   else{this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});}
   this.text(this.controllerGrabbed?'移動中 · 掴んだボタンを離すと、ここに置けます':'白い棒：トリガー／グリップで移動 · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
   if(this.page===4&&!this.adjusting&&s.trackMenuOpen&&!this.picker){
