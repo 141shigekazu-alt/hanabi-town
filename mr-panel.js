@@ -266,10 +266,10 @@ export class MRPanel{
   if(!compact){this.text(seek?'はじめ':id==='roomBrightness'?'暗い':'小さい',32,y+115,23,panelTheme().muted);this.text(seek?'曲末':id==='roomBrightness'?'明るい':'大きい',660,y+115,23,panelTheme().muted);}
  }
 
- wrap(text,x,y,maxWidth,lines=3){
+ wrap(text,x,y,maxWidth,lines=3,lineHeight=34){
   const c=this.ctx;c.font=panelFont(23);let line='',row=0;
-  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*34,23,panelTheme().muted);row++;line='';if(row>=lines)return;}line+=char;}
-  if(line)this.text(line,x,y+row*34,23,panelTheme().muted);
+  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*lineHeight,23,panelTheme().muted);row++;line='';if(row>=lines)return;}line+=char;}
+  if(line)this.text(line,x,y+row*lineHeight,23,panelTheme().muted);
  }
  drawPreparation(s){
   const p=s.preparing,hand=p.hand==='left'?'左':'右',fields=['kind','size','palette'];
@@ -300,7 +300,7 @@ export class MRPanel{
   }else if(v.hasDraft||v.transcript){
    this.wrap(v.hasDraft?'✓ 希望を受け取りました。下の構成変更ボタンで反映します。':v.status??'',32,724,736,2);
    this.wrap(v.transcript?'「'+v.transcript+'」':'',32,795,736,2);
-   this.wrap(v.summary??'',32,850,736,3);
+   this.wrap(v.summary??'',32,864,736,3,28);
    if(v.hasDraft)this.button('voiceDiscard','声の希望を取り消す',412,934,360,30,()=>this.click('voiceDiscard'),{quiet:true});
   }else if(v.error){this.wrap(v.status??'',32,730,736,5);}
   else{
