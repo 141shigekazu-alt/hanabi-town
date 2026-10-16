@@ -8,11 +8,11 @@ export function favoriteDropIndex(y,offset,count){return Math.max(0,Math.min(cou
 export function favoriteInsertionSlot(y,offset,count){return Math.max(offset,Math.min(count,offset+ROWS,offset+Math.floor((y-TOP+PITCH/2)/PITCH)));}
 export function favoriteMoveTarget(slot,source,count){return Math.max(0,Math.min(count-1,slot>source?slot-1:slot));}
 export class FavoritesPanel extends MRPanel{
- constructor(options){super(options);this.offset=0;this.setlistOffset=0;this.listMode='favorites';this.dragRow=null;this.listScroll=0;this.setlistScroll=0;}
+ constructor(options){super(options);this.offset=0;this.setlistOffset=0;this.listMode='favorites';this.dragRow=null;this.listScroll=0;this.setlistScroll=0;this.editScroll=0;}
  beginSlider(control,controller,ray){
   if(control.favoriteScroll){this.sliderDrag={control,controller};this.slideToRay(ray);return;}
   if(!control.favoriteDrag)return super.beginSlider(control,controller,ray);
-  this.sliderDrag={control,controller};this.dragRow={id:control.favoriteId,source:control.index,slot:control.index,target:control.index};this.slideToRay(ray);
+  this.sliderDrag={control,controller};this.dragRow={id:control.favoriteId,editing:!!control.setlistEntryDrag,source:control.index,slot:control.index,target:control.index};this.slideToRay(ray);
  }
  slideToRay(ray){
   if(!this.sliderDrag?.control.favoriteDrag&&!this.sliderDrag?.control.favoriteScroll)return super.slideToRay(ray);
@@ -21,13 +21,13 @@ export class FavoritesPanel extends MRPanel{
   this.mesh.worldToLocal(this.sliderPoint);const y=(.5-this.sliderPoint.y/(.68*1340/800))*1340;
   if(this.sliderDrag.control.favoriteScroll){const h=ROWS*PITCH;this.scrollTo((y-TOP)/h);return;}
   if(y<TOP+28)this.scrollList(-18);else if(y>BOTTOM-28)this.scrollList(18);
-  const count=this.read().rows.length;this.dragRow.slot=favoriteInsertionSlot(y+(this.listScroll%PITCH),this.offset,count);this.dragRow.target=favoriteMoveTarget(this.dragRow.slot,this.dragRow.source,count);this.draw();
+  const edit=this.read().setlistEdit,count=edit?edit.items.length:this.read().rows.length,scroll=edit?this.editScroll:this.listScroll,offset=Math.floor(scroll/PITCH);this.dragRow.slot=favoriteInsertionSlot(y+(scroll%PITCH),offset,count);this.dragRow.target=favoriteMoveTarget(this.dragRow.slot,this.dragRow.source,count);this.draw();
  }
  scrollList(delta){
-  const sets=this.listMode==='setlists',key=sets?'setlistScroll':'listScroll',rows=sets?this.read().setlists??[]:this.read().rows;
+  const edit=this.read().setlistEdit,sets=this.listMode==='setlists',key=edit?'editScroll':sets?'setlistScroll':'listScroll',rows=edit?edit.items:sets?this.read().setlists??[]:this.read().rows;
   this[key]=Math.max(0,Math.min(Math.max(0,rows.length*PITCH-ROWS*PITCH),this[key]+delta));this.draw();
  }
- scrollTo(fraction){const sets=this.listMode==='setlists',count=(sets?this.read().setlists??[]:this.read().rows).length,key=sets?'setlistScroll':'listScroll';this[key]=Math.max(0,Math.min(1,fraction))*Math.max(0,(count-ROWS)*PITCH);this.draw();}
+ scrollTo(fraction){const edit=this.read().setlistEdit,sets=this.listMode==='setlists',count=(edit?edit.items:sets?this.read().setlists??[]:this.read().rows).length,key=edit?'editScroll':sets?'setlistScroll':'listScroll';this[key]=Math.max(0,Math.min(1,fraction))*Math.max(0,(count-ROWS)*PITCH);this.draw();}
  scrollContent(axis,y,dt){
   if(this.menuId||this.read().rename||y<TOP||y>BOTTOM||Math.abs(axis)<=.18)return false;
   this.scrollList(Math.sign(axis)*(Math.abs(axis)-.18)/.82*650*dt);return true;
@@ -35,7 +35,7 @@ export class FavoritesPanel extends MRPanel{
  release(controller){
   if(this.sliderDrag?.control.favoriteScroll&&(!controller||this.sliderDrag.controller===controller)){this.sliderDrag=null;this.hover='';}
   if(this.sliderDrag?.control.favoriteDrag&&(!controller||this.sliderDrag.controller===controller)){
-   const row=this.dragRow;this.sliderDrag=null;this.dragRow=null;if(row)this.choose('reorder',{id:row.id,index:row.target});
+   const row=this.dragRow;this.sliderDrag=null;this.dragRow=null;if(row)this.choose(row.editing?'setlistEntryReorder':'reorder',{id:row.id,index:row.target});
   }
   super.release(controller);
  }
@@ -52,8 +52,38 @@ export class FavoritesPanel extends MRPanel{
   this.button('renameCancel','戻る（名前は変えない）',28,1030,744,64,()=>this.choose('renameCancel'),{disabled:edit.busy});
  }
 
+ drawSetlistEditor(s){
+  const edit=s.setlistEdit,c=this.ctx;if(this.editToken!==edit.token){this.editToken=edit.token;this.editScroll=0;this.menuId=null;}
+  this.controls=[];drawPanelSurface(c,800,1340);
+  this.text('セットリストを編集',32,47,36,panelTheme().text,650);
+  this.text(edit.name,32,94,24,panelTheme().accent,736);
+  this.button('setlistEditClose','×',696,18,76,60,()=>this.choose('setlistEditCancel'),{disabled:s.busy});
+  this.text('お気に入り  ›  セットリスト',32,150,21,panelTheme().muted,736);
+  const duration=edit.items.reduce((n,x)=>n+(x.entry.plan.showDuration??x.entry.plan.duration),0)+Math.max(0,edit.items.length-1)*3;
+  this.text(edit.items.length+'曲 · 約'+Math.floor(duration/60)+'分'+Math.round(duration)%60+'秒',28,207,23,panelTheme().accent,350);
+  if(edit.removed.length)this.button('setlistEditUndo','外した曲を戻す',420,184,352,44,()=>this.choose('setlistEditUndo'),{disabled:s.busy});
+  this.editScroll=Math.max(0,Math.min(Math.max(0,(edit.items.length-ROWS)*PITCH),this.editScroll));const offset=Math.floor(this.editScroll/PITCH),remainder=this.editScroll%PITCH,listControls=this.controls.length;
+  c.save();c.beginPath();c.rect(18,TOP-4,758,BOTTOM-TOP+4);c.clip();
+  edit.items.slice(offset,offset+ROWS+(remainder>0?1:0)).forEach((item,i)=>{
+   const index=offset+i,y=TOP+i*PITCH-remainder,row=item.entry;
+   c.fillStyle=this.dragRow?.id===item.key?panelTheme().hover:panelTheme().surface;c.beginPath();c.roundRect(20,y-4,750,122,16);c.fill();c.strokeStyle=panelTheme().line;c.lineWidth=1;c.stroke();
+   this.button('setlistEntryDrag:'+item.key,'⠿',28,y,58,100,()=>{},{disabled:s.busy});Object.assign(this.controls.at(-1),{slider:!s.busy,favoriteDrag:true,setlistEntryDrag:true,favoriteId:item.key,index});
+   this.text(String(index+1).padStart(2,'0'),102,y+24,22,panelTheme().accent);
+   this.titleLines(row.title,150,y+22,450,25,2);
+   this.text(Math.floor(Math.round(row.plan.duration)/60)+':'+String(Math.round(row.plan.duration)%60).padStart(2,'0'),150,y+96,21,panelTheme().muted,430);
+   this.button('setlistEntryRename:'+item.key,'曲名',622,y+4,142,48,()=>this.choose('setlistEntryRename',item.key),{disabled:s.busy});
+   this.button('setlistEntryRemove:'+item.key,'外す',622,y+64,142,48,()=>this.choose('setlistEntryRemove',item.key),{disabled:s.busy||edit.items.length<=1,quiet:true});
+  });
+  if(this.dragRow?.editing){const slot=Math.max(offset,Math.min(offset+ROWS,this.dragRow.slot)),y=TOP+(slot-offset)*PITCH-remainder-8;c.fillStyle=panelTheme().accent;c.fillRect(20,y-3,750,6);c.beginPath();c.moveTo(20,y-11);c.lineTo(36,y);c.lineTo(20,y+11);c.closePath();c.fill();c.fillRect(492,y-19,278,31);this.text('ここに入れる',516,y-3,23,panelTheme().primaryInk,240);}
+  c.restore();this.controls=this.controls.filter((a,i)=>{if(i<listControls)return true;const end=Math.min(BOTTOM,a.y+a.h);a.y=Math.max(TOP,a.y);a.h=Math.max(0,end-a.y);return a.h>0;});
+  if(edit.items.length>ROWS){const h=ROWS*PITCH,thumb=Math.max(48,h*ROWS/edit.items.length),max=(edit.items.length-ROWS)*PITCH;c.fillStyle=panelTheme().track;c.fillRect(780,TOP,10,h);c.fillStyle=panelTheme().accent;c.fillRect(780,TOP+(h-thumb)*this.editScroll/max,10,thumb);this.controls.push({id:'favoriteScroll',x:774,y:TOP,w:24,h,slider:true,favoriteScroll:true});}
+  this.wrap(edit.message||(edit.dirty?'変更はまだ保存されていません。':'⠿を掴んで並べ替え · スティックでスクロール'),28,1070,744,2,28);
+  this.button('setlistEditSave',s.busy?'保存しています…':'変更を保存',28,1132,744,62,()=>this.choose('setlistEditSave'),{primary:true,disabled:s.busy||!edit.dirty});
+  this.button('setlistEditCancel',edit.dirty?'変更せず戻る':'セットリストへ戻る',28,1208,744,62,()=>this.choose('setlistEditCancel'),{disabled:s.busy});
+ }
+
  draw(){
-  const s=this.read(),c=this.ctx;this.controls=[];drawPanelSurface(c,800,1340,{border:'#ddc69585'});
+  const s=this.read(),c=this.ctx;this.syncChildView(!!s.setlistEdit,{offsetX:.13});if(s.setlistEdit){this.drawSetlistEditor(s);if(s.rename)this.drawRename(s.rename);this.texture.needsUpdate=true;return;}this.controls=[];drawPanelSurface(c,800,1340,{border:'#ddc69585'});
   this.text('お気に入り',32,47,41,panelTheme().text,600);this.text('好きな一曲を、自分の大会に。',32,91,21,panelTheme().muted);this.button('favoriteClose','×',696,18,76,60,()=>this.close());
   const selected=s.rows.filter(r=>r.checked),seconds=selected.reduce((n,r)=>n+r.plan.showDuration,0)+Math.max(0,selected.length-1)*3;
   const sets=this.listMode==='setlists',rows=sets?s.setlists??[]:s.rows,key=sets?'setlistOffset':'offset',scrollKey=sets?'setlistScroll':'listScroll';
@@ -107,8 +137,9 @@ export class FavoritesPanel extends MRPanel{
     c.fillStyle=panelTheme().overlay;c.beginPath();c.roundRect(12,200,776,1120,24);c.fill();this.controls=[];this.text(row.name,40,302,32,panelTheme().accent,720);
     this.button('rename','名前を変える',40,390,720,84,()=>{const id=this.menuId;this.menuId=null;this.choose(sets?'setlistRename':'rename',id);},{disabled:s.busy});
     this.text('文字の一部だけ選んで直せます',48,518,24,panelTheme().muted,700);
-    this.button('delete','削除する',40,590,720,84,()=>{const id=this.menuId;this.menuId=null;this.choose(sets?'setlistDelete':'delete',id);},{danger:true,disabled:s.busy});
-    this.button('menuBack','戻る',40,760,720,70,()=>{this.menuId=null;});
+    if(sets)this.button('setlistEdit','編集する',40,550,720,74,()=>{const id=this.menuId;this.menuId=null;this.draw();this.choose('setlistEdit',id);},{disabled:s.busy});
+    this.button('delete','削除する',40,sets?662:590,720,74,()=>{const id=this.menuId;this.menuId=null;this.choose(sets?'setlistDelete':'delete',id);},{danger:true,disabled:s.busy});
+    this.button('menuBack','戻る',40,sets?790:760,720,70,()=>{this.menuId=null;});
    }
   }
   this.texture.needsUpdate=true;

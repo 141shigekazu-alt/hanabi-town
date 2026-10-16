@@ -36,7 +36,7 @@ export class MRPanel{
   this.cursor=new T.Mesh(new T.SphereGeometry(.004,8,6),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));this.cursor.renderOrder=1002;this.cursor.visible=false;scene.add(this.cursor);
   this.raycaster=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.pointer=new T.Vector2();this.lastTransform=null;this.preview=false;
  }
- syncChildView(child){
+ syncChildView(child,{offsetX=-.13}={}){
   if(!child){this.endChildView();return;}
   if(this.childView||!this.active||!this.visible)return;
   // Preserve the real parent's texture and pose; the child is a separate,
@@ -49,7 +49,7 @@ export class MRPanel{
   this.parentCanvas.getContext('2d').clearRect(0,0,W,H);this.parentCanvas.getContext('2d').drawImage(this.surface,0,0);this.parentTexture.needsUpdate=true;
   this.childView={position:this.mesh.position.clone(),quaternion:this.mesh.quaternion.clone(),scale:this.mesh.scale.clone(),moved:this.moved,yawOffset:this.yawOffset,renderOrder:this.mesh.renderOrder,barOrder:this.bar.renderOrder,cursorOrder:this.cursor.renderOrder,beamOrders:this.controllers.map(e=>e.beam.renderOrder)};
   this.parentSurface.position.copy(this.mesh.position);this.parentSurface.quaternion.copy(this.mesh.quaternion);this.parentSurface.scale.copy(this.mesh.scale);this.parentSurface.visible=true;this.parentSurface.updateMatrixWorld(true);
-  this.mesh.position.add(new T.Vector3(.13,-.03,.14).applyQuaternion(this.mesh.quaternion));this.mesh.scale.multiplyScalar(.84);this.mesh.renderOrder=1008;this.bar.renderOrder=1009;this.cursor.renderOrder=1010;this.controllers.forEach(e=>e.beam.renderOrder=1011);this.mesh.updateMatrixWorld(true);this.childChanged(true);
+  this.mesh.position.add(new T.Vector3(offsetX,-.03,.14).applyQuaternion(this.mesh.quaternion));this.mesh.scale.multiplyScalar(.84);this.mesh.renderOrder=1008;this.bar.renderOrder=1009;this.cursor.renderOrder=1010;this.controllers.forEach(e=>e.beam.renderOrder=1011);this.mesh.updateMatrixWorld(true);this.childChanged(true);
  }
  endChildView(){
   const saved=this.childView;if(!saved)return;this.childView=null;this.parentSurface.visible=false;

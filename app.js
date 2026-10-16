@@ -21,37 +21,37 @@ import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
 import {organizePanel} from './panel-layout.js';
 organizePanel();
-import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.93';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.2.93';
-import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.93';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.93';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.93';
-import {rainEarSequence} from './rain-ears.js?v=1.2.93';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.93';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.93';
-import {viewBoatPose} from './boat-cruise.js?v=1.2.93';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.93';
-import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.93';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.93';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.93';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.93';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.93';
+import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle} from './music-catalog.js?v=1.2.94';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.2.94';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.94';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.94';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.94';
+import {rainEarSequence} from './rain-ears.js?v=1.2.94';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.94';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.94';
+import {viewBoatPose} from './boat-cruise.js?v=1.2.94';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.94';
+import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.94';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.94';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.94';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.94';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.2.94';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.93';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.94';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.93';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.93';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.93';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.93';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.93';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.93';
-import {TowerLighting} from './tower-lighting.js?v=1.2.93';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.93';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.93';
-import {WristMenu} from './wrist-menu.js?v=1.2.93';
-import {XRControls} from './xr-controls.js?v=1.2.93';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.93';
-import {EntryTip} from './entry-tip.js?v=1.2.93';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.94';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.94';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.94';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.94';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.94';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.94';
+import {TowerLighting} from './tower-lighting.js?v=1.2.94';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.94';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.94';
+import {WristMenu} from './wrist-menu.js?v=1.2.94';
+import {XRControls} from './xr-controls.js?v=1.2.94';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.94';
+import {EntryTip} from './entry-tip.js?v=1.2.94';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
@@ -888,7 +888,7 @@ function adjustTownDistance(){
  town.position.x=p.x-Math.sin(town.rotation.y)*d;town.position.z=p.z-Math.cos(town.rotation.y)*d;
 }
 $('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}};$('distance').oninput=adjustTownDistance;
-function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*2-1,y=1-(e.clientY-r.top)/r.height*2;if(mrPanel.childView)return mrPanel.previewPointer(x,y,camera,activate);return entryTip?.previewPointer(x,y,camera,activate)||favoritesPanel?.previewPointer(x,y,camera,activate)||mrPanel.previewPointer(x,y,camera,activate);}
+function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*2-1,y=1-(e.clientY-r.top)/r.height*2;if(favoritesPanel?.childView)return favoritesPanel.previewPointer(x,y,camera,activate);if(mrPanel.childView)return mrPanel.previewPointer(x,y,camera,activate);return entryTip?.previewPointer(x,y,camera,activate)||favoritesPanel?.previewPointer(x,y,camera,activate)||mrPanel.previewPointer(x,y,camera,activate);}
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onpointercancel=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onwheel=e=>{if(panelPreview&&favoritesPanel?.visible&&!favoritesPanel.menuId&&!mrNameEditor?.state){e.preventDefault();favoritesPanel.scrollList(e.deltaY);return;}if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
@@ -964,7 +964,7 @@ $('entryTipEnabled').onchange=()=>entryTip.setSuppressed(!$('entryTipEnabled').c
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,choose:choosePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab,childChanged:open=>{if(open)wristMenu.close();else if(analysisFeedback)analysisFeedback.inChild=false;}});
 $('helpTopic').addEventListener('change',()=>{mrPanel.helpScroll=0;mrPanel.draw();});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;betaReviewPanel.entries=mrPanel.controllers;
-favoritesPanel=new FavoritesPanel({scene,read:()=>({...favoritesUI?.state,rows:favoritesUI?.state.rows??[],busy:(favoritesUI?.state.busy??true)||libraryRestoring,rename:mrNameEditor?.state??null}),click:id=>$(id).click(),choose:(command,value)=>{if(command==='check')void favoritesUI.toggle(value);if(command==='load')void favoritesUI.load(value);if(command==='play')void favoritesUI.play(value);if(command==='reorder')void favoritesUI.reorder(value.id,value.index);if(command==='delete')void favoritesUI.remove(value);if(command==='undo')void favoritesUI.undo();if(command==='rename')renameFavoriteFromMR(value);if(command==='setlistRename')renameFavoriteFromMR(value,'setlist');if(command==='setlistLoad')void favoritesUI.loadSetlist(value);if(command==='setlistDelete')void favoritesUI.removeSetlist(value);if(command==='setlistUndo')void favoritesUI.restoreSetlist();if(command==='renameFocus')mrNameEditor.focus();if(command==='renameSave')void mrNameEditor.save();if(command==='renameCancel')mrNameEditor.close();},set:()=>{}});favoritesPanel.controllers=mrPanel.controllers;
+favoritesPanel=new FavoritesPanel({scene,read:()=>({...favoritesUI?.state,rows:favoritesUI?.state.rows??[],busy:(favoritesUI?.state.busy??true)||libraryRestoring,rename:mrNameEditor?.state??null}),click:id=>$(id).click(),choose:(command,value)=>{if(command==='check')void favoritesUI.toggle(value);if(command==='load')void favoritesUI.load(value);if(command==='play')void favoritesUI.play(value);if(command==='reorder')void favoritesUI.reorder(value.id,value.index);if(command==='delete')void favoritesUI.remove(value);if(command==='undo')void favoritesUI.undo();if(command==='rename')renameFavoriteFromMR(value);if(command==='setlistRename')renameFavoriteFromMR(value,'setlist');if(command==='setlistEdit')favoritesUI.editSetlist(value);if(command==='setlistEntryReorder')favoritesUI.moveSetlistEntry(value.id,value.index);if(command==='setlistEntryRename')renameFavoriteFromMR(value,'setlist-entry');if(command==='setlistEntryRemove')favoritesUI.removeSetlistEntry(value);if(command==='setlistEditUndo')favoritesUI.restoreSetlistEntry();if(command==='setlistEditSave')void favoritesUI.saveSetlistEdit();if(command==='setlistEditCancel')favoritesUI.cancelSetlistEdit();if(command==='setlistLoad')void favoritesUI.loadSetlist(value);if(command==='setlistDelete')void favoritesUI.removeSetlist(value);if(command==='setlistUndo')void favoritesUI.restoreSetlist();if(command==='renameFocus')mrNameEditor.focus();if(command==='renameSave')void mrNameEditor.save();if(command==='renameCancel')mrNameEditor.close();},set:()=>{}});favoritesPanel.controllers=mrPanel.controllers;
 const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readTC:()=>betaTCEnabled,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',readCruiseStarted:()=>boatStarted,beforeOpen:()=>{if(mrPanel.childView)mrPanel.navigate(4);},choose:mode=>{if(mode==='tc-panel'){toggleBetaTC();return;}if(mode==='boat-start'){$('boatStart').click();return;}if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
 $('panelTheme').value=panelThemeId();
 function redrawPanelTheme(){controls.refreshPanelBars();mrPanel.draw();favoritesPanel.draw();wristMenu.draw();betaReviewPanel.drawReview();entryTip.draw();}
@@ -1411,7 +1411,7 @@ function updateAutomaticPreparation(state){
  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('analysisDebug')==='1'){
   const status=state.title?state.status.replace(state.title,'選んだ曲'):state.status;
   const key=JSON.stringify([state.busy,!!state.error,status]);
-  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.93',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
+  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.94',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
  }
 
  if(state.busy)showPreparation.begin({title:state.title||pendingAutomaticTrack?.title||selectedMusic.title,setting:state.status});
@@ -1514,7 +1514,7 @@ async function decodeFavorite(row){
  const decoder=new OfflineAudioContext(1,1,22050),buffer=await decoder.decodeAudioData(asset.bytes.slice(0));
  const transport=new MusicTransport('',{autoload:false});transport.buffer=buffer;transport.ready=Promise.resolve(transport);
  const plan=repairLegacyVoicePlan(structuredClone(row.plan));
- return {row,transport,item:{id:row.trackId,title:musicTrackTitle(row.trackId,row.title),favoriteIdentityTitle:row.identityTitle??row.title,description:'♥ '+row.name,plan,src:'',original:row.original,autoGenerated:!row.original,variation:plan.analysisSummary?.variation??0,savedFavoriteId:row.id,transport}};
+ return {row,transport,item:{id:row.trackId,title:row.setlistTitle??musicTrackTitle(row.trackId,row.title),setlistTitle:row.setlistTitle,favoriteIdentityTitle:row.identityTitle??row.title,description:'♥ '+row.name,plan,src:'',original:row.original,autoGenerated:!row.original,variation:plan.analysisSummary?.variation??0,savedFavoriteId:row.id,transport}};
 }
 function installFavoriteLoaded(loaded){
  voiceUI?.resetDraft();
@@ -1567,7 +1567,7 @@ function advanceFavoriteInterval(dt){
 // Capture the town and panels before session.end(). A temporary spatial anchor
 // supplies one room transform on return; head movement never relocates the town.
 function captureRenamePanels(){
- const snapshot=panel=>({visible:panel.visible,page:panel.page,offset:panel.offset,listMode:panel.listMode,setlistOffset:panel.setlistOffset,listScroll:panel.listScroll,setlistScroll:panel.setlistScroll,moved:panel.moved,yawOffset:panel.yawOffset,position:panel.mesh.position.clone(),quaternion:panel.mesh.quaternion.clone()});
+ const snapshot=panel=>{const view=panel.childView??{position:panel.mesh.position,quaternion:panel.mesh.quaternion,scale:panel.mesh.scale,moved:panel.moved,yawOffset:panel.yawOffset};return{visible:panel.visible,page:panel.page,offset:panel.offset,listMode:panel.listMode,setlistOffset:panel.setlistOffset,listScroll:panel.listScroll,setlistScroll:panel.setlistScroll,moved:view.moved,yawOffset:view.yawOffset,position:view.position.clone(),quaternion:view.quaternion.clone(),scale:view.scale.clone()};};
  return {town:captureTownPlacement(bridgeView.active?bridgeView.saved:town),townSettings:Object.fromEntries(['scale','height','distance'].map(id=>[id,Object.fromEntries(['min','max','step','value'].map(k=>[k,$(id)[k]]))])),diorama:dioramaSaved?{placement:captureTownPlacement(dioramaSaved),camera:dioramaSaved.camera.clone(),settings:structuredClone(dioramaSaved.settings)}:null,viewMode:bridgeView.active?bridgeView.mode:null,main:snapshot(mrPanel),favorites:snapshot(favoritesPanel)};
 }
 function restoreRenameTown(saved,pose,anchorPose=null){
@@ -1585,8 +1585,9 @@ function restoreRenamePanels(saved,pose){
  favoritesPanel.listScroll=saved.favorites.listScroll??0;favoritesPanel.setlistScroll=saved.favorites.setlistScroll??0;favoritesPanel.offset=saved.favorites.offset;favoritesPanel.listMode=saved.favorites.listMode??'favorites';favoritesPanel.setlistOffset=saved.favorites.setlistOffset??0;
  favoritesPanel.openAt(pose,{side:-.42,distance:1.05,drop:.08});
  for(const [panel,state] of [[mrPanel,saved.main],[favoritesPanel,saved.favorites]]){
+  panel.endChildView();
   if(saved.roomDelta){panel.mesh.position.copy(state.position).applyQuaternion(saved.roomDelta.turn).add(saved.roomDelta.shift);panel.mesh.quaternion.copy(state.quaternion).premultiply(saved.roomDelta.turn);panel.moved=state.moved;panel.yawOffset=state.yawOffset;panel.mesh.updateMatrixWorld(true);}
-  panel.mesh.visible=state.visible;panel.lastTransform=pose;panel.draw();
+  if(state.scale)panel.mesh.scale.copy(state.scale);panel.mesh.visible=state.visible;panel.lastTransform=pose;panel.mesh.updateMatrixWorld(true);panel.draw();
  }
 }
 async function saveSetlistName(id,name){
@@ -1599,7 +1600,8 @@ async function saveSetlistName(id,name){
  return ok;
 }
 async function renameFavoriteFromMR(id,kind='favorite'){
- const row=(kind==='setlist'?favoritesUI.state.setlists:favoritesUI.state.rows).find(row=>row.id===id);if(!row||renameExiting)return;
+ const entry=kind==='setlist-entry'?favoritesUI.state.setlistEdit?.items.find(x=>x.key===id):null;
+ const row=entry?{id,name:entry.entry.title}:(kind==='setlist'?favoritesUI.state.setlists:favoritesUI.state.rows).find(row=>row.id===id);if(!row||renameExiting)return;
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind});return;}
  // System keyboard focus suspends XR input on this device. Keep partial text
  // editing native, rather than pretending the canvas has a working caret.
@@ -1655,8 +1657,8 @@ function openFavoriteList(){
  if(mrSession||panelPreview){favoritesUI.close();favoritesPanel.active=true;favoritesPanel.preview=panelPreview;const transform=latestViewerTransform??mrPanel.lastTransform;if(panelPreview&&!mrPanel.moved)mrPanel.openAt(transform,{side:.38,distance:1.45,drop:.3});favoritesPanel.openAt(transform,panelPreview?{side:-.38,distance:1.45,drop:.3}:{side:-.42,distance:1.05,drop:.08});}
  else favoritesUI.show();
 }
-favoritesUI=mountFavorites({repository:favoriteRepository,capture:captureCurrentFavorite,audio:favoriteAudioBytes,onOpen:openFavoriteList,onLoad:loadFavorite,onPlay:playFavorite,playback:favoritePlaybackState,onPrepare:prepareFavoriteFestival,onRenameSetlist:id=>renameFavoriteFromMR(id,'setlist'),available:()=>!libraryRestoring,onChange:()=>{mrPanel.draw();favoritesPanel?.draw();}});
-mrNameEditor=new MRNameEditor({document,onChange:()=>favoritesPanel?.draw(),onSave:(id,name)=>mrNameEditor.state?.kind==='track'?saveTrackName(id,name):mrNameEditor.state?.kind==='setlist'?saveSetlistName(id,name):favoritesUI.rename(id,name)});
+favoritesUI=mountFavorites({repository:favoriteRepository,capture:captureCurrentFavorite,audio:favoriteAudioBytes,onOpen:openFavoriteList,onLoad:loadFavorite,onPlay:playFavorite,playback:favoritePlaybackState,onPrepare:prepareFavoriteFestival,onRenameSetlist:id=>renameFavoriteFromMR(id,'setlist'),onRenameSetlistEntry:key=>renameFavoriteFromMR(key,'setlist-entry'),available:()=>!libraryRestoring,onChange:()=>{mrPanel.draw();favoritesPanel?.draw();}});
+mrNameEditor=new MRNameEditor({document,onChange:()=>favoritesPanel?.draw(),onSave:(id,name)=>mrNameEditor.state?.kind==='setlist-entry'?favoritesUI.renameSetlistEntry(id,name):mrNameEditor.state?.kind==='track'?saveTrackName(id,name):mrNameEditor.state?.kind==='setlist'?saveSetlistName(id,name):favoritesUI.rename(id,name)});
 void favoritesUI.restore().catch(error=>favoritesUI.message('お気に入りを読み込めませんでした：'+error.message));
 $('trackMenuToggle').onclick=()=>{if($('trackMenuToggle').disabled)return;$('trackMenu').hidden=!$('trackMenu').hidden;$('trackMenuToggle').setAttribute('aria-expanded',String(!$('trackMenu').hidden));mrPanel.draw();};
 $('trackRename').onclick=()=>void renameSelectedTrack();

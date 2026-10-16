@@ -19,10 +19,10 @@ export class MRNameEditor{
   session?.addEventListener('end',this.endHandler,{once:true});this.mountField();this.onChange();this.focus();return true;
  }
  mountField(){
-  const d=this.document,dialog=d.createElement('section');dialog.id='mrNameDialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',this.state.kind==='track'?'曲名を変える':this.state.kind==='setlist'?'セットリストの名前を変える':'お気に入りの名前を変える');
-  const heading=d.createElement('h2');heading.textContent=this.state.kind==='track'?'曲名を変える':'名前を変える';
-  const label=d.createElement('label');label.textContent=this.state.kind==='track'?'曲の名前':'保存する名前';label.htmlFor='mrFavoriteNameInput';
-  const input=d.createElement('input');input.type='text';input.id='mrFavoriteNameInput';input.maxLength=100;input.autocomplete='off';input.spellcheck=false;input.setAttribute('aria-label',this.state.kind==='track'?'曲の新しい名前':this.state.kind==='setlist'?'セットリストの新しい名前':'お気に入りの新しい名前');
+  const d=this.document,dialog=d.createElement('section');dialog.id='mrNameDialog';dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',['track','setlist-entry'].includes(this.state.kind)?'曲名を変える':this.state.kind==='setlist'?'セットリストの名前を変える':'お気に入りの名前を変える');
+  const heading=d.createElement('h2');heading.textContent=['track','setlist-entry'].includes(this.state.kind)?'曲名を変える':'名前を変える';
+  const label=d.createElement('label');label.textContent=['track','setlist-entry'].includes(this.state.kind)?'曲の名前':'保存する名前';label.htmlFor='mrFavoriteNameInput';
+  const input=d.createElement('input');input.type='text';input.id='mrFavoriteNameInput';input.maxLength=100;input.autocomplete='off';input.spellcheck=false;input.setAttribute('aria-label',['track','setlist-entry'].includes(this.state.kind)?'曲の新しい名前':this.state.kind==='setlist'?'セットリストの新しい名前':'お気に入りの新しい名前');
   input.value=this.state.draft;this.lastValue=input.value;this.input=input;
   input.oninput=()=>this.sync();input.onfocus=()=>{if(this.state){this.state.keyboardOpen=true;this.onChange();}};
   input.onblur=()=>{this.sync();if(this.state){this.state.keyboardOpen=false;this.onChange();}};
@@ -44,7 +44,7 @@ export class MRNameEditor{
    const ok=await this.onSave(edit.id,name);
    if(ok===false){if(this.state===edit){edit.busy=false;edit.message='名前を保存できませんでした。もう一度お試しください。';this.notify();}return false;}
    if(this.state===edit){
-    if(this.returnToMR){edit.busy=false;edit.saved=true;edit.message='名前を保存しました。「MRに戻る」で鑑賞へ戻れます。';this.input.readOnly=true;this.input.blur();this.saveButton.hidden=true;this.cancelButton.textContent='MRに戻る';this.cancelButton.className='mr-name-save';this.notify();}
+    if(this.returnToMR){edit.busy=false;edit.saved=true;edit.message=edit.kind==='setlist-entry'?'曲名を編集内容に反映しました。MRへ戻り、最後に「変更を保存」を押してください。':'名前を保存しました。「MRに戻る」で鑑賞へ戻れます。';this.input.readOnly=true;this.input.blur();this.saveButton.hidden=true;this.cancelButton.textContent='MRに戻る';this.cancelButton.className='mr-name-save';this.notify();}
     else this.close();
    }
    return true;

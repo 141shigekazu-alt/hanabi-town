@@ -27,6 +27,20 @@ export function orderedFavorites(items,view={}){
  const map=new Map(items.map(item=>[item.id,item]));
  return [...(view.order??[]).filter(id=>map.has(id)),...items.map(i=>i.id).filter(id=>!(view.order??[]).includes(id))].map(id=>({...map.get(id),checked:!(view.unchecked??[]).includes(id)}));
 }
+// Only presentation and membership may change. Every retained programme/audio
+// comes from the stored set, never from an editable client-supplied plan.
+export function reviseSetlist(item,edits){
+ if(item?.kind!=='setlist'||item.deletedAt)throw Error('セットリストが見つかりません。');
+ if(!Array.isArray(edits)||!edits.length)throw Error('セットリストには１曲以上残してください。');
+ const seen=new Set(),entries=edits.map(edit=>{
+  const i=edit.sourceIndex,title=String(edit.title??'').trim();
+  if(!Number.isInteger(i)||i<0||i>=item.entries.length||seen.has(i))throw Error('曲順を確認して、もう一度編集してください。');
+  if(!title||title.length>100)throw Error('曲名は１〜100文字で入力してください。');
+  seen.add(i);const row=clone(item.entries[i]);
+  return title===row.title?row:{...row,identityTitle:row.identityTitle??row.title,setlistTitle:title,title,name:title};
+ });
+ return {...item,entries,entriesRevision:(item.entriesRevision??0)+1,updatedAt:new Date().toISOString(),duration:entries.reduce((sum,r)=>sum+(r.plan.showDuration??r.plan.duration),0)+Math.max(0,entries.length-1)*3};
+}
 export class FavoriteRepository{
  constructor(name='hanabi-favorite-programmes-v1'){this.name=name;}
  open(){return new Promise((resolve,reject)=>{const q=indexedDB.open(this.name,1);q.onupgradeneeded=()=>{for(const name of ['programmes','audio','settings'])q.result.createObjectStore(name,{keyPath:'id'});};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);});}
@@ -73,6 +87,18 @@ export class FavoriteRepository{
    };
   });
   const saved=await this.read('settings',id);if(!saved)throw Error('セットリストの保存結果を確認できませんでした。');return saved;
+ }
+ async updateSetlist(id,edits,expectedRevision){
+  const changes=clone(edits);let updated,failure;
+  try{await this.write(['settings'],tx=>{
+   const store=tx.objectStore('settings'),q=store.get(id);
+   q.onsuccess=()=>{try{
+    const item=q.result;
+    if((item?.entriesRevision??0)!==expectedRevision)throw Error('別の画面で変更されています。一度戻ってから、編集し直してください。');
+    updated=reviseSetlist(item,changes);store.put(updated);
+   }catch(error){failure=error;tx.abort();}};
+  });}catch(error){throw failure??error;}
+  return clone(updated);
  }
  async renameSetlist(id,name){
   const title=String(name).trim();if(!title)throw Error('名前を入力してください。');if(title.length>100)throw Error('名前は100文字以内にしてください。');

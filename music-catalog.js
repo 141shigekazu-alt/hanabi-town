@@ -11,5 +11,5 @@ export const MUSIC_CATALOG=MUSIC_SHOWS.map(({plan,...track})=>({...track,authore
 export function playableMusicChoices(generated){
  const choices=[...MUSIC_CATALOG.filter(t=>!availableIds||availableIds.has(t.id)),...LOCAL_MUSIC_CATALOG.filter(t=>!MUSIC_CATALOG.some(c=>c.id===t.id))].map(track=>generated?.id===track.id?generated:LOCAL_MUSIC_CATALOG.some(t=>t.id===track.id)?{...track,plan:null}:track);
  if(generated&&(generated.savedFavoriteId||!availableIds||availableIds.has(generated.id))&&!choices.some(track=>track.id===generated.id))choices.push(generated);
- return choices.map(track=>({...track,title:musicTrackTitle(track.id,track.title)}));
+ return choices.map(track=>({...track,title:track.setlistTitle??musicTrackTitle(track.id,track.title)}));
 }
