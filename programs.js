@@ -43,7 +43,7 @@ export function programCue(plan,time,index,lively=false){
  const localFinale=time>=270?plan.voiceRequest?.finale:null;
  if(plan.voiceRequest?.density==='sparse'&&!localFinale||localFinale?.energy==='quiet'||localFinale?.density==='sparse')result.interval=Math.max(9,result.interval);
  if(plan.voiceRequest?.density==='dense'&&!localFinale||localFinale?.density==='dense')result.interval=Math.max(1.6,result.interval*.7);
- if(plan.programmeStyle?.color==='gold')result.position.palette='programme-gold';
+ if(plan.programmeStyle?.color==='gold'&&!localFinale?.color)result.position.palette='programme-gold';
  return result;
 }
 

@@ -7,7 +7,7 @@ const starColors=['original','long-purple','long-pink'];
 // New recipes only. Saved full-gold recipes keep their original palettes.
 export function addGoldAccents(plan,{shellTiming,shellPoints,planBudget}){
  if(plan.programmeStyle?.color!=='gold')return plan;
- const shots=[...plan.shots],upper=shots.filter(s=>s.kind!=='ear').sort((a,b)=>a.opening-b.opening);
+ const shots=[...plan.shots],upper=shots.filter(s=>s.kind!=='ear'&&!(plan.voiceRequest?.finale?.color&&plan.voiceRequest.finale.color!=='gold'&&/^auto-finale/.test(s.group??''))).sort((a,b)=>a.opening-b.opening);
  const target=Math.round(upper.length*.2),seed=plan.programmeStyle.seed;
  const ground=plan.fans.map(f=>{const g=groundReservation(f,seed);return {...g,points:g.cost*(g.small?11:362)};});
  const span=s=>({start:s.at,end:s.opening+shellTiming(s.kind,s.size).life+.1});
