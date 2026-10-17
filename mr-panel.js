@@ -322,7 +322,7 @@ export class MRPanel{
 
  draw(){
   const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&this.adjusting;this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
-  this.text('花火街',36,49,43,panelTheme().text);this.text('v'+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
+  this.text('花火街',36,49,43,panelTheme().text);this.text('ベータ版 '+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
   this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
   if(child){this.button('detailClose','×',696,18,76,60,()=>{if(s.voice?.open)this.click('voiceClose');this.navigate(4);});this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
   else{

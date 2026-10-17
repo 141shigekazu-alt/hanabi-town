@@ -21,37 +21,37 @@ import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
 import {organizePanel} from './panel-layout.js';
 organizePanel();
-import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.2.96';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.2.96';
-import {QuestDiagnostics} from './quest-diagnostics.js?v=1.2.96';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.2.96';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.96';
-import {rainEarSequence} from './rain-ears.js?v=1.2.96';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.2.96';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.2.96';
-import {viewBoatPose} from './boat-cruise.js?v=1.2.96';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.2.96';
-import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.2.96';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.2.96';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.2.96';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.2.96';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.2.96';
+import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.0';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.3.0';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.0';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.0';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.0';
+import {rainEarSequence} from './rain-ears.js?v=1.3.0';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.0';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.3.0';
+import {viewBoatPose} from './boat-cruise.js?v=1.3.0';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.0';
+import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.0';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.0';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.0';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.0';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.0';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.2.96';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.0';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.2.96';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.2.96';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.2.96';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.2.96';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.2.96';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.2.96';
-import {TowerLighting} from './tower-lighting.js?v=1.2.96';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.2.96';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.2.96';
-import {WristMenu} from './wrist-menu.js?v=1.2.96';
-import {XRControls} from './xr-controls.js?v=1.2.96';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.2.96';
-import {EntryTip} from './entry-tip.js?v=1.2.96';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.0';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.0';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.0';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.0';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.0';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.0';
+import {TowerLighting} from './tower-lighting.js?v=1.3.0';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.0';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.0';
+import {WristMenu} from './wrist-menu.js?v=1.3.0';
+import {XRControls} from './xr-controls.js?v=1.3.0';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.0';
+import {EntryTip} from './entry-tip.js?v=1.3.0';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
@@ -1240,7 +1240,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 window.__hanabi={get favoritePanelState(){return{visible:favoritesPanel.visible,busy:!!favoritesUI?.state.busy||libraryRestoring,playback:favoritePlaybackState(),controls:favoritesPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:favoritesPanel.mesh.matrixWorld.toArray()};},get panelState(){return{page:mrPanel.page,adjusting:!!mrPanel.adjusting,modal:!!mrPanel.childView,parentVisible:!!mrPanel.parentSurface?.visible,scale:mrPanel.mesh.scale.toArray(),position:mrPanel.mesh.position.toArray(),parentPosition:mrPanel.parentSurface?.position.toArray(),controls:mrPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:mrPanel.mesh.matrixWorld.toArray(),cameraMatrix:camera.matrixWorld.toArray(),cameraProjection:camera.projectionMatrix.toArray()};},beginFlowerStudy,get flowerStudy(){return flowerStudy;},get flowerGeometry(){return {shells:fireworks.map(f=>({kind:f.kind,size:f.size,start:f.start,launchX:f.launchX,launchZ:f.launchZ,ascentHead:Array.from(f.positions.subarray(0,3)),life:f.spec.life,points:f.n*f.trailCount,x:f.x,y:f.y,z:f.z,r:f.r,ascent:f.ascent,ignitionDelay:f.ignitionDelay,ascentOffset:f.ascentOffset,shape:f.shape,flowerVariation:f.flowerVariation,flowerStars:f.flowerStars,creativeStars:f.creativeStars,directions:f.directions.map(d=>[d.x,d.y,d.z]),opening:f.start+f.ascent,colors:f.starColors.map(c=>c.getHex())})),large:comets.active.map(s=>({x:s.x,z:s.z,start:s.start,burn:s.burn,character:s.character,vx:s.vx,vy:s.vy,drag:s.drag,gravity:s.gravity,end:s.end})),small:comets.bundles.active.map(s=>({x:s.x,z:s.z,start:s.start,count:s.stars.length,character:s.character,end:s.end,stars:s.stars.map(st=>({x:st.x,y:st.y,vx:st.vx,vy:st.vy,vz:st.vz,drag:st.drag,gravity:st.gravity,at:st.at,life:st.life,stopAt:st.stopAt,summitTarget:st.summitTarget}))}))};},riverNight,towerLighting,get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?bridgeView.mode:'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
 
-$('build').textContent=BUILD_VERSION;
+$('build').textContent='ベータ版 '+BUILD_VERSION;
 $('cometPattern').onchange();
 $('programInfo').textContent=PROGRAM_NAMES[$('program').value];
 function syncMusicMix(){
@@ -1411,7 +1411,7 @@ function updateAutomaticPreparation(state){
  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('analysisDebug')==='1'){
   const status=state.title?state.status.replace(state.title,'選んだ曲'):state.status;
   const key=JSON.stringify([state.busy,!!state.error,status]);
-  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.2.96',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
+  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.3.0',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
  }
 
  if(state.busy)showPreparation.begin({title:state.title||pendingAutomaticTrack?.title||selectedMusic.title,setting:state.status});
