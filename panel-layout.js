@@ -67,7 +67,9 @@ export function organizePanel(){
  $('browserPage1').prepend(make('h2',{className:'loadout-heading'},'トリガーに花火玉を仕込む'));$('browserPage1').prepend(make('button',{id:'showTrialBack'},'‹ 花火大会へ戻る'));const trialHome=make('section',{className:'loadout-home'});$('browserPage1').append(trialHome);
  $('showInfo').hidden=true;const tc=make('button',{id:'showTC'},'TC・玉名を表示');card.append(tc);
  const views=details($('browserPage2'),'眺め方を変える','showViews');
- for(const id of ['diorama','boat','boatStart','bridge','showInfo','showTC','viewHint'])move(views,id);
+ for(const id of ['diorama','boat','boatStart','bridge','rooftop','showInfo','showTC','viewHint'])move(views,id);
+ const roofSeats=make('div',{id:'rooftopSeats',className:'roof-seats',hidden:true});roofSeats.setAttribute('role','group');roofSeats.setAttribute('aria-label','屋上の席');
+ roofSeats.append(make('button',{id:'roofNear'},'近い席（標準）'),make('button',{id:'roofPanorama'},'全景の席'));$('rooftop').after(roofSeats);
  const flower=make('section',{id:'flowerStudyCard',className:'show-card'});$('browserPage1').prepend(flower);
  flower.append(make('h2',{},'花を咲かせる · 演出試作'));
  for(const [id,label,choices] of [

@@ -5,6 +5,7 @@ import {EITAI_ANGLE} from './city-layout.js';
 // Town units are authored for the miniature. XR cameras, controllers and UI
 // always stay in physical metres; only the town is enlarged around the viewer.
 export const BRIDGE_SCALE=100,SEATED_EYE_HEIGHT=1.2;
+export const ROOFTOP_POSTURE=Object.freeze({standLift:.5,sitRadius:.42,leaveRadius:.65,frequency:5});
 // Move the seated viewpoint 2.125 metres left along the deck, midway between adjacent hangers.
 const bridgeAngle=EITAI_ANGLE;
 export const FRONT_BRIDGE=new T.Vector3(-.02125,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
@@ -15,6 +16,8 @@ export const BOAT_EYE=BOAT_ORIGIN.clone().add(new T.Vector3(0,.062,-.054).applyA
 export const BOAT_WALK={minX:-1.8,maxX:1.8,minZ:-3.8,maxZ:9.3};
 export class BridgeView{
  constructor(town,camera){this.town=town;this.camera=camera;this.active=false;this.miniaturePointScale=1;this.saved=null;this.pointSizes=new WeakMap();this.pointMaps=new WeakMap();this.eye=new T.Vector3();this.forward=new T.Vector3();this.up=new T.Vector3();this.boatPose=viewBoatPose(0);this.boatWalk=new T.Vector3();this.cruiseAnchor=new T.Vector3();this.cruiseSeat=new T.Vector3();this.cruiseUp=new T.Vector3(0,1,0);}
+ setRooftop(view){this.rooftop=view;}
+ origin(mode=this.mode){return mode==='boat'?this.boatSeat():mode==='rooftop'?this.rooftop.seat:FRONT_BRIDGE;}
  point(material,maps=null,baseSize=null){
   if(baseSize!==null)this.pointSizes.set(material,baseSize);
   if(!this.pointSizes.has(material))this.pointSizes.set(material,material.size);
@@ -23,9 +26,10 @@ export class BridgeView{
   const profile=this.pointMaps.get(material);if(profile)material.map=this.active?profile.bridge:profile.miniature;
  }
  syncPoints(){this.town.traverse(o=>{if(o.isPoints)this.point(o.material);});}
- enter(transform=null,mode='bridge'){
-  if(this.active&&this.mode===mode)return;
+ enter(transform=null,mode='bridge',force=false){
+  if(this.active&&this.mode===mode&&!force)return;
   if(!this.active)this.saved={xr:!!transform,position:this.town.position.clone(),quaternion:this.town.quaternion.clone(),scale:this.town.scale.clone(),cameraPosition:this.camera.position.clone(),cameraQuaternion:this.camera.quaternion.clone(),far:this.camera.far};
+  this.rooftopPosture=mode==='rooftop'?{seated:true,lift:0,velocity:0}:null;
   this.mode=mode;this.walk=new T.Vector3();this.boatWalk.set(0,0,0);this.active=true;this.town.scale.setScalar(BRIDGE_SCALE);
   if(transform){
    const m=transform.matrix,p=transform.position;let x=-m[8],z=-m[10];const length=Math.hypot(x,z);
@@ -33,12 +37,12 @@ export class BridgeView{
    // local-floor already tracks the real floor. Bridge entry must not lift it
    // to a fixed seated eye height; keep the boat's adopted seated presentation.
    const eyeHeight=mode==='boat'?SEATED_EYE_HEIGHT:p.y;
-   this.cruiseYaw=Math.atan2(-x,-z);this.town.rotation.set(0,this.cruiseYaw-(mode==='boat'?this.boatPose.angle:0),0);this.cruiseAnchor.set(p.x,p.y-eyeHeight,p.z);
-   const seat=(mode==='boat'?this.boatSeat():FRONT_BRIDGE).clone().multiplyScalar(BRIDGE_SCALE).applyQuaternion(this.town.quaternion);
+   this.cruiseYaw=Math.atan2(-x,-z);this.town.rotation.set(0,this.cruiseYaw-(mode==='boat'?this.boatPose.angle:mode==='rooftop'?this.rooftop.angle:0),0);this.cruiseAnchor.set(p.x,p.y-eyeHeight,p.z);
+   const seat=this.origin(mode).clone().multiplyScalar(BRIDGE_SCALE).applyQuaternion(this.town.quaternion);
    this.town.position.set(p.x-seat.x,p.y-eyeHeight-seat.y,p.z-seat.z);
   }else{
    this.town.position.set(0,0,0);this.town.rotation.set(0,0,0);
-   this.camera.position.copy(mode==='boat'?this.boatSeat():FRONT_BRIDGE).multiplyScalar(BRIDGE_SCALE);this.camera.position.y+=SEATED_EYE_HEIGHT;
+   this.camera.position.copy(this.origin(mode)).multiplyScalar(BRIDGE_SCALE);this.camera.position.y+=SEATED_EYE_HEIGHT;
   }
   this.town.visible=true;this.camera.far=1000;this.camera.updateProjectionMatrix();this.town.updateWorldMatrix(true,false);this.syncPoints();
  }
@@ -52,8 +56,8 @@ export class BridgeView{
  }
  move(x,y,dt,viewer=null){
   if(!this.active||(!x&&!y))return;
-  const boat=this.mode==='boat',angle=boat?this.boatPose.angle:bridgeAngle;
-  const bounds=boat?BOAT_WALK:{minX:-1.45,maxX:1.45,minZ:-.70,maxZ:.80};
+  const boat=this.mode==='boat',rooftop=this.mode==='rooftop',angle=boat?this.boatPose.angle:rooftop?this.rooftop.angle:bridgeAngle;
+  const bounds=boat?BOAT_WALK:rooftop?this.rooftop.bounds:{minX:-1.45,maxX:1.45,minZ:-.70,maxZ:.80};
   const matrix=viewer?.matrix??this.camera.matrixWorld.elements;
   const forward=new T.Vector3(-matrix[8],0,-matrix[10]);if(forward.lengthSq()<.0001)return;forward.normalize();
   const right=new T.Vector3(-forward.z,0,forward.x),delta=right.multiplyScalar(x).addScaledVector(forward,-y);
@@ -62,7 +66,7 @@ export class BridgeView{
   delta.applyQuaternion(inverse).applyAxisAngle(up,-angle);
   // Include physical head displacement in the candidate. Never reposition in response to head motion alone.
   const eye=viewer?.position??this.camera.position;
-  const origin=boat?new T.Vector3(this.boatPose.x,this.boatPose.y,this.boatPose.z):FRONT_BRIDGE;
+  const origin=boat?new T.Vector3(this.boatPose.x,this.boatPose.y,this.boatPose.z):this.origin();
   const relative=this.town.worldToLocal(new T.Vector3(eye.x,eye.y,eye.z)).sub(origin).multiplyScalar(BRIDGE_SCALE).applyAxisAngle(up,-angle);
   if(boat)relative.z+=5.4;
   const dx=T.MathUtils.clamp(relative.x+delta.x,bounds.minX,bounds.maxX)-relative.x;
@@ -77,8 +81,26 @@ export class BridgeView{
   if(viewer)this.town.position.sub(step);else this.camera.position.add(step);
   this.walk.add(step);this.town.updateWorldMatrix(true,false);
  }
+ // Chair zones follow stick travel, so looking or leaning over the rail does
+ // not make the viewer stand. Preserve the headset's natural tracking height.
+ updateRooftopPosture(dt){
+  if(!this.active||this.mode!=='rooftop'||!this.rooftopPosture||!(dt>0))return;
+  const p=this.rooftopPosture,up=new T.Vector3(0,1,0);
+  const local=this.walk.clone().applyQuaternion(this.town.quaternion.clone().invert()).applyAxisAngle(up,-this.rooftop.angle);
+  const distance=Math.min(...this.rooftop.chairZones.map(c=>Math.hypot(local.x-c.x,local.z-c.z)));
+  if(p.seated&&distance>ROOFTOP_POSTURE.leaveRadius)p.seated=false;
+  else if(!p.seated&&distance<ROOFTOP_POSTURE.sitRadius)p.seated=true;
+  // Exact critically damped spring: continuous position and velocity even if
+  // the viewer changes direction halfway through sitting down or standing up.
+  const target=p.seated?0:ROOFTOP_POSTURE.standLift,w=ROOFTOP_POSTURE.frequency;
+  const step=Math.min(dt,.05),error=p.lift-target,decay=Math.exp(-w*step),term=(p.velocity+w*error)*step;
+  const next=target+(error+term)*decay,delta=next-p.lift;
+  p.velocity=(p.velocity-w*term)*decay;p.lift=next;
+  if(this.saved.xr)this.town.position.y-=delta;else this.camera.position.y+=delta;
+  this.town.updateWorldMatrix(true,false);
+ }
  leave(){
-  if(!this.active)return;const s=this.saved;this.active=false;
+  if(!this.active)return;const s=this.saved;this.active=false;this.rooftopPosture=null;
   this.town.position.copy(s.position);this.town.quaternion.copy(s.quaternion);this.town.scale.copy(s.scale);
   if(!s.xr){this.camera.position.copy(s.cameraPosition);this.camera.quaternion.copy(s.cameraQuaternion);}this.camera.far=s.far;this.camera.updateProjectionMatrix();this.syncPoints();this.saved=null;
  }

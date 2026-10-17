@@ -447,10 +447,11 @@ export class MRPanel{
    }
    }
   }else if(this.page===2){
-   if(s.bridge){this.text(s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
+   if(s.bridge){this.text(s.rooftop?'屋上の花火席 · '+(s.rooftopSeat==='panorama'?'全景の席':'近い席'):s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.rooftop?'赤色灯の上に用意した、屋上の桟敷席。近い席は迫力、全景の席は花火の並びを楽しめます。':s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
    this.range('height','街の底面の高さ（床から）',458,s.height,' m');}
+   if(s.rooftop){this.button('roofNear','近い席（標準）',28,450,360,64,()=>this.click('roofNear'),{selected:s.rooftopSeat==='near'});this.button('roofPanorama','全景の席',412,450,360,64,()=>this.click('roofPanorama'),{selected:s.rooftopSeat==='panorama'});}
    this.range('volume','花火の音量',566,s.volume);
    this.slider('roomBrightness','部屋の明るさ',674,s.roomBrightness,{compact:true});
    this.selector('towerColor','塔のライトアップ',785,s.towerColor);

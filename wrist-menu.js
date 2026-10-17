@@ -31,12 +31,12 @@ export class FingerTouch{
   s.armed=false;const mix=(prev.point.z-.012)/(prev.point.z-point.z);return prev.point.clone().lerp(point,mix);
  }
 }
-const W=512,H=732;
+const W=512,H=766;
 const CHAINS=[['wrist','thumb-metacarpal','thumb-phalanx-proximal','thumb-phalanx-distal','thumb-tip'],...['index','middle','ring','pinky'].map(f=>['wrist',`${f}-finger-metacarpal`,`${f}-finger-phalanx-proximal`,`${f}-finger-phalanx-intermediate`,`${f}-finger-phalanx-distal`,`${f}-finger-tip`])];
 const LINKS=CHAINS.flatMap(chain=>chain.slice(1).map((name,i)=>[chain[i],name]));
 export class WristMenu{
- constructor({scene,entries,read,choose,readTC=()=>false,readInfo=()=>false,readDiorama=()=>false,readBoat=()=>false,readCruiseStarted=()=>false,beforeOpen=()=>{}}){
-  Object.assign(this,{scene,entries,read,choose,readTC,readInfo,readDiorama,readBoat,readCruiseStarted,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';this.ignoreController=null;this.ignoreUntil=0;
+ constructor({scene,entries,read,choose,readTC=()=>false,readInfo=()=>false,readDiorama=()=>false,readBoat=()=>false,readRooftop=()=>false,readRooftopSeat=()=>'near',readCruiseStarted=()=>false,beforeOpen=()=>{}}){
+  Object.assign(this,{scene,entries,read,choose,readTC,readInfo,readDiorama,readBoat,readRooftop,readRooftopSeat,readCruiseStarted,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';this.ignoreController=null;this.ignoreUntil=0;
   for(const e of entries){e.touchTip=new T.Mesh(new T.SphereGeometry(.007,10,8),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));e.touchTip.position.z=-.05;e.touchTip.renderOrder=1006;e.touchTip.visible=false;e.controller.add(e.touchTip);}
   this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
@@ -106,11 +106,11 @@ export class WristMenu{
  draw(){
   const c=this.ctx,active=this.read();this.controls=[];drawPanelSurface(c,W,H,{radius:26,border:'#ddc69585'});
   c.textBaseline='middle';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText('クルッとパネル',24,38);
-  const views=[{id:'miniature',label:'街を見下ろす'},{id:'bridge',label:'橋の上から見上げる'},{id:'boat',label:'屋形船から見上げる'}];
+  const views=[{id:'miniature',label:'街を見下ろす'},{id:'bridge',label:'橋の上から見上げる'},{id:'boat',label:'屋形船から見上げる'},{id:'rooftop',label:'ビルの屋上から見る'}];
   if(this.readCruiseStarted())views.push({id:'boat-start',label:'出航位置に戻る'});
   views.push({id:'diorama',label:'ジオラマサイズで観る'},{id:'tc-panel',label:this.readTC()?'TC・玉名を隠す':'TC・玉名を表示'});
-  const buttons=[{id:'close',label:'×',x:444,y:12,w:52,h:52},...views.map((b,i)=>({...b,x:20,y:85+i*86,w:472,h:72}))];
-  for(const b of buttons){const selected=b.id==='tc-panel'?this.readTC():b.id==='show-info'?this.readInfo():b.id===(active?(this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?panelTheme().hover:selected?panelTheme().selected:panelTheme().surface;c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.strokeStyle=selected?panelTheme().selectedLine:panelTheme().line;c.lineWidth=1;c.stroke();c.textAlign='center';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
+  const buttons=[{id:'close',label:'×',x:444,y:12,w:52,h:52},...views.flatMap((b,i)=>b.id==='rooftop'&&active&&this.readRooftop()?[{id:'roof-near',label:'近い席',x:20,y:85+i*86,w:228,h:72},{id:'roof-panorama',label:'全景の席',x:264,y:85+i*86,w:228,h:72}]:[{...b,x:20,y:85+i*86,w:472,h:72}])];
+  for(const b of buttons){const selected=b.id.startsWith('roof-')?b.id==='roof-'+this.readRooftopSeat():b.id==='tc-panel'?this.readTC():b.id==='show-info'?this.readInfo():b.id===(active?(this.readRooftop()?'rooftop':this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?panelTheme().hover:selected?panelTheme().selected:panelTheme().surface;c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.strokeStyle=selected?panelTheme().selectedLine:panelTheme().line;c.lineWidth=1;c.stroke();c.textAlign='center';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
   c.font=panelFont(17);c.fillStyle=panelTheme().muted;c.fillText('右の指 / コントローラー先端でタッチ',24,H-20);this.texture.needsUpdate=true;
  }
 }

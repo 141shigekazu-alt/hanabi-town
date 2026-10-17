@@ -159,3 +159,5 @@ html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaRevi
 
 /* A short, visible introduction for first-time Quest visitors. */
 header .site-intro{max-width:min(27em,calc(100vw - 40px));font-size:13px;line-height:1.8;letter-spacing:.04em}
+
+.roof-seats{display:flex;gap:8px}.roof-seats button{flex:1;min-width:0;font-size:13px;padding:12px 3px}.roof-seats button[aria-pressed=true]{background:#59462c;border-color:#e4c58a;color:#fff3d7}
