@@ -90,7 +90,7 @@ export class FavoritesPanel extends MRPanel{
   this.button('favoriteTab','♥の曲を選ぶ',28,124,360,54,()=>{this.listMode='favorites';this.menuId=null;},{selected:!sets});
   this.button('setlistTab','セットリスト',412,124,360,54,()=>{this.listMode='setlists';this.menuId=null;},{selected:sets});
   this.text(sets?rows.length+'件のセットリスト':`${selected.length}曲 · 約${Math.floor(seconds/60)}分${Math.round(seconds)%60}秒`,28,207,23,panelTheme().accent);
-  this.wrap(s.message||(sets?'名前で大会を準備':s.festival||'▶ 再生・Ⅱ 停止 / ☑ 選曲'),350,207,422,1);
+  this.wrap(s.message||(sets?'名前で曲目・編集 · ▶で開演':s.festival||'▶ 再生・Ⅱ 停止 / ☑ 選曲'),350,207,422,1);
   this[scrollKey]=Math.max(0,Math.min(Math.max(0,(rows.length-ROWS)*PITCH),this[scrollKey]));this[key]=Math.floor(this[scrollKey]/PITCH);const remainder=this[scrollKey]%PITCH;
   const listControls=this.controls.length;c.save();c.beginPath();c.rect(18,TOP-4,758,BOTTOM-TOP+4);c.clip();
   if(!rows.length)this.wrap(sets?'♥の曲を選んで並べ、「このセットリストを保存する」を押してください。':'気に入った構成で、サイドパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
@@ -98,8 +98,10 @@ export class FavoritesPanel extends MRPanel{
    const index=this[key]+i,y=TOP+i*PITCH-remainder,active=!sets&&s.playback?.id===row.id,playing=active&&s.playback.running,paused=active&&s.playback.active&&!s.playback.completed&&!playing;
    c.fillStyle=this.dragRow?.id===row.id?panelTheme().hover:!sets&&row.checked?panelGradient(c,20,y,760,0,panelTheme().selectedCard):panelTheme().surface;c.beginPath();c.roundRect(20,y-4,760,122,16);c.fill();c.strokeStyle=!sets&&row.checked?panelTheme().selectedLine:panelTheme().line;if(playing||paused)c.strokeStyle=panelTheme().accent;c.lineWidth=playing||paused?3:1;c.stroke();
    if(sets){
-    this.button('setlistLoad:'+row.id,row.name,28,y,586,58,()=>this.choose('setlistLoad',row.id),{disabled:s.busy});
-    this.text(row.entries.length+'曲 · 約'+Math.floor(row.duration/60)+'分'+Math.round(row.duration)%60+'秒',40,y+86,22,panelTheme().muted,560);
+    this.button('setlistEditOpen:'+row.id,'',28,y,586,100,()=>this.choose('setlistEdit',row.id),{disabled:s.busy,quiet:true});
+    this.titleLines(row.name,44,y+22,550,27,2);
+    this.text(row.entries.length+'曲 · 約'+Math.floor(row.duration/60)+'分'+Math.round(row.duration)%60+'秒',44,y+96,22,panelTheme().muted,550);
+    this.button('setlistLoad:'+row.id,'▶',622,y,68,100,()=>this.choose('setlistLoad',row.id),{disabled:s.busy});
     this.button('setlistMenu:'+row.id,'…',704,y,64,100,()=>{this.menuId=row.id;},{disabled:s.busy,quiet:true});return;
    }
    this.button('drag:'+row.id,'⠿',28,y,58,100,()=>{}, {disabled:s.busy});const drag=this.controls.at(-1);Object.assign(drag,{slider:!s.busy,favoriteDrag:true,favoriteId:row.id,index});

@@ -27,8 +27,9 @@ export function mountFavorites({repository,capture,audio,onOpen,onLoad,onPrepare
   if(!state.setlists.length)setRows.append(make('li',{className:'favorite-empty'},'曲を選んで並べ、「このセットリストを保存する」を押してください。'));
   for(const row of state.setlists){
    const item=make('li',{className:'setlist-row'});item.dataset.id=row.id;
-   item.append(make('strong',{},row.name),make('small',{},row.entries.length+'曲 · 約'+clock(row.duration)),make('p',{className:'setlist-song-order'},row.entries.map(r=>r.title).join(' → ')));
-   const buttons=make('div',{className:'favorite-row-buttons'}),watch=make('button',{disabled:state.busy||!available()},'このセットリストを観る'),menu=make('button',{disabled:state.busy},'…');
+   const name=make('button',{className:'setlist-title',disabled:state.busy},row.name);name.setAttribute('aria-label',row.name+'の曲目を開く');name.onclick=()=>editSetlist(row.id);
+   item.append(name,make('small',{},row.entries.length+'曲 · 約'+clock(row.duration)),make('p',{className:'setlist-song-order'},row.entries.map(r=>r.title).join(' → ')));
+   const buttons=make('div',{className:'favorite-row-buttons'}),watch=make('button',{disabled:state.busy||!available()},'▶ このセットリストを観る'),menu=make('button',{disabled:state.busy},'…');
    watch.onclick=()=>void loadSetlist(row.id);menu.setAttribute('aria-label',row.name+'のメニュー');menu.onclick=()=>{state.setlistMenuId=state.setlistMenuId===row.id?null:row.id;render();};buttons.append(watch,menu);item.append(buttons);
    if(state.setlistMenuId===row.id){const actions=make('div',{className:'favorite-menu'});for(const [label,fn]of [['編集する',()=>editSetlist(row.id)],['名前を変える',()=>onRenameSetlist(row.id)],['削除する',()=>removeSetlist(row.id)]]){const b=make('button',{disabled:state.busy},label);b.onclick=()=>void fn();actions.append(b);}item.append(actions);}
    setRows.append(item);
