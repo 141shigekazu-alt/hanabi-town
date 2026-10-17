@@ -21,37 +21,37 @@ import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
 import {organizePanel} from './panel-layout.js';
 organizePanel();
-import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.0';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.3.0';
-import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.0';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.0';
-import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.0';
-import {rainEarSequence} from './rain-ears.js?v=1.3.0';
-import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.0';
-import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.3.0';
-import {viewBoatPose} from './boat-cruise.js?v=1.3.0';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.0';
-import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.0';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.0';
-import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.0';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.0';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.0';
+import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.1';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.3.1';
+import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.1';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.1';
+import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.1';
+import {rainEarSequence} from './rain-ears.js?v=1.3.1';
+import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.1';
+import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.3.1';
+import {viewBoatPose} from './boat-cruise.js?v=1.3.1';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.1';
+import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
+import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
+import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.1';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.1';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.0';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.1';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.0';
-import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.0';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.0';
-import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.0';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.0';
-import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.0';
-import {TowerLighting} from './tower-lighting.js?v=1.3.0';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.0';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.0';
-import {WristMenu} from './wrist-menu.js?v=1.3.0';
-import {XRControls} from './xr-controls.js?v=1.3.0';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.0';
-import {EntryTip} from './entry-tip.js?v=1.3.0';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.1';
+import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.1';
+import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.1';
+import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
+import {TowerLighting} from './tower-lighting.js?v=1.3.1';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.1';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.1';
+import {WristMenu} from './wrist-menu.js?v=1.3.1';
+import {XRControls} from './xr-controls.js?v=1.3.1';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.1';
+import {EntryTip} from './entry-tip.js?v=1.3.1';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
@@ -905,7 +905,10 @@ try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');c
 setTowerColor();syncSize();syncPalette();syncFireworkVolume();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
 for(const id of settingsIds)$(id).addEventListener('change',()=>{if(dioramaSaved)return;try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
 let pendingDiorama=false,pendingPlace=false,mrStarting=false,mrSession=null,mrMetrics=null,mrMeta=null,lastMRReport=null,latestViewerTransform=null,pendingViewMode=null,pendingPanelOpen=false,pendingPanelPage=0,pendingBridge=false,vrSupported=false,pendingRenameReturn=null;
-const renameAnchor=new MRReturnAnchor();let renameExiting=false;
+// Retain the rename snapshot independently of the temporary browser dialog.
+// Either MR entry button may resume it; consume it only after the first frame
+// restores both town and panels, so a denied/failed entry can be retried.
+const renameAnchor=new MRReturnAnchor();let renameExiting=false,renameResume=null;
 let miniAngles=null;
 const desktopCamera={position:new T.Vector3(),quaternion:new T.Quaternion(),fov:55};
 $('height').oninput=applyTownHeight;
@@ -1136,7 +1139,14 @@ function finishMR(){
  showBrowserEntrance();
 }
 async function startXR(mode,bridge=false,panelPage=0,{renameReturn=null}={}){
- if(mrStarting||mrSession)return;mrStarting=true;$('mr').disabled=true;$('bridge').disabled=true;
+ if(mrStarting||mrSession)return;
+ if(!bridge&&!renameReturn)renameReturn=renameResume;
+ if(renameReturn){
+  if(mrNameEditor.state?.busy)return;
+  panelPage=renameReturn.main.page;mode=renameReturn.sessionMode??mode;
+  mrNameEditor.close();
+ }
+ mrStarting=true;$('mr').disabled=true;$('bridge').disabled=true;
  let session;
  try{
   ensureAudio();if(bridgeView.active)leaveBridge();if(dioramaSaved){toggleDiorama();pendingDiorama=true;}desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
@@ -1145,7 +1155,13 @@ async function startXR(mode,bridge=false,panelPage=0,{renameReturn=null}={}){
   session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();betaReviewPanel.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);soundEngine?.setSpatialMode?.(new URLSearchParams(location.search).get('spatial')==='full'?'full':'adaptive');mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,nameEditor:session.domOverlayState?.type??'browser-fallback',startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
-  applyViewBackground();town.visible=false;await renameAnchor.beginSession(session,renameReturn?.anchorHandle);if(renameReturn?.anchorHandle){renameReturn.anchor=await renameAnchor.restore(session,renameReturn.anchorHandle);renameReturn.anchorUntil=performance.now()+2000;}if(mrSession!==session){void renameAnchor.discard(session,renameReturn?.anchorHandle,renameReturn?.anchor);return;}pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;pendingPanelPage=panelPage;pendingRenameReturn=renameReturn;previous=0;$('mrExport').disabled=false;
+  applyViewBackground();town.visible=false;void renameAnchor.beginSession(session,renameReturn?.anchorHandle);
+  // Keep each asynchronous restore local until this session is still current.
+  // An older, ended attempt must not overwrite the next retry's live anchor.
+  const restoredAnchor=renameReturn?.anchorHandle?await renameAnchor.restore(session,renameReturn.anchorHandle):null;
+  if(mrSession!==session){void renameAnchor.discard(session,renameReturn===renameResume?null:renameReturn?.anchorHandle,restoredAnchor);return;}
+  if(renameReturn){renameReturn.anchor=restoredAnchor;renameReturn.anchorUntil=performance.now()+2000;}
+  pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;pendingPanelPage=panelPage;pendingRenameReturn=renameReturn;previous=0;$('mrExport').disabled=false;
   // Enter the room with an unlit sky; only the explicit show button starts it.
   if(!bridge&&!renameReturn){const armed=favoriteRun?.armed?favoriteRun:null;if(armed)favoriteRun=null;stopShow();if(armed){favoriteRun=armed;favoritesUI?.setFestival('大会の準備完了 · '+armed.rows.length+'曲');}$('chapter').textContent='開演前 · 街を眺める';$('last').textContent='好きな位置に街を置いてください';$('status').textContent=panelPage===4?'曲はまだ始まりません。街を好きな位置へ置いてから、「'+$('musicShow').textContent+'」で開演してください。':'まずは街をじっくりどうぞ。台座へビームを合わせ、グリップで掴めます。サイドパネルの「花火大会を観る」で開演します。';}
  }catch(e){if(session)await session.end().catch(()=>{});if(pendingDiorama&&!dioramaSaved){pendingDiorama=false;toggleDiorama();}mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
@@ -1205,7 +1221,9 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if(pendingPanelOpen&&pose&&!pendingPlace){
   wristMenu.reanchor(pose.transform);mrPanel.begin(pose.transform);setPanelTab(pendingPanelPage);controls.begin(pose.transform);
   const returning=pendingRenameReturn;pendingRenameReturn=null;
-  if(returning){restoreRenamePanels(returning,pose.transform);entryTip.end();}
+  if(returning){restoreRenamePanels(returning,pose.transform);if(renameResume===returning)renameResume=null;entryTip.end();}
+  // A deliberate entry into a different view also consumes an old return.
+  else if(renameResume){void renameAnchor.discard(session,renameResume.anchorHandle,renameResume.anchor);renameResume=null;}
   else if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);
   pendingPanelOpen=false;
  }
@@ -1411,7 +1429,7 @@ function updateAutomaticPreparation(state){
  if(typeof location!=='undefined'&&new URLSearchParams(location.search).get('analysisDebug')==='1'){
   const status=state.title?state.status.replace(state.title,'選んだ曲'):state.status;
   const key=JSON.stringify([state.busy,!!state.error,status]);
-  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.3.0',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
+  if(updateAutomaticPreparation.lastReport!==key){updateAutomaticPreparation.lastReport=key;void fetch('/study/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'import-stage',build:'1.3.1',device:/OculusBrowser|Quest/.test(navigator.userAgent)?'quest':'browser',busy:state.busy,error:!!state.error,status,at:new Date().toISOString()})}).catch(()=>{});}
  }
 
  if(state.busy)showPreparation.begin({title:state.title||pendingAutomaticTrack?.title||selectedMusic.title,setting:state.status});
@@ -1493,7 +1511,7 @@ $('showWatch').onclick=async()=>{if(selectionProblem)return;if(showCompleted&&fa
 $('showStop').onclick=()=>{cancelAutomaticPreparation();stopShow();};
 $('showRestart').onclick=async()=>{if(selectionProblem)return;if(favoritesUI.state.activeSetlistId){if(await favoritesUI.loadSetlist(favoritesUI.state.activeSetlistId)&&!running)await beginMusicShow();return;}$(noMusicMode?'restart':'musicRestart').click();};
 $('showRebuild').onclick=async()=>{if(selectionProblem)return;if(voiceUI?.hasDraft){await voiceUI.applyPending();return;}analysisFeedback=null;$('analysisFeedback').hidden=true;clearTimeout(analysisReturnTimer);analysisReturnTimer=null;if(selectedMusic.savedFavoriteId&&!selectedMusic.original){await chooseMusicTrack(selectedMusic.id,MUSIC_PLAN.feeling??'auto');if(!selectionProblem)$('autoMusicRebuild').click();return;}if(noMusicMode){stopShow();prepareProgram();syncShowButtons();mrPanel.draw();analysisChime.play();}else if(!selectedMusic.original)$('autoMusicRebuild').click();};
-$('showRoom').onclick=async()=>{if(selectionProblem)return;if(noMusicMode||selectedMusic.original||selectedMusic.savedFavoriteId){setPanelTab(4);await startXR('immersive-ar',false,4);}else $('autoMusicRoom').click();};
+$('showRoom').onclick=async()=>{if(renameResume){await startXR(renameResume.sessionMode??'immersive-ar',false,renameResume.main.page);return;}if(selectionProblem)return;if(noMusicMode||selectedMusic.original||selectedMusic.savedFavoriteId){setPanelTab(4);await startXR('immersive-ar',false,4);}else $('autoMusicRoom').click();};
 function captureCurrentFavorite(){
  if(noMusicMode||libraryRestoring||musicBusy||pendingAutomaticTrack||directingBusy||selectionProblem||showPreparation.phase!=='ready')return null;
  return captureProgramme({plan:MUSIC_PLAN,trackId:selectedMusic.id,title:selectedMusic.title,identityTitle:selectedMusic.favoriteIdentityTitle??musicTrackIdentityTitle(selectedMusic.id,selectedMusic.title),original:!!selectedMusic.original,offsetMs:$('musicOffset').value});
@@ -1605,11 +1623,11 @@ async function renameFavoriteFromMR(id,kind='favorite'){
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind});return;}
  // System keyboard focus suspends XR input on this device. Keep partial text
  // editing native, rather than pretending the canvas has a working caret.
- const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();renameExiting=true;
+ const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();returning.sessionMode=mode;renameResume=returning;renameExiting=true;
  try{
   returning.anchorHandle=await renameAnchor.capture(session,returning.town);await session.end();
   mrNameEditor.open(row,null,{kind,returnToMR:()=>{void startXR(mode,false,returning.main.page,{renameReturn:returning});}});
- }catch(error){void renameAnchor.discard(session,returning.anchorHandle);favoritesUI.message('名前の編集を開けませんでした：'+error.message);}finally{renameExiting=false;}
+ }catch(error){if(renameResume===returning)renameResume=null;void renameAnchor.discard(session,returning.anchorHandle);favoritesUI.message('名前の編集を開けませんでした：'+error.message);}finally{renameExiting=false;}
 }
 
 let removedTrackUndo=null,trackEditBusy=false;
@@ -1648,9 +1666,9 @@ async function renameSelectedTrack(){
  $('trackMenu').hidden=true;$('trackMenuToggle').setAttribute('aria-expanded','false');mrPanel.draw();
  const row={id,name:track.title};
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind:'track'});return;}
- const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();renameExiting=true;
+ const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();returning.sessionMode=mode;renameResume=returning;renameExiting=true;
  try{returning.anchorHandle=await renameAnchor.capture(session,returning.town);await session.end();mrNameEditor.open(row,null,{kind:'track',returnToMR:()=>{void startXR(mode,false,returning.main.page,{renameReturn:returning});}});}
- catch(error){void renameAnchor.discard(session,returning.anchorHandle);$('showNotice').textContent='曲名の編集を開けませんでした：'+error.message;}finally{renameExiting=false;}
+ catch(error){if(renameResume===returning)renameResume=null;void renameAnchor.discard(session,returning.anchorHandle);$('showNotice').textContent='曲名の編集を開けませんでした：'+error.message;}finally{renameExiting=false;}
 }
 
 function openFavoriteList(){

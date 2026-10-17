@@ -5,7 +5,7 @@ export class MRReturnAnchor{
  constructor(){this.waiting=null;}
  async beginSession(session,keep=null){
   let old;try{old=sessionStorage.getItem(KEY);}catch{}
-  if(old&&old!==keep)await this.discard(session,old);
+  if(old&&old!==keep)void this.discard(session,old);
  }
  capture(session,placement){
   if(typeof session.restorePersistentAnchor!=='function'||typeof globalThis.XRRigidTransform!=='function')return Promise.resolve(null);
@@ -36,6 +36,11 @@ export class MRReturnAnchor{
  }
  async discard(session,handle,anchor=null){
   try{anchor?.delete?.();}catch{}
-  if(handle){try{await session?.deletePersistentAnchor?.(handle);}catch{}try{if(sessionStorage.getItem(KEY)===handle)sessionStorage.removeItem(KEY);}catch{}}
+  if(handle){
+   // Forget only this handle now; a slow native delete must not block entry or
+   // later remove a newer handle written while it is pending.
+   try{if(sessionStorage.getItem(KEY)===handle)sessionStorage.removeItem(KEY);}catch{}
+   try{await session?.deletePersistentAnchor?.(handle);}catch{}
+  }
  }
 }

@@ -1,6 +1,6 @@
 import {CREATIVE_PROFILES,creativePalettes,isCreativeShell} from './creative-shells.js';
 import {FLOWER_COLORS,PETAL_PROFILE,PHOTO_FLOWER_PROFILE} from './flower-scenes.js';
-import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.3.0';
+import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.3.1';
 import {SUNFLOWER_PROFILE,PETAL_MOTION_PROFILE} from './sunflower-motion.js?v=1.1.16';
 import {CANDY_PALETTES} from './candy-colors.js?v=1.1.16';
 import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';

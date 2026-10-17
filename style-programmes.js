@@ -1,6 +1,6 @@
 import {drawProgrammeStyle,styleHash,styleKind,stylePalette,stylePosition,shellFamily} from './programme-style.js';
 import {groundReservation} from './flower-programmes.js';
-import {TYPES} from './fireworks.js?v=1.3.0';
+import {TYPES} from './fireworks.js?v=1.3.1';
 const overlap=(a,b)=>a.start<b.end&&b.start<a.end;
 // Keep accepted landscape beds, chorus timing/replies and the final tableau.
 // Entry/feature shells may change family without moving their musical anchors.
