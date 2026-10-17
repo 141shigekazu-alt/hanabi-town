@@ -1,12 +1,12 @@
 import {CREATIVE_PROFILES,creativePalettes,isCreativeShell} from './creative-shells.js';
 import {FLOWER_COLORS,PETAL_PROFILE,PHOTO_FLOWER_PROFILE} from './flower-scenes.js';
-import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.94';
+import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.2.95';
 import {SUNFLOWER_PROFILE,PETAL_MOTION_PROFILE} from './sunflower-motion.js?v=1.1.16';
 import {CANDY_PALETTES} from './candy-colors.js?v=1.1.16';
 import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';
 export {EAR_PROFILE,createEarStars,earPoint,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 // Artistic miniature sizes, not full-scale measurements of real fireworks.
-export const SIZES={2:{label:'2号玉（目安）',radius:.14,height:.66,stars:28},20:{label:'二尺玉',radius:.74,height:2.00,stars:420},3:{label:'3号玉',radius:.23,height:.80,stars:132},5:{label:'5号玉',radius:.35,height:1.04,stars:204},10:{label:'尺玉',radius:.52,height:1.30,stars:300}};
+export const SIZES={2:{label:'穂',radius:.14,height:.66,stars:28},20:{label:'二尺玉',radius:.74,height:2.00,stars:420},3:{label:'3号玉',radius:.23,height:.80,stars:132},5:{label:'5号玉',radius:.35,height:1.04,stars:204},10:{label:'尺玉',radius:.52,height:1.30,stars:300}};
 export const TYPES={ear:{label:'稲穂',radii:[1],colors:[0xffcb7c],life:EAR_PROFILE.life,fadeStart:5.85,tail:.02,gravity:.004},senrin:{label:'彩色千輪（軽量テスト）',radii:[1],colors:[0xff419b,0xffd52e,0x42cfff,0x48f5a5,0xbb65ff],life:6.2,tail:.045,gravity:.022},triple:{label:'三重芯',radii:[1,.74,.48,.23],colors:[0xffd38c,0xff749d,0x9bd9ff,0xc8f5ab],life:8,tail:.08,gravity:.014},sunflower:{label:'ひまわり',radii:[1,.51],colors:[0xffbf55,0xff3925],life:SUNFLOWER_PROFILE.life,fadeStart:SUNFLOWER_PROFILE.fadeStart,tail:.035,gravity:0},silver:{label:'銀かむろ',radii:[1,.55],colors:[0xffd18a,0xffd18a],life:6.2,fadeStart:4.6,tail:.06,gravity:.035},core:{label:'芯入り',radii:[1,.48],colors:[0xff718c,0xffe4a0],life:3.5,tail:.04,gravity:.045},double:{label:'八重芯',radii:[1,.66,.32],colors:[0x9ecfff,0xff788d,0xffe399],life:3.9,tail:.045,gravity:.035},willow:{label:'しだれ柳',radii:[1],colors:[0xffd08a],life:5.5,tail:.14,gravity:.065}};
 TYPES.petalflower={...TYPES.sunflower,life:PETAL_MOTION_PROFILE.life,fadeStart:PETAL_MOTION_PROFILE.fadeStart,label:'小さな芯と長い花びら',radii:[PETAL_PROFILE.petalRadius,PETAL_PROFILE.coreRadius],colors:[FLOWER_COLORS[0].color,FLOWER_COLORS[0].core]};
 TYPES.goldflower={...TYPES.petalflower,radii:[PHOTO_FLOWER_PROFILE.petalRadius,PHOTO_FLOWER_PROFILE.coreRadius],label:'小さな色芯と金の花びら',colors:[0xffc56a,FLOWER_COLORS[0].color]};
@@ -105,3 +105,9 @@ export function chapter(t){if(t<35)return '幕開け';if(t<100)return '川沿い
 export function cue(t,index,lively=false){const part=chapter(t);if(part==='余韻')return null;const types=['core','double','willow','sunflower'];let kind=types[index%types.length];const size=part==='幕開け'?3:part==='一玉を味わう'?10:part==='フィナーレ'?(index%3===0?10:5):[3,5,10,5][index%4];if(kind==='double'&&size!==10)kind='core';let interval=part==='一玉を味わう'?8.5:part==='フィナーレ'?1.45:part==='街のにぎわい'?2.8:4.8;if(lively&&part!=='一玉を味わう')interval*=.72;return{kind,size,interval,part};}
 
 export function silverPath(age,radius,shell,dx,dy,dz,index){const travel=radius*shell*(.96+.07*Math.sin(index*2.37))*(1-Math.exp(-.90*age));return [dx*travel,dy*travel+.065*age-.035*age*age,dz*travel];}
+
+// Ears are a low landscape effect; their internal simulation size is not a shell rating.
+export function shellDisplayName(kind,size){
+ const type=(TYPES[kind]?.label??kind).replace('（軽量テスト）','');
+ return kind==='ear'?type:[SIZES[size]?.label,type].filter(Boolean).join(' · ');
+}

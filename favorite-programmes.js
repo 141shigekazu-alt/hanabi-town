@@ -18,8 +18,8 @@ export function favoriteName(s){return s.title;}
 // Display old generated names compactly without rewriting the saved record.
 // An explicitly renamed favourite keeps its chosen name.
 export function favoriteDisplay(row){
- const variant=row.original?'オリジナル':'構成'+((row.plan.analysisSummary?.variation??0)+1),feeling=row.plan.feelingLabel??(row.original?'手作り':'自動');
- const legacy=`${row.title}　${variant}　${feeling}`;
+ const legacyVariant=row.original?'オリジナル':'構成'+((row.plan.analysisSummary?.variation??0)+1),variant=row.original?'オリジナルプログラム':'構成−'+((row.plan.analysisSummary?.variation??0)+1),feeling=row.plan.feelingLabel??(row.original?'手作り':'自動');
+ const legacy=`${row.title}　${legacyVariant}　${feeling}`;
  return {title:row.name===legacy||!row.name?row.title:row.name,detail:variant+' · '+feeling};
 }
 export function moveFavorite(ids,id,index){const next=ids.filter(value=>value!==id);if(!ids.includes(id))return [...ids];next.splice(Math.max(0,Math.min(next.length,index)),0,id);return next;}

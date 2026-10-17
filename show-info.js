@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.js';
-import {SIZES,TYPES} from './fireworks.js?v=1.1.0';
+import {shellDisplayName} from './fireworks.js?v=1.1.0';
 
 // Announce shells as soon as they launch, through ascent and opening. No DOM
 // label, new timer, random draw or extra particle traversal is needed.
@@ -9,7 +9,7 @@ export function showInfoText({time,running,previewing,fireworks}){
  const groups=new Map();
  for(const f of fireworks){
   if(f.m.opacity<=.04)continue;
-  const name=(SIZES[f.size]?.label??'')+' · '+(TYPES[f.kind]?.label??f.kind).replace('（軽量テスト）','');
+  const name=shellDisplayName(f.kind,f.size);
   groups.set(name,(groups.get(name)??0)+1);
  }
  return {timer:phase+' '+clock,names:[...groups].map(([name,n])=>name+(n>1?' ×'+n:'')).join(' ／ ')||'次の一玉を待つ'};

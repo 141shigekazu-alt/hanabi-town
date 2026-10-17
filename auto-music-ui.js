@@ -195,7 +195,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
    await saveTrackFeeling(id,'original');localStorage.setItem('hanabi87-selected',id);
    if(token!==generation)return null;busy=false;
    const result={trackId:id,title:track.title,buffer};onOriginalReady(result);controls();
-   status(track.title+' · 手作りの構成（オリジナル）を準備しました。',1);return result;
+   status(track.title+' · オリジナルプログラムを準備しました。',1);return result;
   }catch(error){if(token!==generation)return null;busy=false;controls();status(error.message||'手作りの構成を準備できませんでした。',0,true);return null;}
  }
  $('autoMusicReanalyze').onclick=()=>{if(!busy&&!roomOpening){$('autoMusicAnalysis').value='structure';return generate(null,null,true);}};
@@ -232,7 +232,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicWatch').onclick=()=>{if(!retained||busy||roomOpening)return;onReady(retained);document.getElementById('musicShow').click();};
  $('autoMusicManual').onclick=()=>{if(retained?.manualId&&!busy&&!roomOpening)onManual(retained.manualId);};
  $('autoMusicExport').onclick=()=>{
-  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.94',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  if(!retained)return;const blob=new Blob([JSON.stringify({build:'1.2.95',title:retained.title,analysis:retained.analysis,plan:retained.plan},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=retained.title.replace(/[\\/:*?"<>|]/g,'_')+'-自動大会.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  for(const event of ['dragenter','dragover'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.add('dragging');});
  drop.addEventListener('dragleave',()=>drop.classList.remove('dragging'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('dragging');if(e.dataTransfer.files[0])generate(e.dataTransfer.files[0]);});
