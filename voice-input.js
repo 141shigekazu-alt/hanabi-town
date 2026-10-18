@@ -1,4 +1,4 @@
-import {parseVoiceRequest} from './voice-request.js';
+import {parseVoiceRequest} from './voice-request.js?v=1.3.10';
 // No recordings are written to IndexedDB, CacheStorage, localStorage or a server.
 // A recording exists only until decoding; the transferred samples die with worker.
 export function mountVoiceInput({onPause,onApply,onChange=()=>{},onCancel=()=>{},onDiscard=()=>{}}){
@@ -75,12 +75,15 @@ export function mountVoiceInput({onPause,onApply,onChange=()=>{},onCancel=()=>{}
 
  async function applyPending(){
   if(busy()||!state.draft)return false;
-  const token=++generation,request=state.draft;state.phase='applying';state.status='声のイメージを構成に反映しています…';render();
-  try{const result=await onApply(request,()=>token===generation);if(token!==generation)return false;if(!result)throw Error('構成を準備できませんでした。曲の準備状態を確認して、もう一度どうぞ。');state.draft=null;state.phase='complete';state.status='✓ 声のイメージで構成を作りました。花火大会へ戻って開演できます。';render();return true;}
+  const token=++generation,request=state.draft;state.phase='applying';state.status='希望を構成に反映しています…';render();
+  try{const result=await onApply(request,()=>token===generation);if(token!==generation)return false;if(!result)throw Error('構成を準備できませんでした。曲の準備状態を確認して、もう一度どうぞ。');state.draft=null;state.phase='complete';state.status='✓ 希望を入れた構成を作りました。花火大会へ戻って開演できます。';render();return true;}
   catch(error){fail(error,token);return false;}
  }
  function resetDraft({keepOpen=false}={}){if(busy())cancel();state.open=keepOpen;state.draft=null;state.transcript='';state.summary='';state.phase='idle';state.status='マイクを押して、イメージを話してください。';render();}
  $('voiceOpen').onclick=()=>{if(busy())return;state.open=true;render();void start();};$('voiceRecord').onclick=()=>state.phase==='recording'?stopRecording():void start();$('voiceClose').onclick=()=>cancel();$('voiceCancel').onclick=()=>cancel();$('voiceDiscard').onclick=()=>{if(busy())return;resetDraft({keepOpen:true});onDiscard();};
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&busy())cancel();});window.addEventListener('pagehide',()=>cancel());
- return{get state(){return {...state,busy:busy(),hasDraft:!!state.draft,microphoneActive:!!stream?.getAudioTracks().some(t=>t.readyState==='live'),workerActive:!!worker,bufferedChunks:chunks.length};},get busy(){return busy();},get open(){return state.open;},get hasDraft(){return !!state.draft;},start,cancel,tick,applyPending,resetDraft};
+ async function applyRequest(request){
+  if(busy())return false;clearTimeout(returnTimer);cleanup();onPause();state.open=false;state.transcript='';state.summary=request.summary;state.error=false;state.draft=request;return applyPending();
+ }
+ return{applyRequest,get state(){return {...state,busy:busy(),hasDraft:!!state.draft,microphoneActive:!!stream?.getAudioTracks().some(t=>t.readyState==='live'),workerActive:!!worker,bufferedChunks:chunks.length};},get busy(){return busy();},get open(){return state.open;},get hasDraft(){return !!state.draft;},start,cancel,tick,applyPending,resetDraft};
 }

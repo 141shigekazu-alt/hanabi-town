@@ -1,4 +1,4 @@
-import {stylePalette} from './programme-style.js';
+import {stylePalette} from './programme-style.js?v=1.3.10';
 // Reserve an explicit closing gesture before filling the body of the song.
 // The caller uses the same commit/capacity checks as every existing finale.
 export function requestedFinale(request,{candidate,row,finalOpening,style}){

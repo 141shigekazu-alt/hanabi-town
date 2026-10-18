@@ -1,10 +1,10 @@
 import {sortMusicChoices} from './music-catalog.js?v=1.3.4';
-import {EAR_SCENES,earScene} from './ear-scenes.js';
+import {EAR_SCENES,earScene} from './ear-scenes.js?v=1.3.10';
 import {MUSIC_FEELINGS,musicFeeling} from './music-feeling.js';
 import {readLocalTrack,saveLocalTrack,listLocalTracks,migrateLatest41,migratePrevious42,readTrackFeeling,saveTrackFeeling,analyzeInBrowser,listTrackTitles,renameTrackTitle,listDeletedTracks,setTrackDeleted} from './quest-local-library.js';
 import {applyMusicStructure} from './music-structure.js';
 import {compareChorus,timeLabel} from './chorus-reference.js';
-import {createAutoMusicPlan} from './auto-music-plan.js';
+import {createAutoMusicPlan} from './auto-music-plan.js?v=1.3.10';
 // Audio and per-song analyses stay in this browser; rebuilding reuses decoded audio.
 export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,onManual,onPreview,onRoom,onState=()=>{},onCatalog=()=>{},onRebuilt=()=>{}}){
  const baseCatalog=catalog.map(t=>({...t}));

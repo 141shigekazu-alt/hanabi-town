@@ -1,6 +1,6 @@
 import {variationRandom,flowerFlight} from './flower-variation.js';
 import {FLOWER_COLORS,petalGeometry} from './flower-scenes.js';
-import {TYPES,SIZES,EAR_PROFILE,paletteOptions} from './fireworks.js';
+import {TYPES,SIZES,EAR_PROFILE,paletteOptions} from './fireworks.js?v=1.3.10';
 import {longStarCounts,longStarLife} from './long-stars.js';
 import {earProgrammeFits} from './ear-capacity.js';
 const pick=(a,r)=>a[Math.floor(r()*a.length)];

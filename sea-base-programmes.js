@@ -1,6 +1,6 @@
-import {landscapeDirection,landscapePalette} from './landscape-upper.js';
+import {landscapeDirection,landscapePalette} from './landscape-upper.js?v=1.3.10';
 import {variationRandom} from './flower-variation.js';
-import {seaSunsetPassage,paddySeasonPassage,earScene} from './ear-scenes.js';
+import {seaSunsetPassage,paddySeasonPassage,earScene} from './ear-scenes.js?v=1.3.10';
 import {EAR_FIELD_LIMIT,EAR_FIELD_POINT_LIMIT,earProgrammeBreach} from './ear-capacity.js';
 import {groundReservation} from './flower-programmes.js';
 const overlap=(a,b)=>a.start<b.end&&a.end>b.start,round=x=>+x.toFixed(4);

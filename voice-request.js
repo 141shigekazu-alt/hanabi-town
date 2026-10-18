@@ -30,10 +30,14 @@ function scopes(text){
 }
 export function parseVoiceRequest(input){
  const text=String(input??'').normalize('NFKC').trim().slice(0,600);
- const result={version:2,text,color:null,feeling:null,density:null,size:null,sizeAccent:null,finale:null,family:null,landscape:null,summary:'',recognized:false};
+ const result={version:2,text,color:null,feeling:null,density:null,size:null,sizeAccent:null,finale:null,family:null,landscape:null,patterns:null,summary:'',recognized:false};
  if(!text){result.summary='声を聞き取れませんでした。もう一度どうぞ。';return result;}
  if(/(?:じゃなく|ではなく|以外|しないで|上げない|出さない|避け|やめて|いらない|要らない)/.test(text)){result.summary='「金色で、ぽつりぽつり」のように、上げたい花火を教えてください。';return result;}
  const {body,ending}=scopes(text),s=sizes(body);
+ if(/型物|型もの|かたもの|ハート|にこちゃん|ニコちゃん|スマイル/.test(body)){
+  const heart=/ハート/.test(body),smile=/にこちゃん|ニコちゃん|スマイル/.test(body);
+  result.patterns=heart&&smile?'mixed':/二重.*ハート|ハート.*二重/.test(body)?'double':smile?'smile':heart?'heart':'all';
+ }
  if(/海|うみ|波|水辺/.test(body)){result.landscape='sea';result.color='cool';}
  result.color=color(body)??result.color;result.feeling=feeling(body);result.density=density(s.densityText);result.size=s.size;result.sizeAccent=s.sizeAccent;
  if(/昔ながら|伝統|八重|三重|菊を/.test(body))result.family='traditional';
@@ -44,8 +48,9 @@ export function parseVoiceRequest(input){
   if(Object.values(f).some(Boolean))result.finale=f;
  }
  const labels={landscape:{sea:'海をイメージした穂の風景'},color:{gold:'金色を中心に',multi:'色とりどりに',violet:'紫とキャンディーの彩り',cool:'水色・青の寒色で',warm:'赤・オレンジの暖色で'},feeling:{sentimental:'全体はしっとり',grand:'全体は壮大に',bright:'全体は軽快に',festival:'全体はにぎやかに'},density:{sparse:'ぽつりぽつり、間を空けて',dense:'たくさん、次々と'},size:{small:'３号の小玉を中心に',medium:'５号を中心に',large:'５号・尺玉の大輪を中心に'},family:{traditional:'伝統の玉で',pop:'ポップな玉で',modern:'創造花火を交えて'}};
- result.recognized=['color','feeling','density','size','sizeAccent','finale','family','landscape'].some(k=>result[k]);
+ result.recognized=['color','feeling','density','size','sizeAccent','finale','family','landscape','patterns'].some(k=>result[k]);
  const parts=['landscape','color','feeling','size','density','family'].filter(k=>result[k]).map(k=>labels[k][result[k]]);
+ if(result.patterns)parts.push({all:'型物のまとまりを入れる',heart:'ハートのまとまりを入れる',double:'二重ハートのまとまりを入れる',smile:'ニコちゃんのまとまりを入れる',mixed:'ハートとニコちゃんを交ぜる'}[result.patterns]);
  if(result.sizeAccent)parts.push({small:'小玉をときどき添える',medium:'５号をときどき添える',large:'大玉をところどころに'}[result.sizeAccent]);
  if(result.finale){const f=result.finale,endingParts=[f.energy==='grand'?'盛大に':f.energy==='quiet'?'静かな余韻に':null,f.color?labels.color[f.color]:null,f.size?labels.size[f.size]:null,f.density?labels.density[f.density]:null].filter(Boolean);parts.push('最後は'+endingParts.join('、'));}
  result.summary=result.recognized?parts.join(' · '):'「金色で」「しっとり」「ぽつりぽつり」など、イメージを教えてください。';

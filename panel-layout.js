@@ -1,6 +1,6 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js';
-import {mountHelp} from './help-content.js';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.10';
+import {mountHelp} from './help-content.js?v=1.3.10';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
  const $=id=>document.getElementById(id),make=(tag,attrs={},text='')=>{const el=document.createElement(tag);Object.assign(el,attrs);el.textContent=text;return el;};
@@ -63,8 +63,14 @@ export function organizePanel(){
  const scene=make('div',{id:'showSceneControls'});advanced.append(scene);field(scene,'musicScene');move(scene,'musicScenePlay');move(scene,'musicTimeline');move(scene,'musicTime');move(scene,'musicState');
  $('browserTab0').hidden=true;$('browserTab1').hidden=true;$('browserTab4').textContent='花火大会';
  const voiceRow=make('div',{className:'voice-entry'}),voiceOpen=make('button',{id:'voiceOpen'},'🎤');voiceOpen.setAttribute('aria-label','声で花火をリクエスト');voiceRow.append(voiceOpen,make('small',{},'あなたのイメージをAIに話す'),make('span',{className:'voice-test-label'},'テスト版'));card.append(voiceRow);
- const voiceCard=make('section',{id:'voiceCard',className:'voice-card',hidden:true});voiceCard.append(make('button',{id:'voiceClose',className:'voice-close'},'×'),make('h2',{},'声で花火をリクエスト'),make('p',{className:'voice-examples'},'入力例： 「夜空をイメージした曲なので、金色系の花火をたくさん出して」「海をイメージしたプログラムにしたい」など。「ぽつりぽつり」「しっとり上げて」もどうぞ。'));
+ const voiceCard=make('section',{id:'voiceCard',className:'voice-card',hidden:true});voiceCard.append(make('button',{id:'voiceClose',className:'voice-close'},'×'),make('h2',{},'声で花火をリクエスト'),make('p',{className:'voice-examples'},'入力例： 「夜空をイメージした曲なので、金色系の花火をたくさん出して」「海をイメージしたプログラムにしたい」など。「型物入れて」「ハートを入れて」もどうぞ。'));
  voiceCard.append(make('p',{id:'voiceStatus',role:'status'}),make('small',{id:'voiceDetail',hidden:true}),make('progress',{id:'voiceProgress',max:1,value:0,hidden:true}),make('p',{id:'voiceTranscript'}),make('p',{id:'voiceSummary'}),make('button',{id:'voiceRecord'},'🎤 話す（20秒まで）'),make('button',{id:'voiceDiscard',hidden:true},'取り消す'),make('button',{id:'voiceCancel'},'閉じる'),make('small',{},'音声はこの端末で認識します。録音は認識後に破棄し、保存しません。初回のみ音声AIを自動で取得します。'));card.append(voiceCard);voiceCard.querySelector('.voice-examples').after($('voiceStatus'),$('voiceDetail'),$('voiceProgress'));voiceOpen.setAttribute('aria-describedby','voiceEntryHint');voiceRow.querySelector('small').id='voiceEntryHint';advanced.querySelector('summary').textContent='演出を調整する';advanced.querySelector('summary').after(feelings,none,reanalysis,$('showRebuild'),$('autoMusicRebuildFeedback'),voiceRow,voiceCard);
+ const patternOpen=make('button',{id:'patternChoiceOpen'},'型物を入れる');card.append(patternOpen);patternOpen.setAttribute('aria-expanded','false');patternOpen.setAttribute('aria-controls','patternChoiceCard');
+ const choices=make('section',{id:'patternChoiceCard',className:'show-card',hidden:true});choices.setAttribute('aria-label','型物を入れる');choices.append(make('h2',{},'型物を入れる'));
+ for(const [id,label,options] of [['patternChoiceKind','どの型物にする？',[['heart','ハート'],['double','二重ハート'],['smile','ニコちゃん'],['mixed','ハートとニコちゃんをまぜる']]],['patternChoiceAmount','どのくらい入れる？',[['little','少し'],['more','多め'],['lots','たくさん']]]]){
+  const field=make('label',{},label),select=make('select',{id});for(const [value,text] of options)select.append(make('option',{value},text));field.append(select);choices.append(field);
+ }
+ choices.append(make('p',{id:'patternChoiceSummary'}),make('button',{id:'patternChoiceApply'},'この内容で入れる'),make('p',{id:'patternChoiceStatus',role:'status'}),make('button',{id:'patternChoiceClose'},'花火大会へ戻る'));card.append(choices);
  const trial=make('button',{id:'showTrialOpen'},'トリガーに花火玉を仕込む');card.append(trial);
  $('browserPage1').prepend(make('h2',{className:'loadout-heading'},'トリガーに花火玉を仕込む'));$('browserPage1').prepend(make('button',{id:'showTrialBack'},'‹ 花火大会へ戻る'));const trialHome=make('section',{className:'loadout-home'});$('browserPage1').append(trialHome);
  $('showInfo').hidden=true;const tc=make('button',{id:'showTC'},'TC・玉名を表示');card.append(tc);
@@ -100,6 +106,7 @@ export function organizePanel(){
  for(const id of ['autoMusicRoom','autoMusicWatch','autoMusicManual','autoMusicRebuild'])old.append($(id));
  $('autoMusicResult').append(make('p',{},'テンポと検出時刻は解析に任せ、曲の気持ちは選んだ曲調で演出します。'));
  const loadPage=$('browserPage1');for(const id of ['type','size','palette'])field(trialHome,id);move(trialHome,'sample');trialHome.append(trigger);
+ const batches=make('section',{id:'patternBatchControls',hidden:true,className:'show-card'});batches.append(make('button',{id:'patternSelectedBatch'},'選んだ型物を10連発'),make('button',{id:'patternCycle'},'型物の連発をひと巡り'),make('button',{id:'patternPair'},'５号ニコちゃんを左右に２発'));trialHome.append(batches);
  const loadBack=$('showTrialBack'),loadHeading=loadPage.querySelector('.loadout-heading');loadPage.prepend(loadBack,loadHeading,trialHome);
  const studies=details(loadPage,'花・トラなどの演出を試す','loadoutStudies');for(const node of [...loadPage.children])if(![loadBack,loadHeading,trialHome,studies].includes(node))studies.append(node);
  mountHelp($('browserPage3'));

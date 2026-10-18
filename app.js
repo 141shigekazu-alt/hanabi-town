@@ -1,31 +1,33 @@
+import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.10';
+import {isPatternShell,patternSizes,PATTERN_PROFILE,PATTERN_SIZES,createPatternStars,samplePatternPose,patternPoint} from './pattern-shells.js?v=1.3.10';
 import {MRReturnTrace} from './mr-return-trace.js?v=1.3.5';
 import {MRReturnAnchor} from './mr-return-anchor.js';
 import {captureTownPlacement,restoreTownPlacement,placementDelta,restoreRelativePlacement} from './mr-return.js';
 import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
-import {mountVoiceInput} from './voice-input.js';
-import {voiceProgrammeStyle} from './voice-request.js';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.9';
-import {styleKind,stylePalette} from './programme-style.js';
+import {mountVoiceInput} from './voice-input.js?v=1.3.10';
+import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.10';
+import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
-import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js';
+import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?v=1.3.10';
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.10';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.10';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.5';
+import {organizePanel} from './panel-layout.js?v=1.3.10';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.3.4';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.3.10';
 import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.1';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.4';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.10';
 import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.1';
 import {rainEarSequence} from './rain-ears.js?v=1.3.1';
 import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.1';
@@ -38,22 +40,22 @@ import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
 import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.1';
 import {MUSIC_SHOWS} from './music-shows.js?v=1.3.1';
 import {MusicTransport} from './music-transport.js';
-import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.1';
+import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
-import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.1';
+import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.10';
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.1';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.9';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.10';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.7';
-import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.1';
-import {WristMenu} from './wrist-menu.js?v=1.3.2';
-import {XRControls} from './xr-controls.js?v=1.3.7';
-import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.1';
-import {EntryTip} from './entry-tip.js?v=1.3.1';
+import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
+import {WristMenu} from './wrist-menu.js?v=1.3.10';
+import {XRControls} from './xr-controls.js?v=1.3.10';
+import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.10';
+import {EntryTip} from './entry-tip.js?v=1.3.10';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -336,6 +338,7 @@ function syncShowButtons(){
  syncBetaReview();
  for(const id of ['rainMusicPeak','rainMusicFirstPeak','rainMusicFinalSnapshot'])if($(id))$(id).hidden=selectedMusic.id!=='mou-ichido-dake';
  for(const id of ['candyPeak','candyQuiet','candySenrin'])if($(id))$(id).hidden=selectedMusic.id!=='pastel-parasite';
+ $('patternChoiceOpen').disabled=libraryRestoring||musicBusy||directingBusy||!!pendingAutomaticTrack||!!selectionProblem||!!voiceUI?.busy;
  $('play').textContent=showPlan?.music?'曲なしの大会へ':running?'ひと休み':showPlan?'大会を再開':'花火大会を観る';
  $('musicShow').disabled=musicBusy||!!pendingAutomaticTrack||!!selectionProblem;$('musicAll').disabled=musicBusy||!!pendingAutomaticTrack;
  $('musicShow').textContent=pendingAutomaticTrack?pendingAutomaticTrack.title+'の大会を準備中…':musicBusy?'曲を準備中…':showPlan?.music?(showCompleted?selectedMusic.title+'をもう一度':running?'音楽付き · ひと休み':'音楽付き · 再開'):selectedMusic.autoGenerated?`構成${selectedMusic.variation+1}を開演`:selectedMusic.original?'オリジナルプログラムを開演':selectedMusic.title+'を観る';
@@ -403,16 +406,17 @@ let earSerial=0;
 function launch(kind='core',size=5,position=null){
  if(voiceUI?.busy)return false;
  ({kind,size,position}=replaceRetiredShell({kind,size,position}));
- if(showPlan&&!showPlan.music&&!previewing&&showPlan.programmeStyle?.color==='gold'&&!position?.manual)position={...position,palette:'programme-gold'};
+ if(showPlan&&!showPlan.music&&!previewing&&showPlan.programmeStyle?.color==='gold'&&!position?.manual&&!isPatternShell(kind))position={...position,palette:'programme-gold'};
  if(isCreativeShell(kind)&&!creativeSizes(kind).includes(size))return false;
  if(kind==='candysenrin'&&size!==10)return false;
  if(kind==='candy'&&![3,5,10].includes(size))return false;
  if((kind==='candyburst'||kind==='longstar')&&size!==5&&size!==10)return false;
  if(kind==='sparklelarge'&&![5,10,20].includes(size))return false;
- if(kind==='ear'&&size!==2||size===2&&kind!=='ear')return false;
+ if(kind==='ear'&&size!==2||size===2&&kind!=='ear'&&!isPatternShell(kind))return false;
  const activeUpper=fireworks.filter(f=>f.kind!=='ear').length;
  if(kind==='ear'){if(fireworks.filter(f=>f.kind==='ear').length>=(position?.earField?EAR_FIELD_LIMIT:showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?28:14))return false;}
- else if(!position?.manual&&(activeUpper>=(position?.flowerStudy?16:position?.flowerProgramme?14:showPlan?.music&&selectedMusic.autoGenerated?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='pastel-parasite'?14:position?.wide||position?.musicNine?9:8)||(triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
+ else if(!position?.manual&&(activeUpper>=(position?.patternGroup?14:position?.flowerStudy?16:position?.flowerProgramme?14:showPlan?.music&&selectedMusic.autoGenerated?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='pastel-parasite'?14:position?.wide||position?.musicNine?9:8)||(!position?.patternGroup&&triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
+ if(isPatternShell(kind)&&!patternSizes(kind).includes(size))return false;
  if(kind==='kiku'&&size!==3)return false;if(['petalflower','goldflower'].includes(kind)&&![3,5,10].includes(size))return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
  if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='sparklelarge'&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
@@ -422,15 +426,15 @@ function launch(kind='core',size=5,position=null){
  const naturalFlight=(isFlowerShell(kind)||isCreativeShell(kind))?(position?.flowerFlight??flowerFlight(size,flowerSeed)):null;
  const unplannedFlight=naturalFlight&&position?.heightOffset===undefined;
  const flowerVariation=naturalFlight?flowerMotion(flowerSeed):null;
- let spec=TYPES[kind];const scale=SIZES[size];if(!spec||!scale)return false;
+ let spec=TYPES[kind];const scale=isPatternShell(kind)?PATTERN_SIZES[size]:SIZES[size];if(!spec||!scale)return false;
  if(kind==='longstar'||kind==='sparklelarge'){const life=kind==='sparklelarge'?sparkleLife(size):longStarLife(size);spec={...spec,life,fadeStart:life};}
  const z=position?.z??(shellRandom()*1.6-.85),x=position?.x??(riverCenter(z)+(shellRandom()>.5?1:-1)*(.12+shellRandom()*.7));
- const y=scale.height+(position?.heightOffset??naturalFlight?.heightOffset??0),r=scale.radius*(naturalFlight?.radiusScale??1)*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=isCreativeShell(kind)?CREATIVE_PROFILES[kind].trails:kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:(kind==='petalflower'||kind==='goldflower')?petalGeometry(size).trails:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
+ const y=scale.height+(position?.heightOffset??naturalFlight?.heightOffset??0),r=scale.radius*(naturalFlight?.radiusScale??1)*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=isPatternShell(kind)?PATTERN_PROFILE.trails:isCreativeShell(kind)?CREATIVE_PROFILES[kind].trails:kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:(kind==='petalflower'||kind==='goldflower')?petalGeometry(size).trails:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?shellRandom()*1000:0;
  let flowerStars=null;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
  const starDensity=size===3&&['kiku','silver','willow'].includes(kind)?Math.max(.5,Math.min(1,position?.starDensity??1)):1;
- for(let layer=0;layer<spec.radii.length;layer++){
+ for(let layer=0;layer<(isPatternShell(kind)?0:spec.radii.length);layer++){
  const count=Math.round(scale.stars*starDensity*(position?.wide?.72:1)*(spec.layerWeights?.[layer]??(layer===0?1:layer===1?.6:.35)));
  for(const xyz of sphere(count)){directions.push(new T.Vector3(...xyz));shells.push(spec.radii[layer]);starColors.push(scheme[layer]);starLayers.push(layer);}
  }
@@ -471,8 +475,18 @@ function launch(kind='core',size=5,position=null){
  const creativeCandy=kind==='drum'&&position?.palette==='drum-candy';
  const creativeStars=isCreativeShell(kind)?createCreativeStars(kind,size,flowerSeed,{pose:position?.creativePose??'natural'}):null;
  if(creativeStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const [i,star] of creativeStars.entries()){directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(creativeCandy?new T.Color(candyColor(i,flowerSeed,scheme.map(c=>c.getHex()))):star.group==='body'?new T.Color(creativeTailColor(kind,position?.palette)):scheme[star.head%scheme.length]);}}
+ const patternSeed=isPatternShell(kind)?(position?.patternSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
+ const patternPose=patternSeed===null?null:samplePatternPose(patternSeed);
+ const patternStars=isPatternShell(kind)?createPatternStars(kind,patternSeed,{scatter:position?.patternScatter??Number($('patternScatter')?.value??1.65)}):null;
+ if(patternStars){
+  // Town-local pose, independent of the viewer at launch or afterwards.
+  // Looking from below / behind or rotating the town changes its projection.
+  const poseQ=new T.Quaternion().setFromEuler(new T.Euler(patternPose.pitch,patternPose.yaw,patternPose.roll,'XYZ'));
+  directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;
+  for(const star of patternStars){const dir=new T.Vector3(...star.direction).applyQuaternion(poseQ);star.direction=dir.toArray();directions.push(dir);shells.push(1);starColors.push(scheme[star.layer%scheme.length]);starLayers.push(star.layer);}
+ }
  const earStars=kind==='ear'?createEarStars(position?.earSeed??((++earSerial*0x9e3779b9)>>>0)):null;
- const shape=isCreativeShell(kind)||kind==='ear'||kind==='candyburst'||kind==='longstar'||kind==='sparklelarge'?{level:0}:(naturalFlight?createShellShapeSampler(variationRandom(flowerSeed,0x391a61))(kind,size):position?.reviewSeed===undefined?sampleShellShape(kind,size):createShellShapeSampler(shellRandom)(kind,size));
+ const shape=isPatternShell(kind)||isCreativeShell(kind)||kind==='ear'||kind==='candyburst'||kind==='longstar'||kind==='sparklelarge'?{level:0}:(naturalFlight?createShellShapeSampler(variationRandom(flowerSeed,0x391a61))(kind,size):position?.reviewSeed===undefined?sampleShellShape(kind,size):createShellShapeSampler(shellRandom)(kind,size));
  for(let i=0;i<directions.length;i++)(flowerStars?deformFlowerVector:deformShellVector)(directions[i],shape,isSenrin(kind)?.35:shells[i]<.75?.65:1);
  for(const center of clusterCenters)deformShellVector(center,shape);
  if(kind==='candy'){const seed=position?.candySeed??(0x141715+Math.floor(time*1000));for(let i=0;i<starColors.length;i++)starColors[i]=new T.Color(starLayers[i]===0?candyColor(i,seed,scheme.map(c=>c.getHex())):scheme.length===1?scheme[0].getHex():0xffeec7);}
@@ -481,7 +495,7 @@ function launch(kind='core',size=5,position=null){
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
- const m=new T.PointsMaterial({size:isCreativeShell(kind)?.011:(kind==='longstar'||kind==='sparklelarge')?.010:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
+ const m=new T.PointsMaterial({size:isPatternShell(kind)?PATTERN_PROFILE.pointSize:isCreativeShell(kind)?.011:(kind==='longstar'||kind==='sparklelarge')?.010:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  if(creativeStars&&kind!=='planet'){
   const pointSizes=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)pointSizes[i*trailCount+j]=creativePointScale(creativeStars[i],j);
   g.setAttribute('creativeSize',new T.BufferAttribute(pointSizes,1));
@@ -508,7 +522,7 @@ function launch(kind='core',size=5,position=null){
   if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
  }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- const f={x,z,y,r,color,n,kind,size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,size);
+ const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize);
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
@@ -523,7 +537,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
   const offset=Math.max(0,f.whistleResumeOffset??0,age-f.whistleDue);if(offset<f.whistle.duration)soundEngine?.playWhistle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.whistleDue-age),whistlePositionFor(f),f.whistle,offset);
  }
  const soundDelay=soundDelayFor(f);
- if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.size);f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.size);}sound(true,f.x,f.z,f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation,f.openingTail);}
+ if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.soundSize??f.size);f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.soundSize??f.size);}sound(true,f.x,f.z,f.soundSize??f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation,f.openingTail);}
  if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;if(f.soundMode==='recorded')f.childVariation??=soundEngine?.chooseSoundVariation?.('senrin-children',f.size);(!groundStudySilent)&&soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.soundMode??$('audioMode').value,f.size,f.childVariation);}
  const afterDelay=tailCrackleDelayFor(f);
  if(['silver','willow'].includes(f.kind)&&f.soundMode==='recorded'&&t>=afterDelay&&!f.afterSoundPlayed){f.afterSoundPlayed=true;f.afterSoundDue=soundDelay+afterDelay;f.afterVariation??=soundEngine?.chooseSoundVariation?.(f.kind+'-crackle',f.size);(!groundStudySilent)&&soundEngine?.playOpeningCrackle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.afterSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.kind,f.size,f.afterVariation);}
@@ -532,7 +546,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
- const fade=isCreativeShell(f.kind)||f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||(f.kind==='sunflower'||f.kind==='petalflower'||f.kind==='goldflower')||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
+ const fade=isPatternShell(f.kind)||isCreativeShell(f.kind)||f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||(f.kind==='sunflower'||f.kind==='petalflower'||f.kind==='goldflower')||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
  let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
  const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
  const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
@@ -554,6 +568,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  brightness=f.hideAscent?0:f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
  }
  else if(f.creativeStars){const v=creativePoint(f.creativeStars[i],f.r,t,j,f.trailCount,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;creativeMix=v.headMix;}
+ else if(f.patternStars){const v=patternPoint(f.patternStars[i],f.r,t,j,f.trailCount,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;}
  else if(f.kind==='sparklelarge'){const v=sparklePoint(f.sparkleStars[i],f.r,t,j,f.trailCount,f.spec.life,f.pointSample,prepared);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;}
  else if(f.kind==='longstar'){
  const v=longStarPoint(f.longStars[i],f.r,t,j,f.trailCount,f.spec.life,f.pointSample,prepared);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;
@@ -613,7 +628,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
- const col=f.starColors[i];if(f.creativeStars&&t>=0){const tail=f.creativeColoredTail?col:f.creativeTail;f.colors[index]=(tail.r+(col.r-tail.r)*creativeMix)*brightness;f.colors[index+1]=(tail.g+(col.g-tail.g)*creativeMix)*brightness;f.colors[index+2]=(tail.b+(col.b-tail.b)*creativeMix)*brightness;}else if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
+ const col=f.starColors[i];if(f.patternStars&&t>=0&&t<.065){const white=Math.pow(1-t/.065,2);f.colors[index]=(col.r+(1-col.r)*white)*brightness;f.colors[index+1]=(col.g+(1-col.g)*white)*brightness;f.colors[index+2]=(col.b+(1-col.b)*white)*brightness;}else if(f.creativeStars&&t>=0){const tail=f.creativeColoredTail?col:f.creativeTail;f.colors[index]=(tail.r+(col.r-tail.r)*creativeMix)*brightness;f.colors[index+1]=(tail.g+(col.g-tail.g)*creativeMix)*brightness;f.colors[index+2]=(tail.b+(col.b-tail.b)*creativeMix)*brightness;}else if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  }
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
@@ -805,7 +820,9 @@ function advance(dt){
  const awaitingSpecial=(time>=(showPlan.bigAt-10)&&!burstSlots.has('big'))||showPlan.senrinAt.some((at,index)=>time>=at-10&&!burstSlots.has('senrin-'+index));
  const awaitingEar=showPlan?.voiceRequest?.density!=='sparse'&&time>=140&&time<155&&!burstSlots.has('ear-middle');
  const awaitingPattern=showPlan.mode==='random'&&showPlan.slots.some(slot=>time>=slot-10&&!burstSlots.has(slot));
- if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern&&!awaitingEar){const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&(!isCreativeShell(c.kind)||fireworks.length===0)&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}
+ if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern&&!awaitingEar){if(time>=25&&time<235&&cueIndex>=3&&cueIndex%(showPlan?.voiceRequest?.patternAmount==='lots'?2:showPlan?.voiceRequest?.patternAmount==='more'?4:5)===(showPlan?.voiceRequest?.patternAmount==='lots'?1:3)&&!(showPlan?.voiceRequest?.patternAmount==='little'&&burstSlots.has('pattern-little'))&&fireworks.length===0&&!showPlan?.voiceRequest?.size&&!showPlan?.voiceRequest?.sizeAccent&&showPlan?.voiceRequest?.density!=='sparse'&&(showPlan?.voiceRequest?.patterns||showPlan?.programmeStyle?.color!=='gold')){
+ const index=Math.floor(cueIndex/5),part=patternPassage({start:time,seed:(showPlan.seed^Math.imul(index+1,0x531a2f9d))>>>0,mode:showPlan?.voiceRequest?.patterns&&showPlan.voiceRequest.patterns!=='all'?showPlan.voiceRequest.patterns:PATTERN_MODES[index%PATTERN_MODES.length].id,accent:index%4===3});burstSlots.add('pattern-little');burstQueue.push(...part.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=part.finishAt+1;cueIndex++;$('status').textContent=part.label+' · 街のあちこちから';
+ }else{const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&(!isCreativeShell(c.kind)||fireworks.length===0)&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}}
  updateFireworks();
  const elapsed=Math.min(300,Math.floor(time));$('chapter').textContent=chapter(Math.min(time,299))+' · '+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
  if(time>=300){if($('ending').value==='loop'){clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();time=0;nextLaunch=2;cueIndex=0;prepareProgram();}else{showCompleted=true;running=false;$('play').textContent='花火大会を観る';$('status').textContent='大会が終わりました。街の灯りをお楽しみください。';}}
@@ -900,8 +917,8 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onpointercancel=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onwheel=e=>{if(panelPreview&&favoritesPanel?.visible&&!favoritesPanel.menuId&&!mrNameEditor?.state){e.preventDefault();favoritesPanel.scrollList(e.deltaY);return;}if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
+function allowedSize(kind,value){if(isPatternShell(kind))return patternSizes(kind).includes(Number(value));if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;if($('patternBatchControls'))$('patternBatchControls').hidden=!isPatternShell(kind);for(const o of $('size').options)if(o.value==='2')o.textContent=isPatternShell(kind)?'2号玉':'穂';for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isPatternShell(kind)){if(!patternSizes(kind).includes(Number($('size').value)))$('size').value='3';return;}else if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label||'この花火の配色';return option;}));
@@ -957,8 +974,8 @@ $('mrExport').onclick=()=>{
  const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='hanabi-town-MR-'+Date.now()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 function readPanel(){
- const result={rebuildFeedback:!$('autoMusicRebuildFeedback').hidden?{heading:$('autoMusicRebuildComplete').textContent,details:$('autoMusicRebuildDetails').textContent}:null,voice:voiceUI?.state??null,analysisFeedback:analysisFeedback?{...analysisFeedback}:null,flowerDescription:$('flowerDescription').textContent,trackUndo:!$('trackUndo').hidden,trackMenuOpen:!$('trackMenu').hidden,trackCanRename:!$('trackMenuToggle').disabled,entryTipEnabled:!entryTip.suppressed,favoriteSaved:!!favoritesUI?.state.saved,favoriteCanSave:!!favoritesUI?.state.canSave&&!favoritesUI?.state.busy,musicless:noMusicMode&&!pendingAutomaticTrack&&!selectionProblem,musicOriginal:!!selectedMusic.original&&!pendingAutomaticTrack&&!selectionProblem,selectionFailed:!!selectionProblem,showWatchLabel:$('showWatch').textContent,showWatchDisabled:$('showWatch').disabled,readiness:{phase:$('showReadiness').dataset.phase,heading:$('showReadinessHeading').textContent,title:$('showReadinessTitle').textContent,setting:$('showReadinessSetting').textContent},showNotice:!noMusicMode&&!selectedMusic.original&&!$('autoMusicRebuildFeedback').hidden?$('autoMusicRebuildComplete').textContent:$('showNotice').textContent,normalBuildNumber,betaMusicReview:true,betaTCEnabled,betaMusicClock:betaTimeLabel(betaDragging?Number($('betaMusicSeek').value):time),betaMusicCurrent:betaClock(Math.min(betaDragging?Number($('betaMusicSeek').value):time,MUSIC_PLAN.duration)),betaMusicDuration:betaClock(MUSIC_PLAN.duration),betaMusicSeek:{value:(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration},diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicFeeling:musicFeelingLabel(),musicAnalysisBusy:directingBusy||musicBusy||!!pendingAutomaticTrack,musicAutoGenerated:!!selectedMusic.autoGenerated&&!pendingAutomaticTrack,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,rooftop:bridgeView.active&&bridgeView.mode==='rooftop',rooftopSeat:rooftopDeck.id,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
- for(const id of ['flowerPattern','flowerTiming','flowerSpacing','flowerColor','flowerSize','program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack','autoMusicFeeling','autoMusicEars','helpTopic','setlistSelect','panelTheme']){
+ const result={patternChoiceOpen:!$('patternChoiceCard').hidden,patternChoiceStatus:$('patternChoiceStatus').textContent,patternChoiceSummary:$('patternChoiceSummary').textContent,patternChoiceDisabled:$('patternChoiceOpen').disabled,rebuildFeedback:!$('autoMusicRebuildFeedback').hidden?{heading:$('autoMusicRebuildComplete').textContent,details:$('autoMusicRebuildDetails').textContent}:null,voice:voiceUI?.state??null,analysisFeedback:analysisFeedback?{...analysisFeedback}:null,flowerDescription:$('flowerDescription').textContent,trackUndo:!$('trackUndo').hidden,trackMenuOpen:!$('trackMenu').hidden,trackCanRename:!$('trackMenuToggle').disabled,entryTipEnabled:!entryTip.suppressed,favoriteSaved:!!favoritesUI?.state.saved,favoriteCanSave:!!favoritesUI?.state.canSave&&!favoritesUI?.state.busy,musicless:noMusicMode&&!pendingAutomaticTrack&&!selectionProblem,musicOriginal:!!selectedMusic.original&&!pendingAutomaticTrack&&!selectionProblem,selectionFailed:!!selectionProblem,showWatchLabel:$('showWatch').textContent,showWatchDisabled:$('showWatch').disabled,readiness:{phase:$('showReadiness').dataset.phase,heading:$('showReadinessHeading').textContent,title:$('showReadinessTitle').textContent,setting:$('showReadinessSetting').textContent},showNotice:!noMusicMode&&!selectedMusic.original&&!$('autoMusicRebuildFeedback').hidden?$('autoMusicRebuildComplete').textContent:$('showNotice').textContent,normalBuildNumber,betaMusicReview:true,betaTCEnabled,betaMusicClock:betaTimeLabel(betaDragging?Number($('betaMusicSeek').value):time),betaMusicCurrent:betaClock(Math.min(betaDragging?Number($('betaMusicSeek').value):time,MUSIC_PLAN.duration)),betaMusicDuration:betaClock(MUSIC_PLAN.duration),betaMusicSeek:{value:(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration},diorama:!!dioramaSaved,cometPaused:previewPaused,cometDescription:$('cometDescription').textContent,musicState:$('musicState').textContent,musicDescription:selectedMusic.description,playLabel:$('play').textContent,musicLabel:$('musicShow').textContent,musicBusy,musicSequence:!!musicSequence,musicFeeling:musicFeelingLabel(),musicAnalysisBusy:directingBusy||musicBusy||!!pendingAutomaticTrack,musicAutoGenerated:!!selectedMusic.autoGenerated&&!pendingAutomaticTrack,musicSequenceState:$('musicSequenceState').textContent,musicShow:!!showPlan?.music,awaitingShow:!running&&!previewing&&!showPlan,resumeShow:!!showPlan,preparing:preparation?{...preparation,summary:prepareSummary()}:null,prepareOptions:preparation?prepareOptions():[],running,loadedLeft:preparedShellName(loadedShells.left),loadedRight:preparedShellName(loadedShells.right),bridge:bridgeView.active,rooftop:bridgeView.active&&bridgeView.mode==='rooftop',rooftopSeat:rooftopDeck.id,boat:bridgeView.active&&bridgeView.mode==='boat',boatWaiting:riverNight.cruiseWaiting,xrMode:mrMeta?.sessionMode,chapter:$('chapter').textContent,last:$('last').textContent,status:$('status').textContent,metric:$('mrInfo').textContent};
+ for(const id of ['patternChoiceKind','patternChoiceAmount','flowerPattern','flowerTiming','flowerSpacing','flowerColor','flowerSize','program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack','autoMusicFeeling','autoMusicEars','helpTopic','setlistSelect','panelTheme']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',disabled:el.disabled,options:[...el.options].map(o=>({value:o.value,label:o.textContent,disabled:o.disabled}))};
  }
  for(const id of ['scale','distance','height','volume','roomBrightness','musicVolume'])result[id]={value:Number($(id).value),disabled:!!$(id).disabled};
@@ -1020,11 +1037,11 @@ function preparedShellName(shell){const label=shell&&paletteOptions(shell.kind).
 function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=preparedShellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
 let preparation=null;
 const prepareFields=['kind','size','palette'];
-const preparedKinds=['willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin','longstar','sparklelarge','petalflower','goldflower'];
+const preparedKinds=['patternheart','patternpeace','patterndoubleheart','willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin','longstar','sparklelarge','petalflower','goldflower'];
 function prepareOptions(){
  const {draft,tab}=preparation;
  if(tab===0)return preparedKinds.map(value=>({value,label:TYPES[value].label.replace('（軽量テスト）',''),disabled:false}));
- if(tab===1)return ['10','20'].map(v=>({value:v,label:SIZES[v].label,disabled:!allowedSize(draft.kind,v)}));
+ if(tab===1)return (isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['10','20']).map(v=>({value:v,label:(isPatternShell(draft.kind)?PATTERN_SIZES[v]:SIZES[v]).label,disabled:!allowedSize(draft.kind,v)}));
  const colors=paletteOptions(draft.kind);return colors.length?colors.map(o=>({value:o.id,label:o.label||'この花火の配色',disabled:false})):[{value:'original',label:'この花火の配色',disabled:false}];
 }
 function prepareSummary(){const d=preparation.draft,p=paletteOptions(d.kind).find(p=>p.id===d.palette);return shellName(d)+(p?' · '+p.label:'');}
@@ -1040,13 +1057,13 @@ function drawPreparation(){
  mrPanel.draw();
 }
 function openPreparation(hand){
- const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!['10','20'].includes(String(draft.size))||!allowedSize(draft.kind,String(draft.size)))draft.size=Number(['10','20'].find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette=paletteOptions(draft.kind)[0]?.id??'original';
+ const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!allowedSize(draft.kind,String(draft.size))||!((isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['10','20']).includes(String(draft.size))))draft.size=Number((isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['10','20']).find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette=paletteOptions(draft.kind)[0]?.id??'original';
  preparation={hand,tab:0,draft};drawPreparation();
 }
 function choosePreparation(value){
  if(!preparation||!prepareOptions().some(o=>o.value===value&&!o.disabled))return;
  const d=preparation.draft,field=prepareFields[preparation.tab];d[field]=field==='size'?Number(value):value;
- if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number(['10','20'].find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette=paletteOptions(d.kind)[0]?.id??'original';}
+ if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number((isPatternShell(d.kind)?patternSizes(d.kind).map(String):['10','20']).find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette=paletteOptions(d.kind)[0]?.id??'original';}
  drawPreparation();
 }
 function prepareTab(tab){if(preparation){preparation.tab=tab;drawPreparation();}}
@@ -1061,6 +1078,7 @@ for(let i=0;i<3;i++){$('prepareTab'+i).onclick=()=>prepareTab(i);$('prepareTab'+
 function firePrepared(hand,origin,direction){
  if(voiceUI?.busy)return;
  if(hand!=='left'&&hand!=='right')return;
+ if(isPatternShell(loadedShells[hand]?.kind)&&!running&&!previewing)beginPreview();
  if(previewing&&previewPaused){$('status').textContent='試し打ちを一時停止中です。右Bで再開できます。';return;}
  // Loading a trigger does not replace a running festival with a trial.
  // Before a show, the loader can still be used to try the prepared shell.
@@ -1514,22 +1532,22 @@ voiceUI=mountVoiceInput({
  onDiscard:()=>{normalVoiceRequest=null;autoMusicUI.clearVoiceRequest();$('showNotice').textContent='声の入力を取り消しました。もう一度話せます。';$('autoMusicRebuildFeedback').hidden=true;syncShowButtons();mrPanel.draw();},
  onPause:()=>{$('autoMusicRebuildFeedback').hidden=true;analysisChime.unlock();if(showPlan?.music&&running)time=music.pause();else music.pause();running=false;previewPaused=true;cancelFutureSounds();clearFireworks();clearFans();if(favoriteRun&&['gap','loading','switch'].includes(favoriteRun.phase))favoriteRun.gapPaused=true;syncShowButtons();mrPanel.draw();},
  onCancel:()=>{autoMusicUI.cancel();selectionRequest++;pendingAutomaticTrack=null;musicBusy=false;markShowReady(noMusicMode?showPlan:MUSIC_PLAN);syncShowButtons();},
- onChange:()=>{if(voiceUI?.open&&mrPanel.active){mrPanel.page=4;mrPanel.adjusting=true;}syncShowButtons();mrPanel.draw();},
+ onChange:()=>{for(const id of ['patternChoiceKind','patternChoiceAmount','patternChoiceApply'])if($(id))$(id).disabled=!!voiceUI?.busy;if($('patternChoiceCard')&&!$('patternChoiceCard').hidden){const state=voiceUI?.state;if(state?.phase==='applying')$('patternChoiceStatus').textContent='型物を入れています…';else if(state?.error)$('patternChoiceStatus').textContent=state.status;}if(voiceUI?.open&&mrPanel.active){mrPanel.page=4;mrPanel.adjusting=true;}syncShowButtons();mrPanel.draw();},
  onApply:async(request,isCurrent)=>{
   if(!isCurrent())return false;
   analysisFeedback=null;$('analysisFeedback').hidden=true;
-  if(noMusicMode){normalVoiceRequest=request;stopShow();prepareProgram();$('showNotice').textContent='✓ 声で構成を作成 · '+request.summary;setRebuildFeedback(`✓ 構成${normalBuildNumber}に変えました`,request.summary);markShowReady(showPlan);syncShowButtons();analysisChime.play();return true;}
+  if(noMusicMode){normalVoiceRequest=request;stopShow();prepareProgram();$('showNotice').textContent=(request.source==='pattern-button'?'✓ 型物を入れた構成を作成 · ':'✓ 声で構成を作成 · ')+request.summary;setRebuildFeedback(`✓ 構成${normalBuildNumber}に変えました`,request.summary);markShowReady(showPlan);syncShowButtons();analysisChime.play();return true;}
   const id=selectedMusic.id;
   let result;
   if(!selectedMusic.original&&autoMusicUI.result?.trackId===id)result=autoMusicUI.applyVoiceRequest(request);
   else result=await autoMusicUI.generateTrack(id,request.feeling??'auto',request);
   if(!isCurrent()||!result)return false;
-  clearFavoriteFestival();$('showNotice').textContent='✓ 声で構成を作成 · '+request.summary;
+  clearFavoriteFestival();$('showNotice').textContent=(request.source==='pattern-button'?'✓ 型物を入れた構成を作成 · ':'✓ 声で構成を作成 · ')+request.summary;
   setRebuildFeedback(`✓ 構成${(MUSIC_PLAN.analysisSummary?.variation??0)+1}に変えました`,request.summary);
   markShowReady(MUSIC_PLAN);syncShowButtons();mrPanel.draw();analysisChime.play();return true;
  }
 });
-for(const type of ['click','change','input'])$('panel').addEventListener(type,event=>{if(voiceUI?.busy&&!event.target.closest('#voiceCard')&&!event.target.closest('#voiceOpen')){event.preventDefault();event.stopImmediatePropagation();}},true);
+for(const type of ['click','change','input'])$('panel').addEventListener(type,event=>{if(voiceUI?.busy&&!event.target.closest('#voiceCard')&&!event.target.closest('#voiceOpen')&&!event.target.closest('#patternChoiceCard')){event.preventDefault();event.stopImmediatePropagation();}},true);
 window.__voiceStudy={get state(){return voiceUI.state;}};
 const autoEarsChange=$('autoMusicEars').onchange;
 $('autoMusicEars').onchange=async()=>{
@@ -1944,3 +1962,28 @@ for(const id of ['creativeSize','creativeColor','creativePose'])$(id).onchange=(
 window.__creativeStudy={shoot:creativeShoot,get kind(){return creativeKind;},get seed(){return creativeSeed;}};
 const creativeQuery=new URLSearchParams(location.search).get('creativeTrial');
 if(isCreativeShell(creativeQuery))selectCreative(creativeQuery,new URLSearchParams(location.search).get('creativeColor'));
+
+// Pattern groups share the normal preview queue and MR controls.
+function startPatternBatch(mode='cycle'){
+ if(voiceUI?.busy)return;
+ const seed=crypto.getRandomValues(new Uint32Array(1))[0];beginPreview();cometFinishAt=null;
+ const part=mode==='cycle'?patternCycle(seed):patternPassage({seed,mode,accent:mode==='pair'});
+ if(mode==='pair')part.shots=part.shots.filter(s=>s.size===5);
+ burstQueue=part.shots;nextLaunch=part.finishAt;$('status').textContent=(mode==='pair'?'５号ニコちゃんを左右に２発':part.label)+' · 街のあちこちから';mrPanel.draw();
+}
+$('patternCycle').onclick=()=>startPatternBatch('cycle');
+$('patternPair').onclick=()=>startPatternBatch('pair');
+$('patternSelectedBatch').onclick=()=>startPatternBatch($('type').value==='patterndoubleheart'?'double':$('type').value==='patternpeace'?'smile':'heart');
+
+function syncPatternChoice(){
+ const request=patternChoiceRequest($('patternChoiceKind').value,$('patternChoiceAmount').value);$('patternChoiceSummary').textContent=request.summary;mrPanel.draw();
+}
+$('patternChoiceOpen').onclick=()=>{if($('patternChoiceOpen').disabled)return;voiceUI.resetDraft();$('patternChoiceCard').hidden=false;$('patternChoiceOpen').setAttribute('aria-expanded','true');$('patternChoiceStatus').textContent='種類と量を選び、「この内容で入れる」を押してください。';syncPatternChoice();};
+for(const id of ['patternChoiceKind','patternChoiceAmount'])$(id).onchange=syncPatternChoice;
+$('patternChoiceApply').onclick=async()=>{
+ if(voiceUI.busy)return;const request=patternChoiceRequest($('patternChoiceKind').value,$('patternChoiceAmount').value);
+ $('patternChoiceApply').disabled=true;$('patternChoiceStatus').textContent='型物を入れています…';
+ const ok=await voiceUI.applyRequest(request);$('patternChoiceApply').disabled=false;
+ if(ok){$('patternChoiceStatus').textContent='✓ '+request.summary+'構成ができました。花火大会へ戻って開演できます。';voiceUI.resetDraft();}mrPanel.draw();
+};
+$('patternChoiceClose').onclick=()=>{if(voiceUI.busy)voiceUI.cancel();voiceUI.resetDraft();$('patternChoiceCard').hidden=true;$('patternChoiceOpen').setAttribute('aria-expanded','false');mrPanel.draw();};

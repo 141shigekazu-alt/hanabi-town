@@ -1,5 +1,5 @@
-import {styleHash} from './programme-style.js';
-import {styleProtected} from './style-programmes.js';
+import {styleHash} from './programme-style.js?v=1.3.10';
+import {styleProtected} from './style-programmes.js?v=1.3.10';
 import {groundReservation} from './flower-programmes.js';
 
 const starKinds=['longstar','sparklelarge'];

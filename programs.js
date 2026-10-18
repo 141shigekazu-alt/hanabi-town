@@ -1,8 +1,8 @@
-import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js';
-import {TYPES} from './fireworks.js?v=1.3.1';
+import {drawProgrammeStyle,styleKind,stylePalette,stylePosition,styleHash} from './programme-style.js?v=1.3.10';
+import {TYPES} from './fireworks.js?v=1.3.10';
 import {FLOWER_COLORS} from './flower-scenes.js';
 import {EAR_PROFILE,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
-import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.1.16';
+import {cue as baseCue,chapter,CORE_PALETTES,KIKU_PALETTES} from './fireworks.js?v=1.3.10';
 export const PROGRAM_NAMES={one:'プログラム1 · 一玉を味わう',two:'プログラム2 · 街の競演',random:'おまかせ'};
 function randomStream(seed){let state=seed>>>0;return()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};}
 export function createProgram(mode='one',seed=1){

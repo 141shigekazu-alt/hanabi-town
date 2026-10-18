@@ -1,6 +1,6 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js';
-import {helpTopic,helpPages} from './help-content.js';
-import {drawPanelSurface} from './panel-surface.js';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.10';
+import {helpTopic,helpPages} from './help-content.js?v=1.3.10';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -323,17 +323,17 @@ export class MRPanel{
  }
 
  draw(){
-  const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&this.adjusting;this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
+  const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&(this.adjusting||s.patternChoiceOpen);this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
   this.text('花火街',36,49,43,panelTheme().text);this.text('ベータ版 '+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
   this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
-  if(child){this.button('detailClose','×',696,18,76,60,()=>{if(s.voice?.open)this.click('voiceClose');this.navigate(4);});this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
+  if(child){this.button('detailClose','×',696,18,76,60,()=>{if(s.patternChoiceOpen)this.click('patternChoiceClose');if(s.voice?.open)this.click('voiceClose');this.navigate(4);});this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
   else{
   this.button('favoriteToggle',s.favoriteSaved?'♥':'♡',696,18,76,60,()=>this.click('favoriteToggle'),{selected:!!s.favoriteSaved,disabled:!s.favoriteCanSave,heart:true});
   this.button('favoriteListOpen','一覧',608,18,76,60,()=>this.click('favoriteListOpen'));
   this.text('右A：サイドパネル · 左X：クルッとパネル',36,132,21,panelTheme().muted);
   }
   c.save();c.translate(0,HEADER_GROWTH);
-  if(child)this.button('showParent',this.page===1&&this.studyMode?'‹ 花火玉の仕込みへ戻る':'‹ 花火大会へ戻る',28,126,744,64,()=>{if(this.page===1&&this.studyMode){this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.draw();}else{if(s.voice?.open)this.click('voiceClose');this.navigate(4);}});
+  if(child)this.button('showParent',this.page===1&&this.studyMode?'‹ 花火玉の仕込みへ戻る':'‹ 花火大会へ戻る',28,126,744,64,()=>{if(this.page===1&&this.studyMode){this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.draw();}else{if(s.patternChoiceOpen)this.click('patternChoiceClose');if(s.voice?.open)this.click('voiceClose');this.navigate(4);}});
   else [[4,'花火大会'],[2,'街・音'],[3,'使い方']].forEach(([page,label],i)=>this.button('page'+page,label,28+i*254,126,236,68,()=>this.navigate(page),{selected:this.page===page,nav:true}));
   if(s.preparing){this.drawPreparation(s);}
   else if(this.page===0){
@@ -362,11 +362,12 @@ export class MRPanel{
    this.button('showAdjust','演出を調整する  ›',28,563,744,60,()=>{this.adjusting=true;},{quiet:true});
    c.strokeStyle=panelTheme().line;c.beginPath();c.moveTo(28,559);c.lineTo(772,559);c.moveTo(28,631);c.lineTo(772,631);c.stroke();
    this.button('showTrialOpen','トリガーに花火玉を仕込む  ›',28,656,744,62,()=>this.navigate(1));
+   this.button('patternChoiceOpen','型物を入れる  ›',28,732,744,56,()=>this.click('patternChoiceOpen'),{disabled:!!s.patternChoiceDisabled});
    if(s.selectionFailed||s.musicAnalysisBusy){
     this.wrap(s.showNotice??s.readiness?.setting??'',32,756,736,2);
     this.button('musicReanalyze',s.selectionFailed?'この曲の解析をやり直す':'準備を中止する',28,824,744,54,()=>this.click(s.selectionFailed?'musicReanalyze':'autoMusicCancel'));
    }else{
-    if(!s.musicless)this.slider('musicVolume','音楽の音量',777,s.musicVolume,{compact:true});
+    if(!s.musicless)this.slider('musicVolume','音楽の音量',805,s.musicVolume,{compact:true});
    }
    this.slider('volume','花火の音量',901,s.volume,{compact:true});
    this.slider('roomBrightness','部屋の明るさ',1025,s.roomBrightness,{compact:true});
@@ -411,7 +412,13 @@ export class MRPanel{
     this.button('loadRight','右トリガーに仕込む',412,714,360,66,()=>this.click('loadRight'));
     for(const [hand,x,label] of [['Left',28,'左トリガーに仕込み済み'],['Right',412,'右トリガーに仕込み済み']]){c.fillStyle=panelTheme().surface;c.beginPath();c.roundRect(x,803,360,114,12);c.fill();this.text(label,x+16,826,21,panelTheme().accent,328);this.wrap(s['loaded'+hand]??'',x+16,863,328,2);}
     this.button('sample','選んだ一発を試す',28,950,744,58,()=>this.click('sample'));
-    this.button('studyMore','花・トラなどの演出を試す  ›',28,1040,744,54,()=>{this.studyMode=true;this.groundStudy=false;this.flowerStudy=false;});
+    const pattern=s.type?.value?.startsWith('pattern');
+    if(pattern){
+     this.button('patternSelectedBatch','選んだ型物を10連発',28,1024,744,54,()=>this.click('patternSelectedBatch'));
+     this.button('patternCycle','型物の連発をひと巡り',28,1094,360,54,()=>this.click('patternCycle'));
+     this.button('patternPair','５号ニコちゃん左右２発',412,1094,360,54,()=>this.click('patternPair'));
+    }
+    this.button('studyMore','花・トラなどの演出を試す  ›',28,pattern?1170:1040,744,54,()=>{this.studyMode=true;this.groundStudy=false;this.flowerStudy=false;});
    }else{
    this.button('upperStudy','上空の花火',28,293,232,44,()=>{this.groundStudy=false;this.flowerStudy=false;},{selected:!this.groundStudy&&!this.flowerStudy});
    this.button('groundStudy','大トラ・子トラ',284,293,232,44,()=>{this.groundStudy=true;this.flowerStudy=false;},{selected:this.groundStudy&&!this.flowerStudy});
@@ -464,8 +471,16 @@ export class MRPanel{
    this.drawHelp(s);
   }
 
+  if(this.page===4&&s.patternChoiceOpen){
+   c.clearRect(12,202,776,978);c.fillStyle=panelTheme().overlay;c.fillRect(12,202,776,978);this.controls=this.controls.filter(control=>control.y<202);
+   this.text('花火大会  ›  型物を入れる',32,218,22,panelTheme().muted,736);this.text('型物を入れる',32,284,34,panelTheme().text);
+   this.selector('patternChoiceKind','どの型物にする？',370,s.patternChoiceKind);this.selector('patternChoiceAmount','どのくらい入れる？',500,s.patternChoiceAmount);
+   this.wrap(s.patternChoiceSummary??'',32,638,736,2);
+   this.button('patternChoiceApply',s.voice?.busy?'型物を入れています…':'この内容で入れる',28,738,744,72,()=>this.click('patternChoiceApply'),{primary:true,disabled:!!s.voice?.busy});
+   this.wrap(s.patternChoiceStatus??'',32,864,736,5);
+  }
   if(this.page===0&&!s.preparing)this.text(s.metric,32,921,21,panelTheme().muted,736);
-  if(child)this.button('detailBack',this.adjusting?'大会に戻る':'花火大会に戻る',28,1188,744,48,()=>{if(s.voice?.open)this.click('voiceClose');this.navigate(4);});
+  if(child)this.button('detailBack',this.adjusting?'大会に戻る':'花火大会に戻る',28,1188,744,48,()=>{if(s.patternChoiceOpen)this.click('patternChoiceClose');if(s.voice?.open)this.click('voiceClose');this.navigate(4);});
   else{this.button('close','パネルを閉じて鑑賞',28,1188,360,48,()=>this.close());this.button('exit','鑑賞を終了してページへ',412,1188,360,48,()=>this.exit(),{danger:true});}
   this.text(this.controllerGrabbed?'移動中 · 掴んだボタンを離すと、ここに置けます':'白い棒：トリガー／グリップで移動 · スティックで角度と奥行き',32,1255,20,panelTheme().muted,736);
   if(this.page===4&&!this.adjusting&&s.trackMenuOpen&&!this.picker){

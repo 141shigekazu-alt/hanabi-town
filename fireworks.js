@@ -1,3 +1,4 @@
+import {PATTERN_SPECS,isPatternShell,PATTERN_SIZES,patternPaletteOptions} from './pattern-shells.js?v=1.3.10';
 import {CREATIVE_PROFILES,creativePalettes,isCreativeShell} from './creative-shells.js';
 import {FLOWER_COLORS,PETAL_PROFILE,PHOTO_FLOWER_PROFILE} from './flower-scenes.js';
 import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.3.1';
@@ -11,6 +12,7 @@ export const TYPES={ear:{label:'稲穂',radii:[1],colors:[0xffcb7c],life:EAR_PRO
 TYPES.petalflower={...TYPES.sunflower,life:PETAL_MOTION_PROFILE.life,fadeStart:PETAL_MOTION_PROFILE.fadeStart,label:'小さな芯と長い花びら',radii:[PETAL_PROFILE.petalRadius,PETAL_PROFILE.coreRadius],colors:[FLOWER_COLORS[0].color,FLOWER_COLORS[0].core]};
 TYPES.goldflower={...TYPES.petalflower,radii:[PHOTO_FLOWER_PROFILE.petalRadius,PHOTO_FLOWER_PROFILE.coreRadius],label:'小さな色芯と金の花びら',colors:[0xffc56a,FLOWER_COLORS[0].color]};
 for(const [kind,p] of Object.entries(CREATIVE_PROFILES))TYPES[kind]={label:p.label+'（創造花火）',radii:[1],colors:creativePalettes(kind)[0].colors,life:p.life,fadeStart:p.life,tail:.025,gravity:.035};
+Object.assign(TYPES,PATTERN_SPECS);
 export const isSenrin=kind=>kind==='senrin'||kind==='candysenrin';
 TYPES.candysenrin={...TYPES.senrin,label:'キャンディー千輪',colors:CANDY_PALETTES.find(p=>p.id==='candy-mix').colors};
 TYPES.sparklelarge={label:'キラキラ大玉',radii:[1,.65],colors:[LONG_STAR_PROFILE.headColor,LONG_STAR_PROFILE.goldColor],life:4.0,fadeStart:4.0,tail:.03,gravity:.01};
@@ -53,7 +55,7 @@ export const KAMURO_PALETTES=Object.freeze([
  {id:'kamuro-gold',label:'金のかむろ',colors:[0xffbf65,0xffbf65]}
 ]);
 export const RAIN_EAR_PALETTES=Object.freeze([{id:'original',label:'金の穂',colors:[TYPES.ear.colors[0]]},{id:'ear-aqua',label:'水色の穂',colors:[LONG_STAR_PROFILE.headColor]},{id:'ear-blue',label:'青の穂',colors:[LONG_STAR_PALETTES.find(p=>p.id==='long-blue').colors[0]]},{id:'ear-red',label:'赤の穂',colors:[0xff393f]},{id:'ear-orange',label:'オレンジの穂',colors:[0xff8b32]},{id:'ear-purple',label:'紫の穂',colors:[0xb67bff]},{id:'ear-green',label:'緑の穂',colors:[0x67f591]}].map(p=>Object.freeze({...p,colors:Object.freeze(p.colors)})));
-export function paletteOptions(kind){return isCreativeShell(kind)?creativePalettes(kind):kind==='goldflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[0xffc56a,c.color]})):kind==='petalflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[c.color,c.core]})):kind==='silver'?KAMURO_PALETTES:kind==='ear'?RAIN_EAR_PALETTES:(kind==='longstar'||kind==='sparklelarge')?LONG_STAR_PALETTES:kind==='candyburst'?CANDY_PALETTES.filter(p=>p.colors.length===1):(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
+export function paletteOptions(kind){return isPatternShell(kind)?patternPaletteOptions(kind):isCreativeShell(kind)?creativePalettes(kind):kind==='goldflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[0xffc56a,c.color]})):kind==='petalflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[c.color,c.core]})):kind==='silver'?KAMURO_PALETTES:kind==='ear'?RAIN_EAR_PALETTES:(kind==='longstar'||kind==='sparklelarge')?LONG_STAR_PALETTES:kind==='candyburst'?CANDY_PALETTES.filter(p=>p.colors.length===1):(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
 export function shellPalette(kind,id='original'){
  // A visible coloured outer bloom, with gold retained in the inner layer.
  const accents={'gold-accent-blue':0x548bff,'gold-accent-purple':0xb67bff,'gold-accent-pink':0xff73c8,'gold-accent-aqua':0x66ddff};
@@ -109,5 +111,5 @@ export function silverPath(age,radius,shell,dx,dy,dz,index){const travel=radius*
 // Ears are a low landscape effect; their internal simulation size is not a shell rating.
 export function shellDisplayName(kind,size){
  const type=(TYPES[kind]?.label??kind).replace('（軽量テスト）','');
- return kind==='ear'?type:[SIZES[size]?.label,type].filter(Boolean).join(' · ');
+ return kind==='ear'?type:[(isPatternShell(kind)?PATTERN_SIZES[size]:SIZES[size])?.label,type].filter(Boolean).join(' · ');
 }

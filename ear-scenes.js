@@ -1,4 +1,4 @@
-import {landscapeUpperDeck} from './landscape-upper.js';
+import {landscapeUpperDeck} from './landscape-upper.js?v=1.3.10';
 import {variationRandom} from './flower-variation.js';
 import {rainEarSequence} from './rain-ears.js';
 import {EAR_PROFILE} from './golden-ears.js';

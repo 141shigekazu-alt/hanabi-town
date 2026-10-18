@@ -1,4 +1,4 @@
-import {styleHash,styleKind,stylePalette} from './programme-style.js';
+import {styleHash,styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {variationRandom} from './flower-variation.js';
 // Sparse means individual flowers with breathing room, not long empty bars.
 // Compose a timeline rather than deleting shots from an already sparse plan.

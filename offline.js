@@ -1,4 +1,4 @@
-const VERSION='1.3.9';
+const VERSION='1.3.10';
 const button=document.getElementById('offlineSave'),status=document.getElementById('offlineStatus'),progress=document.getElementById('offlineProgress'),reload=document.getElementById('offlineReload'),card=document.getElementById('appUpdate');
 let registrationForOffline,busy=false,checkedOnline=false,setupPromise=null;
 function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{
@@ -19,7 +19,7 @@ function showState(s){
  const details=document.getElementById('offlineDetails');if(details)details.textContent=s.complete?`保存した版：${s.version}。使用量：約${Math.round(s.bytes/1024/1024)}MB。保存した後は、外出前に通信なしでも開けるか確認してください。`:'未保存です。通信できる場所でタイトル下のボタンを押してください。約175MBを保存します。';
 }
 async function refreshWorker(){
- if(!registrationForOffline)registrationForOffline=await navigator.serviceWorker.register(new URL('./offline-sw.js',import.meta.url),{scope:new URL('./',import.meta.url).pathname,updateViaCache:'none'});
+ if(!registrationForOffline)registrationForOffline=await navigator.serviceWorker.register(new URL('./offline-sw.js?v=1.3.10',import.meta.url),{scope:new URL('./',import.meta.url).pathname,updateViaCache:'none'});
  checkedOnline=false;try{await registrationForOffline.update();checkedOnline=navigator.onLine;}catch{}
  const candidate=registrationForOffline.installing??registrationForOffline.waiting;
  if(candidate&&!['activated','redundant'].includes(candidate.state))await new Promise((resolve,reject)=>{

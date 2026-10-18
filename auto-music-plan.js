@@ -1,19 +1,21 @@
+import {addPatternPassages} from './pattern-programmes.js?v=1.3.10';
+import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
 import {limitProgrammeCapacity} from './programme-capacity.js';
-import {requestedFinale} from './voice-finale.js';
-import {voiceProgrammeStyle} from './voice-request.js';
-import {addGoldAccents} from './gold-accents.js';
-import {directVoicePlan} from './voice-director.js';
-import {drawProgrammeStyle} from './programme-style.js';
-import {naturalProgrammeOpening,applyProgrammeStyle} from './style-programmes.js';
+import {requestedFinale} from './voice-finale.js?v=1.3.10';
+import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
+import {addGoldAccents} from './gold-accents.js?v=1.3.10';
+import {directVoicePlan} from './voice-director.js?v=1.3.10';
+import {drawProgrammeStyle} from './programme-style.js?v=1.3.10';
+import {naturalProgrammeOpening,applyProgrammeStyle} from './style-programmes.js?v=1.3.10';
 import {isCreativeShell,creativePoints} from './creative-shells.js';
-import {addEarPassages} from './ear-programmes.js';
+import {addEarPassages} from './ear-programmes.js?v=1.3.10';
 import {flowerPalette} from './retired-shells.js';
 import {petalGeometry} from './flower-scenes.js';
 import {addFlowerPassages} from './flower-programmes.js';
 import {directMusicFeeling,musicFeeling} from './music-feeling.js';
 import {automaticRepeatHeads} from './auto-repeat-heads.js?v=1.3.1';
-import {createSlowMusicPlan} from './auto-music-slow.js?v=1.3.1';
-import {SIZES,TYPES,EAR_PROFILE} from './fireworks.js?v=1.3.1';
+import {createSlowMusicPlan} from './auto-music-slow.js?v=1.3.10';
+import {SIZES,TYPES,EAR_PROFILE} from './fireworks.js?v=1.3.10';
 import {longStarCounts,longStarLife} from './long-stars.js?v=1.3.1';
 import {sparkleCounts,sparkleLife} from './sparkling-stars.js?v=1.3.1';
 import {createCometPattern} from './comets.js?v=1.3.1';
@@ -22,6 +24,7 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const round=x=>+x.toFixed(4)||0;
 export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
 export function shellPoints(kind,size,wide=false,starDensity=1){
+ if(isPatternShell(kind))return patternStarCount(kind)*PATTERN_PROFILE.trails;
  if(isCreativeShell(kind))return creativePoints(kind,size);
  if(kind==='ear')return EAR_PROFILE.stars*EAR_PROFILE.trails;
  if(kind==='petalflower'||kind==='goldflower'){const p=petalGeometry(size);return(p.rays*p.strands+p.coreStars)*p.trails;}
@@ -255,5 +258,5 @@ export function createAutoMusicPlan(analysis,options={}){
  const helpers={shellTiming,shellPoints,planBudget};
  const voiced=directVoicePlan(result,options.voiceRequest,helpers);
  const opened=naturalProgrammeOpening(voiced,helpers);
- return addGoldAccents(limitProgrammeCapacity(opened,helpers),helpers);
+ return addPatternPassages(addGoldAccents(limitProgrammeCapacity(opened,helpers),helpers),analysis,directedOptions,helpers);
 }

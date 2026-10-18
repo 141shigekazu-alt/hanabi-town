@@ -1,4 +1,4 @@
-import {panelTheme,panelGradient} from './panel-theme.js';
+import {panelTheme,panelGradient} from './panel-theme.js?v=1.3.10';
 // Shared canvas treatment: same quad, texture size and single-pass material.
 // There is no scene copy, backdrop blur, render target or postprocess here.
 let glass=true;

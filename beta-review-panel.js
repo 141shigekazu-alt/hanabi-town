@@ -1,7 +1,7 @@
-import {drawPanelSurface} from './panel-surface.js';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.10';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
-import {ShowInfoPanel} from './show-info.js?v=1.1.0';
+import {ShowInfoPanel} from './show-info.js?v=1.3.10';
 
 // Moving the review panel never changes the show, viewpoint or playback state.
 export function attachBetaPanelDrag(panel,handle,viewport){
