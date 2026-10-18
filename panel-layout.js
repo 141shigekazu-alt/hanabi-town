@@ -1,5 +1,5 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js?v=1.3.11';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.12';
 import {mountHelp} from './help-content.js?v=1.3.11';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
@@ -76,7 +76,9 @@ export function organizePanel(){
  $('showInfo').hidden=true;const tc=make('button',{id:'showTC'},'TC・玉名を表示');card.append(tc);
  const views=details($('browserPage2'),'眺め方を変える','showViews');
  for(const id of ['diorama','boat','boatStart','bridge','rooftop','showInfo','showTC','viewHint'])move(views,id);
- const roofSeats=make('div',{id:'rooftopSeats',className:'roof-seats',hidden:true});roofSeats.setAttribute('role','group');roofSeats.setAttribute('aria-label','屋上の席');
+ const scenery=details($('browserPage2'),'景色の表示','sceneryDetails');
+ const sceneryToggle=make('button',{id:'townSceneryToggle'},'街を消す（花火だけ）');sceneryToggle.setAttribute('aria-pressed','false');scenery.append(sceneryToggle,make('small',{},'背景の透け具合は「部屋の明るさ」で調整できます。'));
+ const roofSeats=make('div' ,{id:'rooftopSeats',className:'roof-seats',hidden:true});roofSeats.setAttribute('role','group');roofSeats.setAttribute('aria-label','屋上の席');
  roofSeats.append(make('button',{id:'roofNear'},'近い席（標準）'),make('button',{id:'roofPanorama'},'全景の席'));$('rooftop').after(roofSeats);
  const flower=make('section',{id:'flowerStudyCard',className:'show-card'});$('browserPage1').prepend(flower);
  flower.append(make('h2',{},'花を咲かせる · 演出試作'));

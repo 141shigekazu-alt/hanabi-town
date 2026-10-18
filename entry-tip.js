@@ -1,5 +1,5 @@
-import {drawPanelSurface} from './panel-surface.js?v=1.3.11';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.11';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.12';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.12';
 import * as T from './vendor/three.module.js';
 
 const W=1024,H=420,PREFERENCE='hanabi-town-entry-tip-hidden';

@@ -1,6 +1,6 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.11';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.12';
 import {helpTopic,helpPages} from './help-content.js?v=1.3.11';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.11';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.12';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -465,6 +465,7 @@ export class MRPanel{
    this.slider('roomBrightness','部屋の明るさ',674,s.roomBrightness,{compact:true});
    this.selector('towerColor','塔のライトアップ',785,s.towerColor);
    this.selector('panelTheme','パネルの配色',994,s.panelTheme);
+   this.button('townSceneryToggle',s.sceneryVisible?'街を消す（花火だけ）':'街を戻す',28,1104,744,48,()=>this.click('townSceneryToggle'),{quiet:true,selected:!s.sceneryVisible});
    if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
    this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));}
   }else{
