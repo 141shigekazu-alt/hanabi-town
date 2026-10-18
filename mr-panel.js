@@ -258,13 +258,15 @@ export class MRPanel{
  }
  slider(id,label,y,state,{compact=false}={}){
   const c=this.ctx,value=Math.max(0,Math.min(1,state.value)),trackX=60,trackW=680,seek=id==='betaMusicSeek',offset=compact?32:60;
+  c.save();if(state.disabled)c.globalAlpha=.4;
   this.text(label,32,y,compact?24:28,seek?'#f8bea4':panelTheme().text,seek?736:580);
   if(!seek)this.text(Math.round(value*100)+'%',660,y,compact?25:32,panelTheme().accent);
   c.fillStyle=panelTheme().track;c.beginPath();c.roundRect(trackX,y+offset-6,trackW,12,6);c.fill();
   c.fillStyle=panelGradient(c,trackX,y,trackW,0,panelTheme().highlight);c.beginPath();c.roundRect(trackX,y+offset-6,Math.max(1,value*trackW),12,6);c.fill();
   c.fillStyle=panelTheme().knob;c.beginPath();c.arc(trackX+value*trackW,y+offset,compact?17:21,0,Math.PI*2);c.fill();
-  this.controls.push({id,x:28,y:y+offset-27,w:744,h:54,slider:true,trackX,trackW});
+  if(!state.disabled)this.controls.push({id,x:28,y:y+offset-27,w:744,h:54,slider:true,trackX,trackW});
   if(!compact){this.text(seek?'はじめ':id==='roomBrightness'?'暗い':'小さい',32,y+115,23,panelTheme().muted);this.text(seek?'曲末':id==='roomBrightness'?'明るい':'大きい',660,y+115,23,panelTheme().muted);}
+  c.restore();
  }
 
  wrap(text,x,y,maxWidth,lines=3,lineHeight=34,color=panelTheme().muted,size=23){
