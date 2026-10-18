@@ -1,10 +1,11 @@
+import {MRReturnTrace} from './mr-return-trace.js?v=1.3.5';
 import {MRReturnAnchor} from './mr-return-anchor.js';
 import {captureTownPlacement,restoreTownPlacement,placementDelta,restoreRelativePlacement} from './mr-return.js';
 import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js';
 import {voiceProgrammeStyle} from './voice-request.js';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.4';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.5';
 import {styleKind,stylePalette} from './programme-style.js';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -19,7 +20,7 @@ import {mountFavorites} from './favorites-ui.js';
 import {FavoritesPanel} from './favorites-panel.js';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.4';
+import {organizePanel} from './panel-layout.js?v=1.3.5';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.4';
@@ -54,6 +55,7 @@ import {XRControls} from './xr-controls.js?v=1.3.1';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.1';
 import {EntryTip} from './entry-tip.js?v=1.3.1';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
+const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
 const SMALL_STYLE_LABELS={...Object.fromEntries(TORA_MOUNTAIN_COLORS.map(c=>[c.id,c.label+'の星・'+(c.id==='mountain-gold'?'金':'銀')+'の尾'])),'tora-row-mix':'桃・水色・緑の列',...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
@@ -911,6 +913,15 @@ try{const saved=JSON.parse(localStorage.getItem('hanabi-town-settings')||'{}');c
 setTowerColor();syncSize();syncPalette();syncFireworkVolume();$('programInfo').textContent=PROGRAM_NAMES[$('program').value];
 for(const id of settingsIds)$(id).addEventListener('change',()=>{if(dioramaSaved)return;try{localStorage.setItem('hanabi-town-settings',JSON.stringify(Object.fromEntries(settingsIds.map(id=>[id,$(id).value]))));}catch{}});
 let pendingDiorama=false,pendingPlace=false,mrStarting=false,mrSession=null,mrMetrics=null,mrMeta=null,lastMRReport=null,latestViewerTransform=null,pendingViewMode=null,pendingPanelOpen=false,pendingPanelPage=0,pendingBridge=false,vrSupported=false,pendingRenameReturn=null;
+function mrReturnState(){
+ try{return {session:mrReturnTrace.sessionId(mrSession),xrPresenting:renderer.xr.isPresenting,xrVisibility:mrSession?.visibilityState??null,documentHidden:document.hidden,starting:mrStarting,pendingPlace,pendingPanels:pendingPanelOpen,hasReturn:!!pendingRenameReturn,hasSnapshot:!!renameResume,hasAnchor:!!pendingRenameReturn?.anchor,townVisible:town.visible,townFinite:[...town.position.toArray(),...town.quaternion.toArray(),...town.scale.toArray()].every(Number.isFinite),viewer:latestViewerTransform?{position:[latestViewerTransform.position.x,latestViewerTransform.position.y,latestViewerTransform.position.z]}:null,town:{position:town.position.toArray(),quaternion:town.quaternion.toArray(),scale:town.scale.toArray()},view:bridgeView.active?bridgeView.mode:'miniature',lastFrameAgeMs:mrReturnTrace.lastFrameAt===null?null:Math.round(performance.now()-mrReturnTrace.lastFrameAt)};}catch{return {stateUnavailable:true};}
+}
+addEventListener('error',event=>{if(!mrReturnState().stateUnavailable&&(mrSession||mrStarting||renameResume))mrReturnTrace.record('frame-error',{message:String(event.message??'').slice(0,600),file:event.filename,line:event.lineno,stack:String(event.error?.stack??'').slice(0,1600),state:mrReturnState()});});
+addEventListener('unhandledrejection',event=>{if(!mrReturnState().stateUnavailable&&(mrSession||mrStarting||renameResume))mrReturnTrace.record('unhandled-rejection',{message:String(event.reason?.message??event.reason??'').slice(0,600),stack:String(event.reason?.stack??'').slice(0,1600),state:mrReturnState()});});
+$('mrReturnLogExport').onclick=()=>{
+ const report={...mrReturnTrace.snapshot(),current:mrReturnState(),userAgent:navigator.userAgent},blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='hanabi-mr-return-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
 // Retain the rename snapshot independently of the temporary browser dialog.
 // Either MR entry button may resume it; consume it only after the first frame
 // restores both town and panels, so a denied/failed entry can be retried.
@@ -1141,6 +1152,7 @@ function showBrowserEntrance(){
  setPanelTab(4);$('panel').scrollTop=0;
 }
 function finishMR(){
+ mrReturnTrace.record('session-end',{state:mrReturnState()});
  soundEngine?.setSpatialMode?.(/OculusBrowser/.test(navigator.userAgent)&&new URLSearchParams(location.search).get('spatial')!=='full'?'adaptive':'full');
  cancelMusicRequest();
  if(previewing&&!previewPaused){previewPaused=true;cancelFutureSounds();}
@@ -1161,25 +1173,31 @@ async function startXR(mode,bridge=false,panelPage=0,{renameReturn=null}={}){
   panelPage=renameReturn.main.page;mode=renameReturn.sessionMode??mode;
   mrNameEditor.close();
  }
+ mrReturnTrace.record('entry-request',{mode,returning:!!renameReturn,state:mrReturnState()});
  mrStarting=true;$('mr').disabled=true;$('bridge').disabled=true;
  let session;
  try{
   ensureAudio();if(bridgeView.active)leaveBridge();if(dioramaSaved){toggleDiorama();pendingDiorama=true;}desktopCamera.position.copy(camera.position);desktopCamera.quaternion.copy(camera.quaternion);desktopCamera.fov=camera.fov;
   session=await navigator.xr.requestSession(mode,mrNameEditor.sessionOptions());
+  mrReturnTrace.record('session-created',{session:mrReturnTrace.sessionId(session),mode});
   session.addEventListener('end',finishMR,{once:true});
   session.addEventListener('visibilitychange',()=>{previous=0;mrMetrics?.breakWindow();if(session.visibilityState!=='visible'){pauseMusicForVisibility();triggerEmbers.clear();controls.release();controls.edges=new WeakMap();mrPanel.release();showInfo.release();betaReviewPanel.release();wristMenu.gesture.reset();}});
   await renderer.xr.setSession(session);soundEngine?.setSpatialMode?.(new URLSearchParams(location.search).get('spatial')==='full'?'full':'adaptive');mrSession=session;showInfo.reanchor();mrStarting=false;$('bridge').disabled=false;mrMetrics=new XRMetrics();
   mrMeta={build:BUILD_VERSION,sessionMode:mode,nameEditor:session.domOverlayState?.type??'browser-fallback',startedAt:new Date().toISOString(),environmentBlendMode:session.environmentBlendMode,userAgent:navigator.userAgent,measurement:'XR callback FPS and animation/UI update + render CPU time; not GPU/compositor FPS',initialSettings:mrSettings(),placements:[],viewChanges:[]};
-  applyViewBackground();town.visible=false;void renameAnchor.beginSession(session,renameReturn?.anchorHandle);
+  applyViewBackground();town.visible=false;mrReturnTrace.record('town-hidden-for-entry',{state:mrReturnState()});
+  for(const delay of [1500,4500])setTimeout(()=>{if(mrSession===session&&(!town.visible||mrReturnTrace.lastFrameAt===null||performance.now()-mrReturnTrace.lastFrameAt>1500))mrReturnTrace.record('entry-still-pending',{delay,state:mrReturnState()});},delay);
+  void renameAnchor.beginSession(session,renameReturn?.anchorHandle);
   // Keep each asynchronous restore local until this session is still current.
   // An older, ended attempt must not overwrite the next retry's live anchor.
+  mrReturnTrace.record('anchor-restore-start',{session:mrReturnTrace.sessionId(session),hasHandle:!!renameReturn?.anchorHandle});
   const restoredAnchor=renameReturn?.anchorHandle?await renameAnchor.restore(session,renameReturn.anchorHandle):null;
+  mrReturnTrace.record('anchor-restore-finished',{session:mrReturnTrace.sessionId(session),restored:!!restoredAnchor});
   if(mrSession!==session){void renameAnchor.discard(session,renameReturn===renameResume?null:renameReturn?.anchorHandle,restoredAnchor);return;}
   if(renameReturn){renameReturn.anchor=restoredAnchor;renameReturn.anchorUntil=performance.now()+2000;}
-  pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;pendingPanelPage=panelPage;pendingRenameReturn=renameReturn;previous=0;$('mrExport').disabled=false;
+  pendingPlace=true;pendingBridge=bridge;pendingPanelOpen=true;pendingPanelPage=panelPage;pendingRenameReturn=renameReturn;previous=0;$('mrExport').disabled=false;mrReturnTrace.record('placement-queued',{state:mrReturnState()});
   // Enter the room with an unlit sky; only the explicit show button starts it.
   if(!bridge&&!renameReturn){const armed=favoriteRun?.armed?favoriteRun:null;if(armed)favoriteRun=null;stopShow();if(armed){favoriteRun=armed;favoritesUI?.setFestival('大会の準備完了 · '+armed.rows.length+'曲');}$('chapter').textContent='開演前 · 街を眺める';$('last').textContent='好きな位置に街を置いてください';$('status').textContent=panelPage===4?'曲はまだ始まりません。街を好きな位置へ置いてから、「'+$('musicShow').textContent+'」で開演してください。':'まずは街をじっくりどうぞ。台座へビームを合わせ、グリップで掴めます。サイドパネルの「花火大会を観る」で開演します。';}
- }catch(e){if(session)await session.end().catch(()=>{});if(pendingDiorama&&!dioramaSaved){pendingDiorama=false;toggleDiorama();}mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
+ }catch(e){mrReturnTrace.record('entry-failed',{message:String(e.message??e),stack:String(e.stack??'').slice(0,1600),state:mrReturnState()});if(session)await session.end().catch(()=>{});if(pendingDiorama&&!dioramaSaved){pendingDiorama=false;toggleDiorama();}mrStarting=false;$('mr').disabled=false;$('bridge').disabled=false;$('status').textContent='鑑賞を開始できませんでした：'+e.name+'：'+e.message;}
 }
 $('mr').onclick=()=>startXR('immersive-ar');
 $('bridge').onclick=()=>{
@@ -1209,6 +1227,7 @@ syncViewControls();checkMR();if(new URLSearchParams(location.search).has('boatVi
 const walkKeys=new Set();addEventListener('keydown',e=>{if(!/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName??''))walkKeys.add(e.code);});addEventListener('keyup',e=>walkKeys.delete(e.code));addEventListener('blur',()=>walkKeys.clear());
 let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  const session=renderer.xr.getSession();const pose=frame?frame.getViewerPose(renderer.xr.getReferenceSpace()):null;
+ mrReturnTrace.frame(session,pose);
  const xrVisible=(!session||(session.visibilityState==='visible'&&pose!==null))&&!document.hidden;
  panelSurfaceTrial?.before(stamp,!!frame&&xrVisible&&!running&&!previewing&&mrPanel.visible);
  if(!xrVisible)pauseMusicForVisibility();
@@ -1219,19 +1238,19 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if(frame&&xrVisible)renameAnchor.frame(frame,renderer.xr.getReferenceSpace(),session);
  let renamePose=null;const pendingReturn=pendingRenameReturn;
  if(pendingReturn?.anchor){try{renamePose=frame?.getPose(pendingReturn.anchor.anchorSpace,renderer.xr.getReferenceSpace())?.transform??null;}catch{}}
- const waitingForRenameAnchor=pendingReturn?.anchor&&!renamePose&&stamp<pendingReturn.anchorUntil;
+ const waitingForRenameAnchor=pendingReturn?.anchor&&!renamePose&&performance.now()<pendingReturn.anchorUntil;
  if(pendingPlace&&pose&&!waitingForRenameAnchor){
   showInfo.reanchor();
   const returning=pendingRenameReturn;
   if(returning?.town){
-   restoreRenameTown(returning,pose.transform,renamePose);void renameAnchor.discard(session,returning.anchorHandle,returning.anchor);returning.anchor=null;
+   mrReturnTrace.record('restore-town-begin',{anchorPose:!!renamePose,state:mrReturnState()});restoreRenameTown(returning,pose.transform,renamePose);mrReturnTrace.record('restore-town-complete',{state:mrReturnState()});void renameAnchor.discard(session,returning.anchorHandle,returning.anchor);returning.anchor=null;
   }else{
    const placement=placementFromPose(pose.transform,Number($('distance').value),Number($('height').value),town.rotation.y,-groundBottomY*town.scale.y);
    town.position.set(placement.x,placement.y,placement.z);town.rotation.y=placement.yaw;
    mrMeta?.placements.push({showTime:time,...mrSettings(),eyeHeight:placement.eyeHeight});
    if(pendingDiorama){pendingDiorama=false;toggleDiorama();}
   }
-  town.visible=true;pendingPlace=false;
+  town.visible=true;pendingPlace=false;mrReturnTrace.record('town-shown',{state:mrReturnState()});
   if(pendingBridge){enterBridge(pose.transform,pendingBridge===true?'bridge':pendingBridge);pendingBridge=false;}
  }
  if(pendingPanelOpen&&pose&&!pendingPlace){
@@ -1241,7 +1260,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
   // A deliberate entry into a different view also consumes an old return.
   else if(renameResume){void renameAnchor.discard(session,renameResume.anchorHandle,renameResume.anchor);renameResume=null;}
   else if(mrMeta?.sessionMode==='immersive-ar'&&!bridgeView.active)entryTip.begin(pose.transform,stamp);
-  pendingPanelOpen=false;
+  pendingPanelOpen=false;mrReturnTrace.record('entry-complete',{state:mrReturnState()});
  }
  // Once boarded, the boat keeps cruising through view changes. A user pause still holds it.
  const boatPaused=(previewing&&previewPaused)||!!showPlan&&!running&&!showCompleted;
@@ -1641,6 +1660,7 @@ async function renameFavoriteFromMR(id,kind='favorite'){
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind});return;}
  // System keyboard focus suspends XR input on this device. Keep partial text
  // editing native, rather than pretending the canvas has a working caret.
+ mrReturnTrace.record('name-edit-request',{state:mrReturnState()});
  const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();returning.sessionMode=mode;renameResume=returning;renameExiting=true;
  try{
   returning.anchorHandle=await renameAnchor.capture(session,returning.town);await session.end();
@@ -1684,6 +1704,7 @@ async function renameSelectedTrack(){
  $('trackMenu').hidden=true;$('trackMenuToggle').setAttribute('aria-expanded','false');mrPanel.draw();
  const row={id,name:track.title};
  if(!mrSession||mrSession.domOverlayState){mrNameEditor.open(row,mrSession,{kind:'track'});return;}
+ mrReturnTrace.record('name-edit-request',{state:mrReturnState()});
  const session=mrSession,mode=mrMeta?.sessionMode??'immersive-ar',returning=captureRenamePanels();returning.sessionMode=mode;renameResume=returning;renameExiting=true;
  try{returning.anchorHandle=await renameAnchor.capture(session,returning.town);await session.end();mrNameEditor.open(row,null,{kind:'track',returnToMR:()=>{void startXR(mode,false,returning.main.page,{renameReturn:returning});}});}
  catch(error){if(renameResume===returning)renameResume=null;void renameAnchor.discard(session,returning.anchorHandle);$('showNotice').textContent='曲名の編集を開けませんでした：'+error.message;}finally{renameExiting=false;}

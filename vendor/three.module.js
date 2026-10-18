@@ -13611,9 +13611,14 @@ function WebGLAnimation() {
 
 	function onAnimationFrame( time, frame ) {
 
-		animationLoop( time, frame );
+		if ( isAnimating === false ) return;
 
+		// Reserve the next frame before application/XR work can throw. A
+		// transient pose failure must not strand an active session with no RAF.
+		// stop() can still cancel this reservation during session teardown.
 		requestId = context.requestAnimationFrame( onAnimationFrame );
+
+		animationLoop( time, frame );
 
 	}
 

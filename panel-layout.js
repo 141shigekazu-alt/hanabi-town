@@ -4,6 +4,7 @@ import {mountHelp} from './help-content.js';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
  const $=id=>document.getElementById(id),make=(tag,attrs={},text='')=>{const el=document.createElement(tag);Object.assign(el,attrs);el.textContent=text;return el;};
+ $('mrExport').after(make('button',{id:'mrReturnLogExport'},'MR復帰の記録を保存'));
  const move=(parent,id)=>parent.append($(id));
  const field=(parent,id)=>parent.append($(id).closest('label'));
  const details=(parent,title,id)=>{const el=make('details',{id});el.append(make('summary',{},title));parent.append(el);return el;};
