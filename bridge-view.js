@@ -5,6 +5,7 @@ import {EITAI_ANGLE} from './city-layout.js';
 // Town units are authored for the miniature. XR cameras, controllers and UI
 // always stay in physical metres; only the town is enlarged around the viewer.
 export const BRIDGE_SCALE=100,SEATED_EYE_HEIGHT=1.2;
+export const TURN_SPEED=Math.PI/4; // Full stick: 45 degrees per second.
 export const ROOFTOP_POSTURE=Object.freeze({standLift:.5,sitRadius:.42,leaveRadius:.65,frequency:5});
 // Move the seated viewpoint 2.125 metres left along the deck, midway between adjacent hangers.
 const bridgeAngle=EITAI_ANGLE;
@@ -80,6 +81,22 @@ export class BridgeView{
   const step=localStep.applyAxisAngle(up,angle).applyQuaternion(this.town.quaternion);
   if(viewer)this.town.position.sub(step);else this.camera.position.add(step);
   this.walk.add(step);this.town.updateWorldMatrix(true,false);
+ }
+ // Rotate the enlarged world around the current headset, not the original
+ // seat. Keep the same local eye position, floor height and chair travel.
+ turn(x,dt,viewer){
+  if(!this.active||!this.saved?.xr||!viewer||!Number.isFinite(x)||!x||!(dt>0))return;
+  const angle=T.MathUtils.clamp(x,-1,1)*TURN_SPEED*Math.min(dt,.05);
+  const pivot=new T.Vector3(viewer.position.x,viewer.position.y,viewer.position.z);
+  const rotation=new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),angle);
+  this.town.position.sub(pivot).applyQuaternion(rotation).add(pivot);
+  this.town.quaternion.premultiply(rotation);
+  this.walk.applyQuaternion(rotation);
+  if(this.mode==='boat'){
+   this.cruiseYaw+=angle;
+   this.cruiseAnchor.sub(pivot).applyQuaternion(rotation).add(pivot);
+  }
+  this.town.updateWorldMatrix(true,false);
  }
  // Chair zones follow stick travel, so looking or leaning over the rail does
  // not make the viewer stand. Preserve the headset's natural tracking height.
