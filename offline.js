@@ -1,4 +1,4 @@
-const VERSION='1.3.5';
+const VERSION='1.3.6';
 const button=document.getElementById('offlineSave'),status=document.getElementById('offlineStatus'),progress=document.getElementById('offlineProgress'),reload=document.getElementById('offlineReload'),card=document.getElementById('appUpdate');
 let registrationForOffline,busy=false,checkedOnline=false,setupPromise=null;
 function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{
@@ -11,7 +11,7 @@ function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{
 function showState(s){
  const latest=s.latestVersion??VERSION,isLatest=s.latestSaved??s.version===latest,needsReload=s.complete&&isLatest&&s.version!==VERSION;
  button.disabled=false;button.hidden=needsReload;button.textContent='最新版に更新・保存';reload.hidden=!needsReload;
- if(needsReload){card.dataset.state='reload';status.textContent=`${s.version}の保存が完了しています。再読み込みで新しい版へ切り替わります。`;}
+ if(needsReload){card.dataset.state='reload';status.textContent=`${s.version}の保存が完了しました。`;status.append(document.createElement('br'),'ブラウザをリロードしてください。');}
  else if(s.complete&&isLatest&&checkedOnline){card.dataset.state='ready';status.textContent=`最新版を保存済み · ${s.version}。Wi-Fiなしでも開けます。`;}
  else if(s.complete&&!isLatest&&checkedOnline){card.dataset.state='update-available';status.textContent=`新しい版 ${latest}があります。保存済み：${s.version}。上のボタンで更新できます。`;}
  else if(s.complete){card.dataset.state='offline';status.textContent=`保存済み ${s.version}。通信できる時に最新版を確認・更新できます。`;}
