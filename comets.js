@@ -1,9 +1,10 @@
+import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
 import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.3.1';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
-import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.1.16';
+import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.13';
 
 // An independent stream: ground shots cannot change the shapes of upper shells.
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
@@ -89,6 +90,7 @@ export class CometField{
   this.headMaterial=new T.PointsMaterial({color:0xffffff,size:.050,vertexColors:true,map:headMaps?.miniature??map,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
   this.tailMaterial=new T.PointsMaterial({color:0xffffff,size:.014,vertexColors:true,map,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
   this.glowMaterial=new T.PointsMaterial({color:0xffffff,size:.105,opacity:.20,vertexColors:true,map,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
+  for(const material of [this.headMaterial,this.tailMaterial,this.glowMaterial])omitUnlitFragments(material);
   bridge.point(this.headMaterial,headMaps);bridge.point(this.tailMaterial);bridge.point(this.glowMaterial);
   this.heads=new T.Points(this.headGeometry,this.headMaterial);this.tails=new T.Points(this.tailGeometry,this.tailMaterial);this.glow=new T.Points(this.headGeometry,this.glowMaterial);
   for(const p of [this.tails,this.glow,this.heads]){p.frustumCulled=false;p.visible=false;town.add(p);}

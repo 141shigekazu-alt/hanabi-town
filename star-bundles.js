@@ -1,3 +1,4 @@
+import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
 import {TORA_SMALL_PATTERNS,createToraSmallPattern,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.2.17';
@@ -94,6 +95,7 @@ export class StarBundleField{
   this.headGeometry=geometry(this.headPositions,this.headColors);this.tailGeometry=geometry(this.tailPositions,this.tailColors);
   const material=(size,opacity=1)=>new T.PointsMaterial({color:0xffffff,size,opacity,vertexColors:true,map,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
   this.headMaterial=material(.022);this.headMaterial.map=headMaps?.miniature??map;this.tailMaterial=material(.009);this.glowMaterial=material(.046,.10);
+  for(const material of [this.headMaterial,this.tailMaterial,this.glowMaterial])omitUnlitFragments(material);
   bridge.point(this.headMaterial,headMaps);bridge.point(this.tailMaterial);bridge.point(this.glowMaterial);
   this.heads=new T.Points(this.headGeometry,this.headMaterial);this.tails=new T.Points(this.tailGeometry,this.tailMaterial);this.glow=new T.Points(this.headGeometry,this.glowMaterial);
   for(const p of [this.tails,this.glow,this.heads]){p.frustumCulled=false;p.visible=false;town.add(p);}

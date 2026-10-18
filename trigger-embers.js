@@ -1,3 +1,4 @@
+import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {isPatternShell,patternSizes,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
 import {creativeSizes,isCreativeShell,creativePoints} from './creative-shells.js';
 import {petalGeometry} from './flower-scenes.js';
@@ -69,6 +70,7 @@ export class TriggerEmbers{
   this.colors=new Float32Array(this.positions.length);
   this.geometry=new T.BufferGeometry();this.geometry.setAttribute('position',new T.BufferAttribute(this.positions,3));this.geometry.setAttribute('color',new T.BufferAttribute(this.colors,3));
   this.material=new T.PointsMaterial({size:6,sizeAttenuation:false,map,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});
+  omitUnlitFragments(this.material);
   this.points=new T.Points(this.geometry,this.material);this.points.frustumCulled=false;this.points.visible=false;scene.add(this.points);
   this.local=new T.Vector3();this.world=new T.Vector3();
  }

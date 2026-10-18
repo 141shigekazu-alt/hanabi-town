@@ -1,6 +1,6 @@
 import {styleHash} from './programme-style.js?v=1.3.10';
-import {styleProtected} from './style-programmes.js?v=1.3.10';
-import {groundReservation} from './flower-programmes.js';
+import {styleProtected} from './style-programmes.js?v=1.3.13';
+import {groundReservation} from './flower-programmes.js?v=1.3.13';
 
 const starKinds=['longstar','sparklelarge'];
 const colors=['gold-accent-blue','gold-accent-purple','gold-accent-pink','gold-accent-aqua'];

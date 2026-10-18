@@ -1,7 +1,7 @@
-import {addSeaBase} from './sea-base-programmes.js?v=1.3.10';
+import {addSeaBase} from './sea-base-programmes.js?v=1.3.13';
 import {EAR_FIELD_LIMIT,EAR_FIELD_POINT_LIMIT,earProgrammeFits} from './ear-capacity.js';
 import {earLandscape,earScene,seaSunsetPassage} from './ear-scenes.js?v=1.3.10';
-import {flowerProgrammeBudget} from './flower-programmes.js';
+import {flowerProgrammeBudget} from './flower-programmes.js?v=1.3.13';
 const overlap=(a,b)=>a.start<b.end&&a.end>b.start,round=x=>+x.toFixed(4);
 function islands(region,blocks){let windows=[region];for(const b of blocks){const next=[];for(const w of windows){if(!overlap(w,b)){next.push(w);continue;}if(b.start>w.start)next.push({...w,end:Math.min(w.end,b.start)});if(b.end<w.end)next.push({...w,start:Math.max(w.start,b.end)});}windows=next;}return windows;}
 // Reserve real passages after feeling direction, before the flower-bed pass.

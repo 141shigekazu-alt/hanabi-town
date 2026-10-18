@@ -1,5 +1,5 @@
 import {drawProgrammeStyle,styleHash,styleKind,stylePalette,stylePosition,shellFamily} from './programme-style.js?v=1.3.10';
-import {groundReservation} from './flower-programmes.js';
+import {groundReservation} from './flower-programmes.js?v=1.3.13';
 import {TYPES} from './fireworks.js?v=1.3.10';
 const overlap=(a,b)=>a.start<b.end&&b.start<a.end;
 // Keep accepted landscape beds, chorus timing/replies and the final tableau.

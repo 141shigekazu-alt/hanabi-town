@@ -1,5 +1,5 @@
-import {createCometPattern} from './comets.js';
-import {createStarBundlePattern} from './star-bundles.js';
+import {createCometPattern} from './comets.js?v=1.3.13';
+import {createStarBundlePattern} from './star-bundles.js?v=1.3.13';
 export const MUSIC_FEELINGS=[
  {value:'auto',label:'自動 · 曲に合わせる',description:'解析したテンポと強弱から組みます。'},
  {value:'sentimental',label:'切ない・しっとり',description:'冒頭は一輪ずつ、余韻と空白から。サビでは広がります。'},

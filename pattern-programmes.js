@@ -1,6 +1,6 @@
 import {variationRandom} from './flower-variation.js';
 import {PATTERN_PROFILE,patternPalettes,patternPaletteOptions} from './pattern-shells.js?v=1.3.10';
-import {groundReservation} from './flower-programmes.js';
+import {groundReservation} from './flower-programmes.js?v=1.3.13';
 export const PATTERN_MODES=[{id:'heart',label:'ハート10連発'},{id:'double',label:'二重ハート10連発'},{id:'hearts',label:'ハート２種を混ぜて10連発'},{id:'mixed',label:'ハートとニコちゃん10連発'},{id:'smile',label:'ニコちゃん10連発'}];
 export function patternChoiceRequest(kind='mixed',amount='little'){
  const modes={heart:'ハート',double:'二重ハート',smile:'ニコちゃん',mixed:'ハートとニコちゃん'},amounts={little:'少し',more:'多めに',lots:'たくさん'};

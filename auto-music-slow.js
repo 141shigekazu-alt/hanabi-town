@@ -1,8 +1,8 @@
 import {requestedFinale} from './voice-finale.js?v=1.3.10';
 import {automaticRepeatHeads} from './auto-repeat-heads.js?v=1.3.1';
 import {SIZES,TYPES} from './fireworks.js?v=1.3.10';
-import {createCometPattern} from './comets.js?v=1.3.1';
-import {createStarBundlePattern} from './star-bundles.js?v=1.3.1';
+import {createCometPattern} from './comets.js?v=1.3.13';
+import {createStarBundlePattern} from './star-bundles.js?v=1.3.13';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),round=x=>+x.toFixed(4)||0;
 // A slow song needs phrases with space and a stable colour, not a slowed volley.
 // No song names, lyrics or authored timecodes enter this director.
