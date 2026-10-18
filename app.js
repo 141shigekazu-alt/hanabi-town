@@ -1,4 +1,4 @@
-import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.10';
+import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.11';
 import {isPatternShell,patternSizes,PATTERN_PROFILE,PATTERN_SIZES,createPatternStars,samplePatternPose,patternPoint} from './pattern-shells.js?v=1.3.10';
 import {MRReturnTrace} from './mr-return-trace.js?v=1.3.5';
 import {MRReturnAnchor} from './mr-return-anchor.js';
@@ -7,7 +7,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.10';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.11';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -15,19 +15,19 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.10';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.11';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.10';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.11';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.10';
+import {organizePanel} from './panel-layout.js?v=1.3.11';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
-import {mountAutoMusic} from './auto-music-ui.js?v=1.3.10';
+import {mountAutoMusic} from './auto-music-ui.js?v=1.3.11';
 import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.1';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.10';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.11';
 import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.1';
 import {rainEarSequence} from './rain-ears.js?v=1.3.1';
 import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.1';
@@ -46,16 +46,16 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.1';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.10';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.11';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.7';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.10';
-import {XRControls} from './xr-controls.js?v=1.3.10';
+import {WristMenu} from './wrist-menu.js?v=1.3.11';
+import {XRControls} from './xr-controls.js?v=1.3.11';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.10';
-import {EntryTip} from './entry-tip.js?v=1.3.10';
+import {EntryTip} from './entry-tip.js?v=1.3.11';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -821,7 +821,14 @@ function advance(dt){
  const awaitingEar=showPlan?.voiceRequest?.density!=='sparse'&&time>=140&&time<155&&!burstSlots.has('ear-middle');
  const awaitingPattern=showPlan.mode==='random'&&showPlan.slots.some(slot=>time>=slot-10&&!burstSlots.has(slot));
  if(!burstQueue.length&&time>=nextLaunch&&time<285&&!awaitingSpecial&&!awaitingPattern&&!awaitingEar){if(time>=25&&time<235&&cueIndex>=3&&cueIndex%(showPlan?.voiceRequest?.patternAmount==='lots'?2:showPlan?.voiceRequest?.patternAmount==='more'?4:5)===(showPlan?.voiceRequest?.patternAmount==='lots'?1:3)&&!(showPlan?.voiceRequest?.patternAmount==='little'&&burstSlots.has('pattern-little'))&&fireworks.length===0&&!showPlan?.voiceRequest?.size&&!showPlan?.voiceRequest?.sizeAccent&&showPlan?.voiceRequest?.density!=='sparse'&&(showPlan?.voiceRequest?.patterns||showPlan?.programmeStyle?.color!=='gold')){
- const index=Math.floor(cueIndex/5),part=patternPassage({start:time,seed:(showPlan.seed^Math.imul(index+1,0x531a2f9d))>>>0,mode:showPlan?.voiceRequest?.patterns&&showPlan.voiceRequest.patterns!=='all'?showPlan.voiceRequest.patterns:PATTERN_MODES[index%PATTERN_MODES.length].id,accent:index%4===3});burstSlots.add('pattern-little');burstQueue.push(...part.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=part.finishAt+1;cueIndex++;$('status').textContent=part.label+' · 街のあちこちから';
+ const index=Math.floor(cueIndex/5),options={start:time,seed:(showPlan.seed^Math.imul(index+1,0x531a2f9d))>>>0,mode:showPlan?.voiceRequest?.patterns&&showPlan.voiceRequest.patterns!=='all'?showPlan.voiceRequest.patterns:PATTERN_MODES[index%PATTERN_MODES.length].id,phraseBars:showPlan?.voiceRequest?.patterns||index%2===0?4:0,beatPeriod:10/15.5,accent:index%4===3};
+ const reservedAt=Math.min(285,...[...(showPlan.slots??[]),showPlan.bigAt,...(showPlan.senrinAt??[]),140].filter(at=>Number.isFinite(at)&&at>time));
+ let part=patternPassage(options);
+ if(part.finishAt+1>reservedAt&&options.phraseBars)part=patternPassage({...options,phraseBars:2});
+ if(part.finishAt+1>reservedAt)part=patternPassage({...options,phraseBars:0});
+ if(part.finishAt+1<=reservedAt){burstSlots.add('pattern-little');burstQueue.push(...part.shots);burstQueue.sort((a,b)=>a.at-b.at);nextLaunch=part.finishAt+1;cueIndex++;$('status').textContent=part.label+' · 街のあちこちから';}
+ else{cueIndex++;nextLaunch=time+1;}
+
  }else{const c=programCue(showPlan,time,cueIndex,$('mood').value==='lively');if(c&&(!isCreativeShell(c.kind)||fireworks.length===0)&&launch(c.kind,c.size,c.position)){cueIndex++;nextLaunch=time+c.interval+((1+c.size*.035)*1.2*(2.62/1.62)-(1+c.size*.035)*1.2);}}}
  updateFireworks();
  const elapsed=Math.min(300,Math.floor(time));$('chapter').textContent=chapter(Math.min(time,299))+' · '+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0');
@@ -1966,8 +1973,8 @@ if(isCreativeShell(creativeQuery))selectCreative(creativeQuery,new URLSearchPara
 // Pattern groups share the normal preview queue and MR controls.
 function startPatternBatch(mode='cycle'){
  if(voiceUI?.busy)return;
- const seed=crypto.getRandomValues(new Uint32Array(1))[0];beginPreview();cometFinishAt=null;
- const part=mode==='cycle'?patternCycle(seed):patternPassage({seed,mode,accent:mode==='pair'});
+ const seed=crypto.getRandomValues(new Uint32Array(1))[0],selectedPalette=$('palette').value;beginPreview();cometFinishAt=null;
+ const part=mode==='cycle'?patternCycle(seed):patternPassage({seed,mode,accent:mode==='pair',phraseBars:mode==='pair'?0:4,beatPeriod:10/15.5,palette:mode==='pair'?null:selectedPalette});
  if(mode==='pair')part.shots=part.shots.filter(s=>s.size===5);
  burstQueue=part.shots;nextLaunch=part.finishAt;$('status').textContent=(mode==='pair'?'５号ニコちゃんを左右に２発':part.label)+' · 街のあちこちから';mrPanel.draw();
 }

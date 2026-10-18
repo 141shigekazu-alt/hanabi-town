@@ -1,6 +1,6 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.10';
-import {helpTopic,helpPages} from './help-content.js?v=1.3.10';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.10';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.11';
+import {helpTopic,helpPages} from './help-content.js?v=1.3.11';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.11';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -414,7 +414,7 @@ export class MRPanel{
     this.button('sample','選んだ一発を試す',28,950,744,58,()=>this.click('sample'));
     const pattern=s.type?.value?.startsWith('pattern');
     if(pattern){
-     this.button('patternSelectedBatch','選んだ型物を10連発',28,1024,744,54,()=>this.click('patternSelectedBatch'));
+     this.button('patternSelectedBatch','選んだ型物を10秒続ける',28,1024,744,54,()=>this.click('patternSelectedBatch'));
      this.button('patternCycle','型物の連発をひと巡り',28,1094,360,54,()=>this.click('patternCycle'));
      this.button('patternPair','５号ニコちゃん左右２発',412,1094,360,54,()=>this.click('patternPair'));
     }

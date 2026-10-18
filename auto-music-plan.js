@@ -1,4 +1,4 @@
-import {addPatternPassages} from './pattern-programmes.js?v=1.3.10';
+import {addPatternPassages} from './pattern-programmes.js?v=1.3.11';
 import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
 import {limitProgrammeCapacity} from './programme-capacity.js';
 import {requestedFinale} from './voice-finale.js?v=1.3.10';

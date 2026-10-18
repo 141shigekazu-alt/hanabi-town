@@ -1,4 +1,4 @@
-export const PANEL_BUILD_VERSION='1.3.10';
+export const PANEL_BUILD_VERSION='1.3.11';
 // Theme is a view preference, shared across versions; no show or library state.
 export const PANEL_THEME_KEY='hanabi-town-panel-theme-v1';
 export const PANEL_THEMES=[{value:'gold',label:'LANTERN & GOLD（ゴールド）'},{value:'cyber',label:'CYBER FESTIVAL（サイバー）'}];

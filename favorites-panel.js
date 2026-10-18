@@ -1,8 +1,8 @@
 import {favoriteDisplay} from './favorite-programmes.js';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.10';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.10';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.11';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.11';
 import * as T from './vendor/three.module.js';
-import {MRPanel} from './mr-panel.js?v=1.3.10';
+import {MRPanel} from './mr-panel.js?v=1.3.11';
 const TOP=240,PITCH=132,ROWS=6,BOTTOM=TOP+ROWS*PITCH;
 export function favoriteDropIndex(y,offset,count){return Math.max(0,Math.min(count-1,offset+Math.floor((y-TOP)/PITCH)));}
 export function favoriteInsertionSlot(y,offset,count){return Math.max(offset,Math.min(count,offset+ROWS,offset+Math.floor((y-TOP+PITCH/2)/PITCH)));}

@@ -1,6 +1,6 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js?v=1.3.10';
-import {mountHelp} from './help-content.js?v=1.3.10';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.11';
+import {mountHelp} from './help-content.js?v=1.3.11';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
  const $=id=>document.getElementById(id),make=(tag,attrs={},text='')=>{const el=document.createElement(tag);Object.assign(el,attrs);el.textContent=text;return el;};
@@ -106,7 +106,7 @@ export function organizePanel(){
  for(const id of ['autoMusicRoom','autoMusicWatch','autoMusicManual','autoMusicRebuild'])old.append($(id));
  $('autoMusicResult').append(make('p',{},'テンポと検出時刻は解析に任せ、曲の気持ちは選んだ曲調で演出します。'));
  const loadPage=$('browserPage1');for(const id of ['type','size','palette'])field(trialHome,id);move(trialHome,'sample');trialHome.append(trigger);
- const batches=make('section',{id:'patternBatchControls',hidden:true,className:'show-card'});batches.append(make('button',{id:'patternSelectedBatch'},'選んだ型物を10連発'),make('button',{id:'patternCycle'},'型物の連発をひと巡り'),make('button',{id:'patternPair'},'５号ニコちゃんを左右に２発'));trialHome.append(batches);
+ const batches=make('section',{id:'patternBatchControls',hidden:true,className:'show-card'});batches.append(make('button',{id:'patternSelectedBatch'},'選んだ型物を10秒続ける'),make('button',{id:'patternCycle'},'型物の連発をひと巡り'),make('button',{id:'patternPair'},'５号ニコちゃんを左右に２発'));trialHome.append(batches);
  const loadBack=$('showTrialBack'),loadHeading=loadPage.querySelector('.loadout-heading');loadPage.prepend(loadBack,loadHeading,trialHome);
  const studies=details(loadPage,'花・トラなどの演出を試す','loadoutStudies');for(const node of [...loadPage.children])if(![loadBack,loadHeading,trialHome,studies].includes(node))studies.append(node);
  mountHelp($('browserPage3'));
