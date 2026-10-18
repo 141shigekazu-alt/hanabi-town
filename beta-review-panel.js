@@ -50,7 +50,7 @@ export class BetaReviewPanel extends ShowInfoPanel{
   if(!state.musicActive)this.release();
   if(!this.enabled){this.release();this.anchored=false;return;}
   if(this.mesh.visible&&!this.anchored)this.anchor(transform);
-  const key=[panelThemeId(),state.current,state.duration,state.tail,state.running,state.busy,state.musicActive,state.seek,state.names,state.canPrevious,state.canNext,state.canPlay].join('|');
+  const key=[panelThemeId(),state.current,state.duration,state.title,state.tail,state.running,state.busy,state.musicActive,state.seek,state.names,state.canPrevious,state.canNext,state.canPlay].join('|');
   if(key!==this.key){this.key=key;this.drawReview();}
  }
  drawReview(){
@@ -58,6 +58,14 @@ export class BetaReviewPanel extends ShowInfoPanel{
   drawPanelSurface(c,W,H,{radius:22});
   c.textAlign='left';c.textBaseline='middle';c.font=panelFont(56);c.fillStyle=panelTheme().accent;c.fillText(s.current,28,45);
   const next=28+c.measureText(s.current).width+15;c.font=panelFont(30);c.fillStyle=panelTheme().muted;if(s.duration)c.fillText('/ '+s.duration,next,48);
+  // Keep the time and close button clear; long names use two quiet lines.
+  if(s.musicActive&&s.title){
+   const x=next+(s.duration?c.measureText('/ '+s.duration).width:0)+22,max=670-x;
+   c.font=panelFont(28);c.fillStyle=panelTheme().text;
+   let line='',rows=[];
+   for(const char of s.title){if(c.measureText(line+char).width>max&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
+   rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2){while(text&&c.measureText(text+'…').width>max)text=Array.from(text).slice(0,-1).join('');text+='…';}c.fillText(text,x,rows.length>1?32+i*32:48);});
+  }
   c.font=panelFont(23);c.fillStyle=panelTheme().accent;let line='',rows=[];
   for(const char of s.names??'次の一玉を待つ'){if(c.measureText(line+char).width>W-56&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
   rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2)text=text.slice(0,-1)+'…';c.fillText(text,28,98+i*29);});

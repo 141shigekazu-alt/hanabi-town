@@ -39,6 +39,7 @@ export function organizePanel(){
  seek.append($('betaPanelTime').closest('.beta-seek-panel'));
  for(const id of ['betaBack10','betaBack5','betaForward5'])$(id).hidden=true;
  for(const id of ['betaFloatBack5','betaFloatForward5'])$(id).hidden=true;
+ $('betaReviewClock').append(make('span',{id:'betaTrackTitle',className:'beta-track-title'}));
  const tcbar=$('betaReviewBar');const tcClose=make('button',{id:'betaCloseTC'},'×');tcClose.setAttribute('aria-label','TC・玉名パネルを閉じる');tcbar.append(tcClose);tcbar.prepend(make('p',{id:'betaShellNames',className:'beta-shell-names'}));
  const back5=$('betaFloatBack5'),forward5=$('betaFloatForward5');const tcbuttons=$('betaFloatPause').parentElement;tcbuttons.replaceChildren($('betaFloatBack10'),$('betaFloatPause'),make('button',{id:'betaFloatForward10'},'10秒送る'));
  const songs=make('div',{className:'beta-song-buttons'});songs.append(make('button',{id:'betaPreviousTrack'},'前の曲'),make('button',{id:'betaNextTrack'},'次の曲'));tcbar.append(songs);const tcseek=make('label',{},'曲の再生位置');tcseek.append($('betaMusicSeek'));tcbar.insertBefore(tcseek,songs);old.append($('betaPanelTime').closest('.beta-seek-panel'));

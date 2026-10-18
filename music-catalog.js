@@ -1,5 +1,16 @@
 import {MUSIC_SHOWS} from './music-shows.js';
 
+const titleOrder=new Intl.Collator('ja',{numeric:true,sensitivity:'base',ignorePunctuation:true});
+// Picker order only. Never change a saved setlist or its playback order.
+export function sortMusicChoices(tracks){
+ const originals=new Map(MUSIC_SHOWS.map((t,i)=>[t.id,i]));
+ const key=t=>String(t.title??'').normalize('NFKC').trim();
+ return [...tracks].sort((a,b)=>{
+  const ai=originals.get(a.id),bi=originals.get(b.id);
+  if(ai!==undefined||bi!==undefined)return ai===undefined?1:bi===undefined?-1:ai-bi;
+  return titleOrder.compare(key(a),key(b))||String(a.id).localeCompare(String(b.id));
+ });
+}
 export let LOCAL_MUSIC_CATALOG=[];
 let titles=new Map(),sourceTitles=new Map(),availableIds=null;
 export const musicTrackIdentityTitle=(id,fallback)=>sourceTitles.get(id)??fallback;
@@ -19,5 +30,5 @@ export const MUSIC_CATALOG=MUSIC_SHOWS.map(({plan,...track})=>({...track,authore
 export function playableMusicChoices(generated){
  const choices=[...MUSIC_CATALOG.filter(t=>!availableIds||availableIds.has(t.id)),...LOCAL_MUSIC_CATALOG.filter(t=>!MUSIC_CATALOG.some(c=>c.id===t.id))].map(track=>generated?.id===track.id?generated:LOCAL_MUSIC_CATALOG.some(t=>t.id===track.id)?{...track,plan:null}:track);
  if(generated&&(generated.savedFavoriteId||!availableIds||availableIds.has(generated.id))&&!choices.some(track=>track.id===generated.id))choices.push(generated);
- return choices.map(track=>({...track,title:track.setlistTitle??musicTrackTitle(track.id,track.title)}));
+ return sortMusicChoices(choices.map(track=>({...track,title:track.setlistTitle??musicTrackTitle(track.id,track.title)})));
 }

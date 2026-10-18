@@ -186,3 +186,9 @@ header .site-intro{max-width:100%}
  footer{position:relative;z-index:1;left:auto;bottom:auto;max-width:none;margin:20px 16px 30px}
  .app-update{max-width:400px}
 }
+
+/* The current song sits beside TC; the fireworks names retain their own row. */
+#betaReviewClock{display:flex;align-items:center;gap:7px;max-width:560px;text-align:left}
+#betaReviewClock .beta-track-title{min-width:0;max-width:300px;margin-left:10px;color:var(--panel-text,#e3e6e6);font-size:14px;line-height:1.45;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+#betaTrackTitle:empty{display:none}
+#betaReviewClock .beta-tail-time{flex-shrink:0}

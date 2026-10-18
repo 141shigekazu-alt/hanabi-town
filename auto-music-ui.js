@@ -1,3 +1,4 @@
+import {sortMusicChoices} from './music-catalog.js?v=1.3.4';
 import {EAR_SCENES,earScene} from './ear-scenes.js';
 import {MUSIC_FEELINGS,musicFeeling} from './music-feeling.js';
 import {readLocalTrack,saveLocalTrack,listLocalTracks,migrateLatest41,migratePrevious42,readTrackFeeling,saveTrackFeeling,analyzeInBrowser,listTrackTitles,renameTrackTitle,listDeletedTracks,setTrackDeleted} from './quest-local-library.js';
@@ -12,7 +13,7 @@ export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,o
  $('autoMusicEars').value=earScene(localStorage.getItem('hanabi87-ear-scene')).id;
  $('autoMusicFeeling').replaceChildren(...MUSIC_FEELINGS.map(f=>{const o=document.createElement('option');o.value=f.value;o.textContent=f.label;return o;}));
  let generation=0,worker=null,abort=null,cancelAnalysis=null,retained=null,busy=false,roomOpening=false,variation=0,modelId=null,rebuildTimer=null,preferenceQueue=Promise.resolve(),operationTitle='',operation='',voiceRequest=null;
- function syncCatalog(){const selected=$('autoMusicSample').value;$('autoMusicSample').replaceChildren(...catalog.filter(track=>!track.deleted).map(track=>{const o=document.createElement('option');o.value=track.id;o.textContent=track.title;return o;}));if(catalog.some(t=>t.id===selected))$('autoMusicSample').value=selected;onCatalog(catalog);}
+ function syncCatalog(){const selected=$('autoMusicSample').value;$('autoMusicSample').replaceChildren(...sortMusicChoices(catalog.filter(track=>!track.deleted)).map(track=>{const o=document.createElement('option');o.value=track.id;o.textContent=track.title;return o;}));if(catalog.some(t=>t.id===selected))$('autoMusicSample').value=selected;onCatalog(catalog);}
  syncCatalog();
  function controls(){for(const id of ['autoMusicGenerate','autoMusicReanalyze','autoMusicRebuild','autoMusicWatch','autoMusicExport','autoMusicRoom'])$(id).disabled=busy||roomOpening||(!['autoMusicGenerate','autoMusicReanalyze'].includes(id)&&!retained)||(id==='autoMusicRoom'&&(!onRoom||$('mr').disabled));$('autoMusicManual').disabled=busy||roomOpening||!retained?.manualId;$('autoMusicManual').hidden=!!retained&&!retained.manualId;$('autoMusicCancel').hidden=!busy;$('autoMusicSample').disabled=busy||roomOpening;$('autoMusicFeeling').disabled=busy||roomOpening;$('autoMusicEars').disabled=busy||roomOpening;fileInput.disabled=busy||roomOpening;drop.setAttribute('aria-busy',String(busy||roomOpening));}
  function resetRebuildFeedback(){
