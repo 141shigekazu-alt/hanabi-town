@@ -1,4 +1,4 @@
-const VERSION='1.3.7';
+const VERSION='1.3.8';
 const button=document.getElementById('offlineSave'),status=document.getElementById('offlineStatus'),progress=document.getElementById('offlineProgress'),reload=document.getElementById('offlineReload'),card=document.getElementById('appUpdate');
 let registrationForOffline,busy=false,checkedOnline=false,setupPromise=null;
 function request(type,onProgress=()=>{}){return new Promise((resolve,reject)=>{

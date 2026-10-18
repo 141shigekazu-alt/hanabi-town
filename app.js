@@ -5,7 +5,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js';
 import {voiceProgrammeStyle} from './voice-request.js';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.7';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.8';
 import {styleKind,stylePalette} from './programme-style.js';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -248,7 +248,7 @@ function updateMusicFxQuiet(){const quiet=(MUSIC_PLAN.fxSilenceWindows??[]).some
 let music=new MusicTransport(selectedMusic.src,{autoload:false});
 function syncMusicChoices(){
  const none=document.createElement('option');none.value='none';none.textContent='曲なしで上げる';
- $('musicTrack').replaceChildren(none,...playableMusicChoices(generatedMusic).map(item=>{const option=document.createElement('option');option.value=item.id;const active=item.id===selectedMusic.id&&!pendingAutomaticTrack&&!selectionProblem&&!noMusicMode?{...item,...selectedMusic,title:item.title}:item;option.textContent=musicProgrammeTitle(active)+(item.id.startsWith('import:')?'（取り込み）':'');return option;}));
+ $('musicTrack').replaceChildren(none,...playableMusicChoices(generatedMusic).map(item=>{const option=document.createElement('option');option.value=item.id;const active=item.id===selectedMusic.id&&!pendingAutomaticTrack&&!selectionProblem&&!noMusicMode?{...item,...selectedMusic,title:item.title}:item;option.textContent=musicProgrammeTitle(active);return option;}));
  $('musicTrack').value=pendingAutomaticTrack?.id??selectionProblem?.id??(noMusicMode?'none':selectedMusic.id);$('musicTrack').disabled=libraryRestoring||!!pendingAutomaticTrack;
 }
 function syncOriginalChoice(){
