@@ -161,3 +161,28 @@ html[data-panel-theme=cyber] :is(#panel,#favoritesWindow,#mrNameDialog,#betaRevi
 header .site-intro{max-width:min(27em,calc(100vw - 40px));font-size:13px;line-height:1.8;letter-spacing:.04em}
 
 .roof-seats{display:flex;gap:8px}.roof-seats button{flex:1;min-width:0;font-size:13px;padding:12px 3px}.roof-seats button[aria-pressed=true]{background:#59462c;border-color:#e4c58a;color:#fff3d7}
+
+/* Keep the update entry beside the displayed build, outside folded controls. */
+header{width:min(360px,calc(100vw - 410px));z-index:2}
+header .site-intro{max-width:100%}
+.app-update{pointer-events:auto;margin-top:14px;padding:14px;border:1px solid var(--panel-selectedLine,#d0ac6b90);border-radius:12px;background:#101b24eb;box-shadow:0 5px 22px #0003;backdrop-filter:blur(8px)}
+.app-update button{margin:0;min-height:46px;background:var(--panel-primary,#d4b477);color:var(--panel-primaryInk,#221d16);border-color:var(--panel-primaryEdge,#f3dab6b0);font-size:14px;line-height:1.4}
+.app-update button:focus-visible{outline:2px solid #f4dca3;outline-offset:3px}
+.app-update p{margin:9px 0 0;font-size:12px;line-height:1.65;letter-spacing:.02em;color:var(--panel-muted,#b0babd);overflow-wrap:anywhere}
+.app-update progress{width:100%;height:10px;margin-top:10px;accent-color:var(--panel-accent,#dec18a)}
+.app-update #offlineReload{margin-top:10px}
+.app-update [hidden]{display:none!important}
+.app-update[data-state=ready]{border-color:#6eb69e66}
+.app-update[data-state=ready] p{color:var(--panel-success,#ade8cf)}
+.app-update[data-state=update-available],.app-update[data-state=reload]{border-color:var(--panel-accent,#dec18a)}
+.app-update[data-state=error] p{color:var(--panel-danger,#edb7ac)}
+#showOffline p{font-size:12px;line-height:1.7;color:var(--panel-muted,#b0babd)}
+@media(max-width:600px){
+ body{overflow-y:auto;min-height:100vh}
+ #view{position:fixed;inset:0;z-index:0}
+ header{position:relative;top:auto;left:auto;width:auto;margin:24px 16px 20px;pointer-events:auto}
+ header .site-intro{max-width:none}
+ aside{position:relative;top:auto;right:auto;bottom:auto;z-index:1;width:calc(100% - 24px);max-height:none;margin:0 12px 24px}
+ footer{position:relative;z-index:1;left:auto;bottom:auto;max-width:none;margin:20px 16px 30px}
+ .app-update{max-width:400px}
+}

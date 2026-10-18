@@ -92,7 +92,7 @@ export function organizePanel(){
  for(const id of ['starmine','whistleSoundStudy'])move(testExtras,id);
  const themeField=make('label',{},'パネルの配色'),themeSelect=make('select',{id:'panelTheme'});for(const option of PANEL_THEMES)themeSelect.append(make('option',{value:option.value},option.label));themeField.append(themeSelect);$('browserPage2').prepend(themeField);
  const soundExtras=details($('browserPage2'),'音の比較（試作用）','showAudioExtras');field(soundExtras,'audioMode');
- const offline=document.querySelector('.offline-card');const save=details($('panel'),'オフライン保存','showOffline');save.append(offline);
+ const save=details($('panel'),'更新・オフライン保存について','showOffline');save.append(make('p',{},'最新版への更新・保存は、タイトル下のボタンから行えます。街・花火・標準４曲（約175MB）を保存すると、Wi-Fiなしでも開けます。取り込んだ曲・お気に入り・セットリストはこの端末に残ります。'),make('p',{id:'offlineDetails'},'保存した版を確認しています…'));
  document.querySelector('.mr-entry').hidden=true;
  // Retained DOM nodes support older preview links, but no duplicate entry points.
  for(const id of ['autoMusicRoom','autoMusicWatch','autoMusicManual','autoMusicRebuild'])old.append($(id));
