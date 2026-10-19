@@ -1,3 +1,4 @@
+import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.14';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternSizes,PATTERN_PROFILE,PATTERN_SIZES,createPatternStars,samplePatternPose,patternPoint} from './pattern-shells.js?v=1.3.10';
@@ -8,7 +9,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.13';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.14';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -16,19 +17,19 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.13';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.14';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.13';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.14';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.13';
+import {organizePanel} from './panel-layout.js?v=1.3.14';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
 import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.1';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.13';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.14';
 import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.1';
 import {rainEarSequence} from './rain-ears.js?v=1.3.1';
 import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.1';
@@ -47,16 +48,16 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.1';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.13';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.14';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.7';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.13';
-import {XRControls} from './xr-controls.js?v=1.3.13';
+import {WristMenu} from './wrist-menu.js?v=1.3.14';
+import {XRControls} from './xr-controls.js?v=1.3.14';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip} from './entry-tip.js?v=1.3.13';
+import {EntryTip} from './entry-tip.js?v=1.3.14';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -923,13 +924,35 @@ $('whistleSoundStudy').onclick=()=>{
  burstQueue=Array.from({length:6},(_,i)=>({at:i*9,kind,size,position:{x:0,z:.05,startAt:i*9}}));
  $('status').textContent='特別な玉の笛を6発。録音6種類を重複せずに一巡し、音程・音量・入りも少しずつ変えます。';
 };
-function applyTownHeight(){if(!bridgeView.active&&renderer.xr.isPresenting)town.position.y=Number($('height').value)-groundBottomY*town.scale.y;}
+function applyTownHeight(){if(bridgeView.active)return;const h=readPlacementInput('height');if(h===null)return;if(renderer.xr.isPresenting)town.position.y=h-groundBottomY*town.scale.y;syncPlacementView();}
+function readPlacementInput(id){
+ const el=$(id);if(el.value===''||!Number.isFinite(Number(el.value)))return null;
+ const value=Math.max(Number(el.min),Math.min(Number(el.max),Number(el.value)));el.value=String(Math.round(value*1000)/1000);return Number(el.value);
+}
+for(const id of Object.keys(PLACEMENT_LIMITS))$(id).addEventListener('change',()=>{if(readPlacementInput(id)===null)$(id).value=String(PLACEMENT_LIMITS[id].standard);$(id).dispatchEvent(new Event('input'));},true);
+function syncPlacementView(){
+ if(bridgeView.active)return;
+ bridgeView.miniaturePointScale=placementPointScale(town.scale.x,!!dioramaSaved);bridgeView.syncPoints();
+ camera.far=placementFar(Number($('distance').value),town.scale.x,Number($('height').value));camera.updateProjectionMatrix();
+}
+function resetTownPlacement(){
+ if(bridgeView.active)return;
+ controls.release();if(dioramaSaved)toggleDiorama();
+ for(const [id,r] of Object.entries(PLACEMENT_LIMITS)){$(id).value=String(r.standard);}
+ town.scale.setScalar(1);town.rotation.set(0,0,0);
+ if(renderer.xr.isPresenting&&latestViewerTransform){const p=placementFromPose(latestViewerTransform,2,0,0,-groundBottomY);town.position.set(p.x,p.y,p.z);town.rotation.y=p.yaw;}
+ else{town.position.set(0,0,0);camera.position.set(0,1.2,2.9);yaw=0;pitch=0;}
+ pendingPlace=false;town.visible=true;syncPlacementView();
+ for(const id of Object.keys(PLACEMENT_LIMITS))$(id).dispatchEvent(new Event('change'));
+ $('status').textContent='配置を標準に戻しました。';mrPanel.draw();
+}
+$('placementReset').onclick=resetTownPlacement;
 function adjustTownDistance(){
  if(bridgeView.active||!renderer.xr.isPresenting||!latestViewerTransform)return;
- const p=latestViewerTransform.position,d=Number($('distance').value);
- town.position.x=p.x-Math.sin(town.rotation.y)*d;town.position.z=p.z-Math.cos(town.rotation.y)*d;
+ const p=latestViewerTransform.position,d=readPlacementInput('distance');if(d===null)return;
+ town.position.x=p.x-Math.sin(town.rotation.y)*d;town.position.z=p.z-Math.cos(town.rotation.y)*d;syncPlacementView();
 }
-$('scale').oninput=()=>{if(bridgeView.active)return;town.scale.setScalar(Number($('scale').value));applyTownHeight();if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}};$('distance').oninput=adjustTownDistance;
+$('scale').oninput=()=>{if(bridgeView.active)return;const value=readPlacementInput('scale');if(value===null)return;town.scale.setScalar(value);applyTownHeight();syncPlacementView();};$('distance').oninput=()=>{adjustTownDistance();syncPlacementView();};
 function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*2-1,y=1-(e.clientY-r.top)/r.height*2;if(favoritesPanel?.childView)return favoritesPanel.previewPointer(x,y,camera,activate);if(mrPanel.childView)return mrPanel.previewPointer(x,y,camera,activate);return entryTip?.previewPointer(x,y,camera,activate)||favoritesPanel?.previewPointer(x,y,camera,activate)||mrPanel.previewPointer(x,y,camera,activate);}
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onpointercancel=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onwheel=e=>{if(panelPreview&&favoritesPanel?.visible&&!favoritesPanel.menuId&&!mrNameEditor?.state){e.preventDefault();favoritesPanel.scrollList(e.deltaY);return;}if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
@@ -995,7 +1018,7 @@ function readPanel(){
  for(const id of ['patternChoiceKind','patternChoiceAmount','flowerPattern','flowerTiming','flowerSpacing','flowerColor','flowerSize','program','mood','ending','type','size','palette','audioMode','towerColor','cometPattern','cometStyle','musicTrack','autoMusicFeeling','autoMusicEars','helpTopic','setlistSelect','panelTheme']){
   const el=$(id);result[id]={value:el.value,selected:el.selectedOptions[0]?.textContent??'',disabled:el.disabled,options:[...el.options].map(o=>({value:o.value,label:o.textContent,disabled:o.disabled}))};
  }
- for(const id of ['scale','distance','height','volume','roomBrightness','musicVolume'])result[id]={value:Number($(id).value),disabled:!!$(id).disabled};
+ for(const id of ['scale','distance','height','volume','roomBrightness','musicVolume'])result[id]={value:Number($(id).value),disabled:!!$(id).disabled,wide:!!PLACEMENT_LIMITS[id]&&!dioramaSaved&&!townScenery.visible&&!bridgeView.active};
  return result;
 }
 function choosePanel(id,value){const el=$(id);if(el.disabled||![...el.options].some(o=>o.value===value&&!o.disabled))return;el.value=value;el.dispatchEvent(new Event('change'));}
@@ -1003,9 +1026,9 @@ function cyclePanel(id,direction){
  const el=$(id),value=nextEnabledOption([...el.options].map(o=>({value:o.value,disabled:o.disabled})),el.value,direction);
  if(value===el.value)return;el.value=value;el.dispatchEvent(new Event('change'));
 }
-function adjustPanel(id,direction){
+function adjustPanel(id,direction,large=false){
  if(bridgeView.active&&['scale','distance','height'].includes(id))return;
- const el=$(id);el.value=String(stepRange(Number(el.value),direction,Number(el.min),Number(el.max),['volume','musicVolume'].includes(id)?.05:Number(el.step)));
+ const el=$(id);el.value=String(PLACEMENT_LIMITS[id]&&!dioramaSaved?placementStep(id,Number(el.value),direction,large):stepRange(Number(el.value),direction,Number(el.min),Number(el.max),['volume','musicVolume'].includes(id)?.05:Number(el.step)));
  el.dispatchEvent(new Event('input'));el.dispatchEvent(new Event('change'));
 }
 function setPanelRange(id,value,commit=false){
@@ -1108,32 +1131,46 @@ function firePrepared(hand,origin,direction){
  $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
 }
 function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
+const placementHomes=new Map();
+function syncSceneryPlacementUI(){
+ const special=!townScenery.visible&&!bridgeView.active&&mrPanel.page===2,card=$('sceneryPlacement');
+ for(const id of ['scale','distance','height','placementReset','placementHint','volume','roomBrightness','townSceneryToggle']){
+  const el=$(id),node=id==='volume'?$('placementVolumeControl'):['scale','distance','height','roomBrightness'].includes(id)?el.closest('label'):el;
+  if(!placementHomes.has(id)){const anchor=document.createComment('placement-home:'+id);node.before(anchor);placementHomes.set(id,{node,anchor});}
+  const home=placementHomes.get(id);if(special)card.append(node);else home.anchor.after(node);
+ }
+ card.hidden=!special;$('browserPage2').classList.toggle('scenery-placement',special);
+ $('placementReset').hidden=!special;$('placementHint').hidden=!special;
+}
 function setPanelTab(page){
  if(page===0)page=4;mrPanel.picker=null;mrPanel.adjusting=false;mrPanel.studyMode=false;mrPanel.groundStudy=false;mrPanel.flowerStudy=false;
  preparation=null;$('preparePanel').hidden=true;mrPanel.page=page;
  for(let i=0;i<5;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
- mrPanel.draw();
+ syncSceneryPlacementUI();mrPanel.draw();
 }
 const PANEL_PAGES=[4,2,3];
 for(const [index,i] of PANEL_PAGES.entries()){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=PANEL_PAGES[e.key==='Home'?0:e.key==='End'?PANEL_PAGES.length-1:(index+(e.key==='ArrowRight'?1:PANEL_PAGES.length-1))%PANEL_PAGES.length];setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
 function setTownSceneryVisible(visible){
  townScenery.visible=!!visible;
  const button=$('townSceneryToggle');button.textContent=visible?'街を消す（花火だけ）':'街を戻す';
- button.setAttribute('aria-pressed',String(!visible));updateReflections();
+ button.setAttribute('aria-pressed',String(!visible));updateReflections();syncSceneryPlacementUI();
 }
 $('townSceneryToggle').onclick=()=>{
  setTownSceneryVisible(!townScenery.visible);
  $('status').textContent=townScenery.visible?'街を元に戻しました。':'街を消しました。背景の透け具合は「部屋の明るさ」で調整できます。';
- mrPanel.draw();
+ setPanelTab(2);
 };
 $('showTrialOpen').onclick=()=>setPanelTab(1);$('showTrialBack').onclick=()=>setPanelTab(4);$('showTC').onclick=()=>toggleBetaTC();
 
-const townGrabTarget=new T.Mesh(new T.BoxGeometry(3.2,.10,2.1),new T.MeshBasicMaterial({side:T.DoubleSide}));townGrabTarget.position.y=ground.position.y;townGrabTarget.visible=false;town.add(townGrabTarget);
-const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,groundBottomY,panels:[mrPanel,wristMenu,showInfo,betaReviewPanel,favoritesPanel,entryTip],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
- $('scale').value=String(town.scale.x);$('height').value=String(Math.max(0,town.position.y+groundBottomY*town.scale.y));
+const townGrabTarget=new T.Mesh(new T.BoxGeometry(ground.scale.x,.10,ground.scale.z),new T.MeshBasicMaterial({side:T.DoubleSide}));townGrabTarget.position.copy(ground.position);townGrabTarget.visible=false;town.add(townGrabTarget);
+// Use only solid buildings and tower meshes; light points must not enlarge ray hits.
+const townGrabTargets=[townGrabTarget,...cityBuildingMeshes,...tower.children.filter(o=>o.isMesh)];
+const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townGrabTarget,townTargets:townGrabTargets,townScaleRange:()=>[Number($('scale').min),Number($('scale').max)],groundBottomY,panels:[mrPanel,wristMenu,showInfo,betaReviewPanel,favoritesPanel,entryTip],sidebar:mrPanel,wrist:wristMenu,bridge:bridgeView,fire:firePrepared,pause:pauseShow,changed:commit=>{
+ $('scale').value=String(town.scale.x);$('height').value=String(town.position.y+groundBottomY*town.scale.y);
  if(latestViewerTransform){const p=latestViewerTransform.position;$('distance').value=String(Math.hypot(town.position.x-p.x,town.position.z-p.z));}
- if(dioramaSaved){bridgeView.miniaturePointScale=town.scale.x;bridgeView.syncPoints();}
- if(commit&&!dioramaSaved)for(const id of ['scale','height','distance'])$(id).dispatchEvent(new Event('change'));
+ syncPlacementView();
+ // The grip already placed the town. Persist its values without replaying numeric placement.
+ if(commit&&!dioramaSaved)try{localStorage.setItem('hanabi-town-settings',JSON.stringify(settingsSnapshot()));}catch{}
 }});
 
 function toggleDiorama(){
@@ -1152,7 +1189,7 @@ function toggleDiorama(){
   else{town.position.set(0,.75-groundBottomY*.18,0);camera.position.set(0,1.15,.95);}
   bridgeView.miniaturePointScale=.18;bridgeView.syncPoints();$('diorama').textContent='通常サイズに戻る';$('status').textContent='机の上の花火大会：幅約58cm・奥行き約38cm。グリップで掴んで上下にも動かせます。';
  }
- mrPanel.draw();wristMenu.draw();
+ syncPlacementView();mrPanel.draw();wristMenu.draw();
 }
 $('diorama').onclick=toggleDiorama;
 
@@ -1165,13 +1202,15 @@ if(panelPreview){
  addEventListener('keydown',e=>{if(e.key.toLowerCase()==='x'){mrPanel.active=true;mrPanel.preview=true;if(mrPanel.visible)mrPanel.close();else mrPanel.openAt({position:camera.position.clone(),matrix:[...camera.matrixWorld.elements]},{side:0,distance:1.45,drop:.3});}});
 }
 function syncViewControls(){
+ syncSceneryPlacementUI();
  const onRoof=bridgeView.active&&bridgeView.mode==='rooftop';$('rooftopSeats').hidden=!onRoof;
  for(const [id,seat] of [['roofNear','near'],['roofPanorama','panorama']])$(id).setAttribute('aria-pressed',String(onRoof&&rooftopDeck.id===seat));
  $('rooftop').textContent=bridgeView.active&&bridgeView.mode==='rooftop'?'屋上席を降りる':'ビルの屋上から見る';
  $('bridge').textContent=bridgeView.active&&bridgeView.mode==='bridge'?'ミニチュアに戻る':'街に入る · 手前の橋';
  $('boat').textContent=bridgeView.active&&bridgeView.mode==='boat'?'屋形船を降りる':'屋形船から観る';$('boatStart').hidden=!boatStarted;
  $('viewHint').textContent=bridgeView.active?(bridgeView.mode==='rooftop'?'屋上の花火席 · '+rooftopDeck.label+'：左スティックで移動、右スティック左右で向きを変更。左Xで席を切り替えられます。':bridgeView.mode==='boat'?'屋形船のデッキ：左スティックで移動、右スティック左右で向きを変更。MacはWASDで移動。':'橋の上：左スティックで移動、右スティック左右で向きを変更。サイドパネルを出したままでも使えます。'):boatStarted?'降りた屋形船も航行を続けます。乗り直すと、その時の船へ戻れます。':'街を見下ろす／橋の上／屋形船／屋上の花火席。同じ花火大会を楽しめます。';
- for(const id of ['scale','distance','height','mrPreset','diorama'])$(id).disabled=bridgeView.active;
+ syncPlacementView();
+ for(const id of ['scale','distance','height','mrPreset','diorama','placementReset'])$(id).disabled=bridgeView.active;
  $('roomBrightness').disabled=!!mrSession&&mrSession.environmentBlendMode!=='alpha-blend';
  document.body.classList.toggle('bridge-view',bridgeView.active);
 }
@@ -1351,6 +1390,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 window.__hanabi={get sceneryVisible(){return townScenery.visible;},get rooftopState(){return {seatId:rooftopDeck.id,roof:{...rooftopDeck.roof},floor:rooftopDeck.floor,beaconHeight:rooftopDeck.beaconHeight,seat:rooftopDeck.seat.toArray(),angle:rooftopDeck.angle,mode:bridgeView.mode,active:bridgeView.active,townPosition:town.position.toArray(),townQuaternion:town.quaternion.toArray(),townScale:town.scale.toArray(),cameraPosition:camera.position.toArray(),cameraQuaternion:camera.quaternion.toArray(),bounds:{...rooftopDeck.bounds}};},get favoritePanelState(){return{visible:favoritesPanel.visible,busy:!!favoritesUI?.state.busy||libraryRestoring,playback:favoritePlaybackState(),controls:favoritesPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:favoritesPanel.mesh.matrixWorld.toArray()};},get panelState(){return{page:mrPanel.page,adjusting:!!mrPanel.adjusting,modal:!!mrPanel.childView,parentVisible:!!mrPanel.parentSurface?.visible,scale:mrPanel.mesh.scale.toArray(),position:mrPanel.mesh.position.toArray(),parentPosition:mrPanel.parentSurface?.position.toArray(),controls:mrPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:mrPanel.mesh.matrixWorld.toArray(),cameraMatrix:camera.matrixWorld.toArray(),cameraProjection:camera.projectionMatrix.toArray()};},beginFlowerStudy,get flowerStudy(){return flowerStudy;},get flowerGeometry(){return {shells:fireworks.map(f=>({kind:f.kind,size:f.size,start:f.start,launchX:f.launchX,launchZ:f.launchZ,ascentHead:Array.from(f.positions.subarray(0,3)),life:f.spec.life,points:f.n*f.trailCount,x:f.x,y:f.y,z:f.z,r:f.r,ascent:f.ascent,ignitionDelay:f.ignitionDelay,ascentOffset:f.ascentOffset,shape:f.shape,flowerVariation:f.flowerVariation,flowerStars:f.flowerStars,creativeStars:f.creativeStars,directions:f.directions.map(d=>[d.x,d.y,d.z]),opening:f.start+f.ascent,colors:f.starColors.map(c=>c.getHex())})),large:comets.active.map(s=>({x:s.x,z:s.z,start:s.start,burn:s.burn,character:s.character,vx:s.vx,vy:s.vy,drag:s.drag,gravity:s.gravity,end:s.end})),small:comets.bundles.active.map(s=>({x:s.x,z:s.z,start:s.start,count:s.stars.length,character:s.character,end:s.end,stars:s.stars.map(st=>({x:st.x,y:st.y,vx:st.vx,vy:st.vy,vz:st.vz,drag:st.drag,gravity:st.gravity,at:st.at,life:st.life,stopAt:st.stopAt,summitTarget:st.summitTarget}))}))};},riverNight,towerLighting,get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?bridgeView.mode:'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
 
+syncPlacementView();
 $('build').textContent='ベータ版 '+BUILD_VERSION;
 $('cometPattern').onchange();
 $('programInfo').textContent=PROGRAM_NAMES[$('program').value];

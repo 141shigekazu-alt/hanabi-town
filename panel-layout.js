@@ -1,5 +1,5 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js?v=1.3.13';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.14';
 import {mountHelp} from './help-content.js?v=1.3.11';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
@@ -74,6 +74,9 @@ export function organizePanel(){
  const trial=make('button',{id:'showTrialOpen'},'トリガーに花火玉を仕込む');card.append(trial);
  $('browserPage1').prepend(make('h2',{className:'loadout-heading'},'トリガーに花火玉を仕込む'));$('browserPage1').prepend(make('button',{id:'showTrialBack'},'‹ 花火大会へ戻る'));const trialHome=make('section',{className:'loadout-home'});$('browserPage1').append(trialHome);
  $('showInfo').hidden=true;const tc=make('button',{id:'showTC'},'TC・玉名を表示');card.append(tc);
+ $('distance').closest('label').after($('height').closest('label'));
+ const placementReset=make('button',{id:'placementReset'},'配置を標準に戻す');$('height').closest('label').after(placementReset);
+ const placementHint=make('small',{id:'placementHint'},'遠くへ置いてから、大きさと高さを合わせられます。');placementReset.after(placementHint);
  const views=details($('browserPage2'),'眺め方を変える','showViews');
  for(const id of ['diorama','boat','boatStart','bridge','rooftop','showInfo','showTC','viewHint'])move(views,id);
  const scenery=details($('browserPage2'),'景色の表示','sceneryDetails');
@@ -111,5 +114,8 @@ export function organizePanel(){
  const batches=make('section',{id:'patternBatchControls',hidden:true,className:'show-card'});batches.append(make('button',{id:'patternSelectedBatch'},'選んだ型物を10秒続ける'),make('button',{id:'patternCycle'},'型物の連発をひと巡り'),make('button',{id:'patternPair'},'５号ニコちゃんを左右に２発'));trialHome.append(batches);
  const loadBack=$('showTrialBack'),loadHeading=loadPage.querySelector('.loadout-heading');loadPage.prepend(loadBack,loadHeading,trialHome);
  const studies=details(loadPage,'花・トラなどの演出を試す','loadoutStudies');for(const node of [...loadPage.children])if(![loadBack,loadHeading,trialHome,studies].includes(node))studies.append(node);
+ const volumeControl=make('div',{id:'placementVolumeControl'}),volumeLabel=document.querySelector('label[for="volume"]');volumeLabel.before(volumeControl);volumeControl.append(volumeLabel,$('volume'));
+ const placementCard=make('section',{id:'sceneryPlacement',className:'show-card',hidden:true});placementCard.append(make('h2',{},'花火だけの配置'),make('p',{},'花火大会全体を実景に合わせて配置できます。'));$('browserPage2').prepend(placementCard);
+ const placementStyle=make('style');placementStyle.textContent='#browserPage2.scenery-placement > :not(#sceneryPlacement){display:none!important}';document.head.append(placementStyle);
  mountHelp($('browserPage3'));
 }

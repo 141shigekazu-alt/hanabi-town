@@ -1,6 +1,6 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.13';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.14';
 import {helpTopic,helpPages} from './help-content.js?v=1.3.11';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.13';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.14';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -250,6 +250,11 @@ export class MRPanel{
  }
 
  range(id,label,y,state,unit=''){
+  if(state.wide){
+   this.text(label,32,y,23,panelTheme().muted);
+   for(const [suffix,label,x,direction,large] of [['--','−−',28,-1,true],['-','−',122,-1,false],['+','＋',596,1,false],['++','＋＋',690,1,true]])this.button(id+suffix,label,x,y+24,82,48,()=>this.adjust(id,direction,large));
+   this.text(state.value.toFixed(2)+unit,310,y+48,28,panelTheme().accent,270);return;
+  }
   this.text(label,32,y,23,panelTheme().muted);
   this.button(id+'-','−',28,y+24,92,60,()=>this.adjust(id,-1));
   const value=['volume','musicVolume'].includes(id)?Math.round(state.value*100)+'%':state.value.toFixed(2)+unit;
@@ -456,6 +461,18 @@ export class MRPanel{
    }
    }
   }else if(this.page===2){
+   if(!s.sceneryVisible&&!s.bridge){
+    this.text('花火だけの配置',32,230,30,panelTheme().accent,736);
+    this.text('−／＋：微調整　 −−／＋＋：大きく調整',32,273,18,panelTheme().muted,736);
+    this.range('scale','花火全体の大きさ（倍率）',316,s.scale);
+    this.range('distance','中心までの距離',416,s.distance,' m');
+    this.range('height','打ち上げ場所の高さ（床から）',516,s.height,' m');
+    this.button('placementReset','配置を標準に戻す',28,612,744,48,()=>this.click('placementReset'));
+    this.slider('roomBrightness','部屋の明るさ',712,s.roomBrightness,{compact:true});
+    this.range('volume','花火の音量',816,s.volume);
+    this.button('place','花火を今の前方へ',28,950,744,48,()=>this.place());
+    this.button('townSceneryToggle','街を戻す',28,1104,744,48,()=>this.click('townSceneryToggle'),{quiet:true});
+   }else{
    if(s.bridge){this.text(s.rooftop?'屋上の花火席 · '+(s.rooftopSeat==='panorama'?'全景の席':'近い席'):s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.rooftop?'赤色灯の上に用意した、屋上の桟敷席。近い席は迫力、全景の席は花火の並びを楽しめます。':s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
@@ -468,6 +485,8 @@ export class MRPanel{
    this.button('townSceneryToggle',s.sceneryVisible?'街を消す（花火だけ）':'街を戻す',28,1104,744,48,()=>this.click('townSceneryToggle'),{quiet:true,selected:!s.sceneryVisible});
    if(!s.bridge){this.button('place','街を今の前方へ',28,906,360,48,()=>this.place());
    this.button('mrPreset','小さな街を床に置く',412,906,360,48,()=>this.click('mrPreset'));}
+
+   }
   }else{
    this.drawHelp(s);
   }
