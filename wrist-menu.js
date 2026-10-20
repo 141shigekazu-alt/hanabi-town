@@ -1,5 +1,5 @@
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.14';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.14';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.15';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
 
 // A deliberate neutral -> palm-up motion; a held pose never repeats.

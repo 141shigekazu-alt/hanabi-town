@@ -1,3 +1,6 @@
+export const OPENING_LEVEL_TRIMS={"10":{"Torii_Shaku_001":0.4921875,"Torii_V011":1,"Torii_V030":0.60546875,"Torii_V032":0.52734375,"Torii_V022_S1_07":0.5234375,"Torii_V026_S1_06":0.50390625},"20":{"Torii_2Shaku_001":1,"Torii_V022":0.92578125,"Torii_V026":0.91015625}};
+export const WHISTLE_LEVEL_TRIMS={"Whistle_01":0.671875,"Whistle_02":0.83203125,"Whistle_03":0.96875,"Whistle_04":0.94921875,"Whistle_05":1,"Whistle_06":0.8046875};
+import {TORII_SAMPLES,TORII_OPENINGS,TORII_LAUNCHES,TORII_TORA,TORII_TAILS,isTorii,toriiSamples} from './torii-audio.js?v=1.3.15';
 import {twoShakuCodaBuffer} from './two-shaku-coda.js?v=1.3.1';
 import {WHISTLE_VARIANTS,OPENING_VARIANTS,recordedSamples,fiveGoOpeningDecay,recordedLaunchSamples,recordedReverbBuffer,recordedLateReverbBuffer,recordedOutdoorReflectionBuffer,variedCrackleBuffer,stretchedCrackleBuffer} from './recorded-audio.js?v=1.2.0';
 // End the extended decay smoothly, with zero slope at both ends of the fade.
@@ -172,12 +175,32 @@ function audioAssets(context){
  assets.whistleLevels=new Map();
  for(const key of WHISTLE_VARIANTS){const {data,rate}=recordedSamples(key),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);assets.cache.set("recorded-whistle-"+key,buffer);let sum=0;for(const v of data)sum+=v*v;assets.whistleLevels.set(key,Math.min(1.3,Math.max(.85,.048/Math.sqrt(sum/data.length))));}
  for(const key of Object.values(OPENING_VARIANTS).flat()){const {data,rate}=recordedLaunchSamples(key,fadeTail,OPENING_VARIANTS[5].includes(key)?5:3),buffer=context.createBuffer(1,data.length,rate);buffer.copyToChannel(data,0);assets.cache.set('recorded-launch-'+key,buffer);}
+ assets.toriiLevels=new Map();
+ for(const key of Object.keys(TORII_SAMPLES)){
+  const {data,channels,rate,onset}=toriiSamples(key),b=context.createBuffer(channels.length,data.length,rate);
+  channels.forEach((channel,c)=>b.copyToChannel(channel,c));assets.cache.set('recorded-opening-'+key,b);assets.cache.set('recorded-launch-'+key,b);assets.recordedOnsets.set(key,onset);
+  const start=Math.round(onset*rate),length=Math.min(data.length-start,Math.round(.5*rate));let sum=0;for(let i=start;i<start+length;i++)sum+=data[i]*data[i];const rms=TORII_SAMPLES[key].calibrationRms??Math.sqrt(sum/Math.max(1,length));
+  for(const size of [2,3,5,10,20])for(const role of ['opening','launch']){
+   const legacy=OPENING_VARIANTS[size===2?3:size][0],ref=assets.cache.get('recorded-'+role+'-'+legacy),d=ref.getChannelData(0),a=role==='opening'?Math.round((assets.recordedOnsets.get(legacy)??0)*ref.sampleRate):0,n=Math.min(d.length-a,Math.round(.5*ref.sampleRate));let power=0;for(let i=a;i<a+n;i++)power+=d[i]*d[i];
+   let target=Math.sqrt(power/Math.max(1,n));
+   // Anchor large reports to the existing five-go mix rather than the much
+   // hotter old large-shell sources. Preserve the adopted PCM and decay.
+   if(size>=10){
+    const fiveKey=OPENING_VARIANTS[5][0],five=assets.cache.get('recorded-'+role+'-'+fiveKey),f=five.getChannelData(0),begin=role==='opening'?Math.round((assets.recordedOnsets.get(fiveKey)??0)*five.sampleRate):0,count=Math.min(f.length-begin,Math.round(.5*five.sampleRate));
+    let energy=0;for(let i=begin;i<begin+count;i++)energy+=f[i]*f[i];
+    const fiveLevel=role==='opening'?.50:1,largeLevel=role==='opening'?(size===10?.65:.80):(size===10?1.15:1.65),ratio=role==='opening'?(size===10?1.6:2.2):(size===10?1.4:1.9);
+    target=Math.sqrt(energy/Math.max(1,count))*fiveLevel*ratio/largeLevel;
+   }
+   assets.toriiLevels.set(role+'-'+size+'-'+key,Math.min(3,Math.max(.03,target/Math.max(.0001,rms))));
+  }
+ }
  preparedAudioAssets=assets;return assets;
 }
 export class FireworkAudio{
- constructor(context,volume){
+ constructor(context,volume,options={}){
  const assets=audioAssets(context);
  this.spatialMode="full";this.hrtfPanners=new Set();this.peakHRTF=0;this.lightPanners=0;this.context=context;this.pending=new Set();this.cache=new Map(assets.cache);this.reference=new Map();this.ready=Promise.resolve();
+ this.useTorii=options.useTorii!==false;this.toriiLevels=assets.toriiLevels;this.toriiMixCounters=new Map();this.toriiLastOpening=new Map();this.toriiPreviousOpening=new Map();this.naturalReports=new Set();
  this.master=context.createGain();this.master.gain.value=volume;this.limiter=context.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=6;this.limiter.ratio.value=12;this.limiter.attack.value=.001;this.limiter.release.value=.15;
  this.mixInput=context.createGain();this.outputGuard=context.createWaveShaper();this.outputGuard.curve=assets.outputCurve;
  this.fxBoost=context.createGain();this.fxBoost.gain.value=7.2;this.master.connect(this.fxBoost).connect(this.limiter);this.fxHeadroom=context.createGain();this.fxHeadroom.gain.value=.88;this.limiter.connect(this.fxHeadroom).connect(this.mixInput);this.mixInput.connect(this.outputGuard).connect(context.destination);
@@ -200,6 +223,7 @@ export class FireworkAudio{
  if(offset>0)source.start(at,offset);else source.start(at);
  }
  cancelScheduled(){
+ for(const voice of this.naturalReports){voice.dry.gain.setTargetAtTime(0,this.context.currentTime,.006);voice.source.stop(this.context.currentTime+.03);}
  for(const voice of this.openingCodas??[]){voice.dry.gain.setTargetAtTime(0,this.context.currentTime,.006);voice.source.stop(this.context.currentTime+.03);}
  for(const [source,{dry,at}] of this.whistles){const started=at<=this.context.currentTime;if(started)dry.gain.setTargetAtTime(0,this.context.currentTime,.004);source.stop(started?this.context.currentTime+.015:this.context.currentTime);}
  for(const entry of this.pending)if(this.whistles.has(entry.source)||entry.at>this.context.currentTime){if(!this.whistles.has(entry.source))entry.source.stop();this.pending.delete(entry);}
@@ -238,12 +262,68 @@ export class FireworkAudio{
  source.onended=()=>{source.disconnect();dry.disconnect();send.disconnect();};source.start();
  }
  setVolume(value){this.master.gain.setTargetAtTime(value,this.context.currentTime,.025);}
- resetOpeningCycle(size){const state=this.openingBags.get(size);if(state)state.bag=[];}
- chooseOpening(size){
+ resetOpeningCycle(size){for(const [key,state] of this.openingBags)if(key===size||String(key).startsWith('opening-'+size+'-'))state.bag=[];this.toriiLastOpening.delete(size);}
+ chooseOpening(size,detail=null){
+ if(this.useTorii&&(size!==2||detail?.kind?.startsWith('pattern')))return this.chooseToriiOpening(size,detail);
  if(size===2)return this.nextRecordedCrackle();
  return this.chooseVariant(size,OPENING_VARIANTS[size]);
  }
- chooseLaunch(size){const group=size===2?3:size;return this.chooseVariant('launch-'+group,OPENING_VARIANTS[group]);}
+ chooseLaunch(size){
+  const group=size===2?3:size;
+  if(this.useTorii){if(size===2)return this.chooseVariant('launch-2-tora',TORII_TORA);if(size>=10)return this.chooseVariant('launch-'+size+'-new',TORII_LAUNCHES[size]);return this.chooseToriiMix('launch-'+size,size,TORII_LAUNCHES[size],OPENING_VARIANTS[group],size===2?2:3);}
+  return this.chooseVariant('launch-'+group,OPENING_VARIANTS[group]);
+ }
+ chooseToriiMix(group,size,fresh,legacy,every=3){
+  const n=this.toriiMixCounters.get(group)??0;this.toriiMixCounters.set(group,n+1);
+  const useFresh=n%every<every-1;
+  return this.chooseVariant(group+(useFresh?'-new':'-legacy'),useFresh?fresh:legacy);
+ }
+ chooseToriiOpening(size,detail={}){
+  const physical=detail?.size??size,pattern=detail?.kind?.startsWith('pattern');
+  if(pattern&&physical===2)return this.chooseVariant('pattern-opening-2',TORII_OPENINGS[2]);
+  if(detail?.soundStudy&&size>=10)return this.chooseVariant('opening-'+size+'-study',TORII_OPENINGS[size]);
+  if(size===20&&detail?.openingTail==='two-shaku-long')return 'Torii_2Shaku_001';
+  if(size>=10){
+   const now=this.context.currentTime,previous=this.toriiLastOpening.get(size)??-Infinity;this.toriiLastOpening.set(size,now);
+   const pool=size===10&&now-previous>1.1?TORII_OPENINGS[10].filter(k=>k!=='Torii_V011'):TORII_OPENINGS[size];
+   const group='opening-'+size+(size===10&&now-previous<=1.1?'-dense':'-new');
+   let key=this.chooseVariant(group,pool);
+   if(key===this.toriiPreviousOpening.get(size)&&pool.length>1)key=this.chooseVariant(group,pool);
+   this.toriiPreviousOpening.set(size,key);return key;
+  }
+  return this.chooseToriiMix('opening-'+size,size,TORII_OPENINGS[size],OPENING_VARIANTS[size],size===5?2:3);
+ }
+ shortToriiReport(key){
+  const cacheKey='recorded-short-report-'+key;
+  if(this.cache.has(cacheKey))return this.cache.get(cacheKey);
+  const original=this.cache.get('recorded-opening-'+key),rate=original.sampleRate,onset=this.recordedOnsets.get(key)??0,fadeStart=onset+1.4,end=onset+3.8;
+  const length=Math.min(original.length,Math.round(end*rate)),buffer=this.context.createBuffer(original.numberOfChannels,length,rate),begin=Math.round(fadeStart*rate);
+  for(let c=0;c<original.numberOfChannels;c++){
+   const data=original.getChannelData(c).slice(0,length);
+   for(let i=begin;i<length;i++){const u=Math.min(1,Math.max(0,(i-begin)/Math.max(1,length-1-begin)));data[i]*=.5*(1+Math.cos(Math.PI*u));}
+   buffer.copyToChannel(data,c);
+  }
+  this.cache.set(cacheKey,buffer);return buffer;
+ }
+ playTorii(role,key,size,x,when,position,variation=null,detail=null){
+  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
+  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,role==='tail'||role==='tora'),dry=this.context.createGain();
+  const shortReport=role==='opening'&&((size===10&&key==='Torii_Shaku_001')||(size===20&&(detail?.kind==='senrin'||detail?.kind==='candysenrin')));
+  source.buffer=shortReport?this.shortToriiReport(key):this.cache.get('recorded-opening-'+key);if(!source.buffer)throw Error('Missing selected recording: '+key);
+  const calibrationRole=role==='opening'?'opening':'launch',calibration=this.toriiLevels.get(calibrationRole+'-'+size+'-'+key)??1;
+  const level=role==='tail'?.055:role==='tora'?(size===2?.22:.40):role==='opening'?({2:.18,3:.40,5:.50,10:.65,20:.80})[size]:({2:.375,3:.75,5:1,10:1.15,20:1.65})[size];
+  // A two-shaku shell launches and opens farther away: soften launch more
+  // than the report, retaining the accepted waveform and natural decay.
+  const distanceTrim=(size===20?(role==='launch'?.8:role==='opening'?.9:1):1)*(size>=10&&(role==='launch'||role==='opening')?.9:1);
+  dry.gain.value=level*(role==='tail'?1:calibration)*(variation?.gain??1)*distanceTrim*(role==='launch'&&size===20?.85:1)*(role==='opening'?(OPENING_LEVEL_TRIMS[size]?.[key]??1):1);source.playbackRate.value=1;
+  source.connect(pan);pan.connect(dry);dry.connect(this.master);
+  const offset=this.recordedOnsets.get(key)??0,at=Math.max(this.context.currentTime,when??this.context.currentTime);
+  const voice={source,dry};if(role==='opening')this.naturalReports.add(voice);
+  this.lastRecording={key,role,size,at,offset,duration:source.buffer.duration-offset,gain:dry.gain.value,shortReport,extraReverb:false};
+  source.onended=()=>{this.naturalReports.delete(voice);source.disconnect();this.disconnectPan(pan);dry.disconnect();};
+  this.startSource(source,when,offset);return source;
+ }
+
  chooseVariant(group,variants){
  if(!variants)return null;if(variants.length===1)return variants[0];
  let state=this.openingBags.get(group);if(!state){state={bag:[],last:null};this.openingBags.set(group,state);}
@@ -268,7 +348,7 @@ export class FireworkAudio{
  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
  if(offset>=choice.duration)return;
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position),dry=this.context.createGain();source.buffer=this.cache.get('recorded-whistle-'+choice.key);
- dry.gain.value=.75*(6/this.fxBoost.gain.value)*(choice.size===20?.95:.80)*(this.whistleLevels.get(choice.key)??1)*choice.variation.gain;
+ dry.gain.value=.75*(6/this.fxBoost.gain.value)*(choice.size===20?.95*.8:.80)*(this.whistleLevels.get(choice.key)??1)*choice.variation.gain*(WHISTLE_LEVEL_TRIMS[choice.key]??1);
  source.connect(pan);const color=this.varyVoice(source,pan,choice.variation);color.node.connect(dry).connect(this.master);const at=Math.max(this.context.currentTime,when??this.context.currentTime);if(offset>0){const level=dry.gain.value;dry.gain.setValueAtTime(0,at);dry.gain.linearRampToValueAtTime(level,at+.008);}this.whistles.set(source,{dry,at});
  source.onended=()=>{this.whistles.delete(source);source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();};this.startSource(source,when,offset*choice.variation.rate);return source;
  }
@@ -312,10 +392,14 @@ export class FireworkAudio{
  source.onended=()=>{source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();send?.disconnect();};this.startSource(source,when);return source;
  }
  playSilverCrackle(x,when,position=null,size=10,variation=null){return this.playOpeningCrackle(x,when,position,'silver',size,variation);}
- playOpeningCrackle(x,when,position=null,kind='silver',size=10,variation=null){return this.playRecordedCrackle(x,when,position,kind+'-crackle','Crack_A_03',variation,size);}
- playRecorded(explosion,x,size,when,position=null,openingKey=null,variation=null,openingTail=null){
+ playOpeningCrackle(x,when,position=null,kind='silver',size=10,variation=null){
+  if(this.useTorii){const key=this.chooseVariant('natural-tail-'+kind,[...TORII_TAILS,'Crack_A_03']);if(isTorii(key))return this.playTorii('tail',key,size,x,when,position,variation);}
+  return this.playRecordedCrackle(x,when,position,kind+'-crackle','Crack_A_03',variation,size);
+ }
+ playRecorded(explosion,x,size,when,position=null,openingKey=null,variation=null,openingTail=null,detail=null){
  if(this.context.state!=='running'&&!('startRendering' in this.context))return;
- const key=explosion?(openingKey??this.chooseOpening(size)):this.chooseLaunch(size);if(!key)return;
+ let key=explosion?(openingKey??this.chooseOpening(size,detail)):this.chooseLaunch(size);if(this.useTorii&&size>=10&&!isTorii(key))key=explosion?this.chooseToriiOpening(size,detail):this.chooseLaunch(size);if(!key)return;
+ if(isTorii(key))return this.playTorii(explosion?'opening':'launch',key,size,x,when,position,variation,detail);
  variation??=this.chooseSoundVariation(explosion?'opening':'launch',size);
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,size===2),dry=this.context.createGain();
  source.buffer=this.cache.get((explosion?'recorded-opening-':'recorded-launch-')+key);
@@ -332,7 +416,7 @@ export class FireworkAudio{
  }
  // One cached, pre-rendered coda replaces the long real-time convolution feed.
  // Its light 3D panner leaves the report's HRTF slot budget unchanged.
- get openingCodaActive(){return (this.openingCodas?.size??0)>0;}
+ get openingCodaActive(){return (this.openingCodas?.size??0)>0||(this.naturalReports?.size??0)>0;}
  playOpeningCoda(x,when,position,key,variation,level){
  const source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();
  source.buffer=this.openingCodaBuffers.get(key);const color=this.varyVoice(source,pan,variation),presence=this.context.createBiquadFilter();presence.type='highshelf';presence.frequency.value=1800;presence.gain.value=1.5;
@@ -341,9 +425,11 @@ export class FireworkAudio{
  source.onended=()=>{this.openingCodas.delete(voice);source.disconnect();this.disconnectPan(pan);color.disconnect();presence.disconnect();dry.disconnect();};this.startSource(source,when);return source;
  }
  playComet(x,when,position=null,mode='recorded',small=false){
+ let selectedLegacy=null;
+ if(mode==='recorded'&&this.useTorii){const key=this.chooseVariant(small?'small-tora':'large-tora',TORII_TORA);if(isTorii(key))return this.playTorii('tora',key,small?2:3,x,when,position);selectedLegacy=key;}
  if(mode==='recorded'){
   if(this.context.state!=='running'&&!('startRendering' in this.context))return;
-  const key=this.chooseLaunch(3),source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();
+  const key=selectedLegacy??this.chooseLaunch(3),source=this.context.createBufferSource(),pan=this.spatialPan(x,position,true),dry=this.context.createGain();
   const variation=this.chooseSoundVariation('launch',small?2:3);source.buffer=this.cache.get('recorded-launch-'+key);dry.gain.value=(small?.22:.40)*variation.gain;
   source.connect(pan);const color=this.varyVoice(source,pan,variation);color.node.connect(dry).connect(this.master);
   source.onended=()=>{source.disconnect();this.disconnectPan(pan);color.disconnect();dry.disconnect();};this.startSource(source,when);return source;
@@ -366,7 +452,7 @@ export class FireworkAudio{
  let send=null;if(!explosion){send=this.context.createGain();send.gain.value=.025;pan.connect(send).connect(this.reverb);}
  source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();send?.disconnect();};this.startSource(source,when);
  }
- play(explosion,x,z,size,mode='original',when,position=null,openingKey=null,variation=null,openingTail=null){if(size===2){if(mode==='recorded')return explosion?this.playRecordedCrackle(x,when,position,'golden-ear',openingKey??this.nextRecordedCrackle(),variation,size):this.playRecorded(false,x,size,when,position,null,variation);return this.playEar(explosion,x,when,position);}if(mode==='recorded')return this.playRecorded(explosion,x,size,when,position,openingKey,variation,openingTail);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
+ play(explosion,x,z,size,mode='original',when,position=null,openingKey=null,variation=null,openingTail=null,detail=null){if(mode==='recorded'&&this.useTorii&&detail?.kind?.startsWith('pattern'))return this.playRecorded(explosion,x,detail.size,when,position,openingKey,variation,openingTail,detail);if(size===2){if(mode==='recorded')return explosion?this.playRecordedCrackle(x,when,position,'golden-ear',openingKey??this.nextRecordedCrackle(),variation,size):this.playRecorded(false,x,size,when,position,null,variation);return this.playEar(explosion,x,when,position);}if(mode==='recorded')return this.playRecorded(explosion,x,size,when,position,openingKey,variation,openingTail,detail);if(this.context.state!=='running'&&!('startRendering' in this.context))return;const key=`${mode==='realistic'?'realistic':'original'}-${explosion}-${size}`;if(!this.cache.has(key)){const data=(mode==='realistic'?realisticSamples:effectSamples)(this.context.sampleRate,explosion,size),buffer=this.context.createBuffer(1,data.length,this.context.sampleRate);buffer.copyToChannel(data,0);this.cache.set(key,buffer);}
  const source=this.context.createBufferSource();const reference=mode==='reference'&&explosion?this.reference.get(size>=10?'large':'small'):null;source.buffer=reference||this.cache.get(key);if(reference)source.playbackRate.value=size===3?1.08:size===20?.88:1;const pan=this.spatialPan(x,position);const dry=this.context.createGain();dry.gain.value=explosion?(mode==='realistic'&&size>=10?(size===20?1.4:1.15):.9):mode==='realistic'?.28:.8;source.connect(pan).connect(dry).connect(this.master);let launchSend=null;if(explosion){if(mode==='realistic'&&size>=10){launchSend=this.context.createGain();launchSend.gain.value=size===20?1.55:1.25;pan.connect(launchSend).connect(this.openingReverb);}else pan.connect(this.openingReverb);}else if(mode==='realistic'){launchSend=this.context.createGain();launchSend.gain.value=.20;pan.connect(launchSend).connect(this.reverb);}source.onended=()=>{source.disconnect();this.disconnectPan(pan);dry.disconnect();launchSend?.disconnect();};this.startSource(source,when);
  }
 }

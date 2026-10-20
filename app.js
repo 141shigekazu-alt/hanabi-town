@@ -1,4 +1,4 @@
-import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.14';
+import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternSizes,PATTERN_PROFILE,PATTERN_SIZES,createPatternStars,samplePatternPose,patternPoint} from './pattern-shells.js?v=1.3.10';
@@ -9,7 +9,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.14';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.15';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -17,19 +17,19 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.14';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.15';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.14';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.15';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.14';
+import {organizePanel} from './panel-layout.js?v=1.3.15';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
 import {QuestDiagnostics} from './quest-diagnostics.js?v=1.3.1';
-import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.14';
+import {BetaReviewPanel,attachBetaPanelDrag} from './beta-review-panel.js?v=1.3.15';
 import {toraSceneCues,toraSceneEnd,TORA_MOUNTAIN_COLORS} from './tora-scenes.js?v=1.3.1';
 import {rainEarSequence} from './rain-ears.js?v=1.3.1';
 import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.1';
@@ -46,18 +46,18 @@ import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,n
 import * as T from './vendor/three.module.js';
 import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.10';
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.1';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.14';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.15';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.7';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.14';
-import {XRControls} from './xr-controls.js?v=1.3.14';
+import {WristMenu} from './wrist-menu.js?v=1.3.15';
+import {XRControls} from './xr-controls.js?v=1.3.15';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip} from './entry-tip.js?v=1.3.14';
+import {EntryTip} from './entry-tip.js?v=1.3.15';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -396,7 +396,7 @@ function advanceMusicSequence(){
 function beginNormalShow(){
  if(voiceUI?.busy)return;cancelAutomaticPreparation();stopShow();prepareProgram();running=true;ensureAudio();syncShowButtons();$('status').textContent='稲穂の横一列から、曲なしの花火大会を始めます。';}
 
-function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0,openingKey=null,variation=null,openingTail=null){if(groundStudySilent)return;const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,position,openingKey,variation,openingTail);}
+function sound(explosion,x,z,size,when,y=SIZES[size]?.height??0,openingKey=null,variation=null,openingTail=null,detail=null){if(groundStudySilent)return;const position=bridgeView.position(x,explosion?y:0,z);soundEngine?.play(explosion,x,z,size,$('audioMode').value,when,position,openingKey,variation,openingTail,detail);}
 function soundDelayFor(f){return bridgeView.active?bridgeView.delay(f.x,f.y,f.z,latestViewerTransform):({2:.18,3:.2,5:.5,10:1,20:1.5})[f.size]??0;}
 function isWhistleShell(f){return [10,20].includes(f.size)&&['double','triple','quad','penta'].includes(f.kind);}
 const WHISTLE_LAUNCH_DELAY=.5;
@@ -531,7 +531,7 @@ function launch(kind='core',size=5,position=null){
   if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
  }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize);
+ const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,soundStudy:!!position?.soundStudy,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize,undefined,0,null,null,null,{kind:f.kind,size:f.size});
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
@@ -546,7 +546,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
   const offset=Math.max(0,f.whistleResumeOffset??0,age-f.whistleDue);if(offset<f.whistle.duration)soundEngine?.playWhistle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.whistleDue-age),whistlePositionFor(f),f.whistle,offset);
  }
  const soundDelay=soundDelayFor(f);
- if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.soundSize??f.size);f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.soundSize??f.size);}sound(true,f.x,f.z,f.soundSize??f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation,f.openingTail);}
+ if(t>=0&&!f.soundPlayed){f.soundPlayed=true;f.soundDue=soundDelay;f.soundMode=$('audioMode').value;if(f.soundMode==='recorded'){f.recordedOpeningKey??=soundEngine?.chooseOpening?.(f.soundSize??f.size,{kind:f.kind,size:f.size,openingTail:f.openingTail,soundStudy:f.soundStudy});f.openingVariation??=soundEngine?.chooseSoundVariation?.('opening',f.soundSize??f.size);}sound(true,f.x,f.z,f.soundSize??f.size,audioNow===undefined?undefined:audioNow+Math.max(0,soundDelay-t),f.y,f.recordedOpeningKey,f.openingVariation,f.openingTail,{kind:f.kind,size:f.size});}
  if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;if(f.soundMode==='recorded')f.childVariation??=soundEngine?.chooseSoundVariation?.('senrin-children',f.size);(!groundStudySilent)&&soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.soundMode??$('audioMode').value,f.size,f.childVariation);}
  const afterDelay=tailCrackleDelayFor(f);
  if(['silver','willow'].includes(f.kind)&&f.soundMode==='recorded'&&t>=afterDelay&&!f.afterSoundPlayed){f.afterSoundPlayed=true;f.afterSoundDue=soundDelay+afterDelay;f.afterVariation??=soundEngine?.chooseSoundVariation?.(f.kind+'-crackle',f.size);(!groundStudySilent)&&soundEngine?.playOpeningCrackle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.afterSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.kind,f.size,f.afterVariation);}
@@ -902,11 +902,11 @@ $('musicFireworkVolume').onchange=()=>{$('volume').dispatchEvent(new Event('chan
   $('status').textContent='5号玉を5発。同じ位置で、開花音を聴き比べます。';
  };
 $('allSoundStudy').onclick=()=>{
-  const size=Number($('size').value),kind=$('type').value,count=({2:2,3:5,5:5,10:4,20:2})[size];
+  const size=Number($('size').value),kind=$('type').value,count=({2:2,3:7,5:6,10:6,20:3})[size];
   beginPreview();soundEngine?.resetOpeningCycle?.(size);
   const gap=size>=10?8:4.6;
-  burstQueue=Array.from({length:count},(_,i)=>({at:i*gap,kind,size,position:{x:0,z:.05,palette:$('palette').value,startAt:i*gap}}));
-  $('status').textContent=SIZES[size].label+'を'+count+'発。同じ位置で、開花音をひと巡り聴き比べます。';
+  burstQueue=Array.from({length:count},(_,i)=>({at:i*gap,kind,size,position:{x:0,z:.05,palette:$('palette').value,soundStudy:true,startAt:i*gap}}));
+  $('status').textContent=SIZES[size].label+'を'+count+'発。同じ位置で、開花音を聴き比べます。';
  };
 $('senrinSoundStudy').onclick=()=>{
   beginPreview();const sizes=[10,20,10,20];
