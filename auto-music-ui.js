@@ -4,7 +4,7 @@ import {MUSIC_FEELINGS,musicFeeling} from './music-feeling.js?v=1.3.13';
 import {readLocalTrack,saveLocalTrack,listLocalTracks,migrateLatest41,migratePrevious42,readTrackFeeling,saveTrackFeeling,analyzeInBrowser,listTrackTitles,renameTrackTitle,listDeletedTracks,setTrackDeleted} from './quest-local-library.js';
 import {applyMusicStructure} from './music-structure.js';
 import {compareChorus,timeLabel} from './chorus-reference.js';
-import {createAutoMusicPlan} from './auto-music-plan.js?v=1.3.13';
+import {createAutoMusicPlan} from './auto-music-plan.js?v=1.3.16';
 // Audio and per-song analyses stay in this browser; rebuilding reuses decoded audio.
 export function mountAutoMusic({catalog,onReady,onOriginalReady=()=>{},onBegin,onManual,onPreview,onRoom,onState=()=>{},onCatalog=()=>{},onRebuilt=()=>{}}){
  const baseCatalog=catalog.map(t=>({...t}));

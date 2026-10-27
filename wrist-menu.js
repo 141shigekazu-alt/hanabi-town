@@ -1,4 +1,5 @@
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.15';
+import {SoftHand} from './soft-hand.js?v=1.3.16';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.16';
 import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
 
@@ -47,16 +48,8 @@ export class WristMenu{
  }
  get visible(){return this.mesh.visible;}
  toggle(transform){this.gesture.reset();if(this.visible)this.close();else if(transform)this.open(transform);}
- attachHand(hand){
-  const coords=new Float32Array(LINKS.length*6),g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(coords,3));
-  const lines=new T.LineSegments(g,new T.LineBasicMaterial({color:0xaac8d7,transparent:true,opacity:.8}));lines.frustumCulled=false;lines.visible=false;this.scene.add(lines);
-  this.handDisplays.push({hand,coords,g,lines});
- }
- drawHands(show){for(const d of this.handDisplays){
-  d.lines.visible=show&&d.hand.visible;if(!d.lines.visible)continue;let index=0;
-  for(const [a,b] of LINKS){const p=d.hand.joints[a],q=d.hand.joints[b];if(!p?.visible||!q?.visible){d.lines.visible=false;break;}for(const joint of [p,q]){joint.getWorldPosition(this.origin);d.coords[index++]=this.origin.x;d.coords[index++]=this.origin.y;d.coords[index++]=this.origin.z;}}
-  d.g.attributes.position.needsUpdate=true;
- }}
+ attachHand(hand){this.handDisplays.push(new SoftHand(this.scene,hand));}
+ drawHands(show){for(const display of this.handDisplays)display.update(show);}
  reanchor(transform){
   if(!transform){this.front=null;return;}const m=transform.matrix,n=Math.hypot(m[8],m[10]);this.front=n>.001?{x:-m[8]/n,z:-m[10]/n}:{x:0,z:-1};
  }
@@ -65,13 +58,12 @@ export class WristMenu{
   this.beforeOpen();if(!this.front)this.reanchor(transform);x=this.front.x;z=this.front.z;const reach=Math.hypot(.48,.42)/Math.SQRT2;if(!this.moved){this.mesh.position.set(p.x+x*reach+z*reach,p.y-.28,p.z+z*reach-x*reach);this.mesh.lookAt(p.x,this.mesh.position.y,p.z);this.yawOffset=0;}this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.touch.reset();this.hover='';this.draw();
  }
  close(){this.gesture.reset();this.mesh.visible=false;this.cursor.visible=false;for(const e of this.entries){e.beam.visible=false;e.touchTip.visible=false;}}
- end(){this.front=null;this.moved=false;this.close();this.gesture.reset();this.touch.reset();this.ignoreController=null;this.ignoreUntil=0;for(const d of this.handDisplays)d.lines.visible=false;}
+ end(){this.front=null;this.moved=false;this.close();this.gesture.reset();this.touch.reset();this.ignoreController=null;this.ignoreUntil=0;for(const d of this.handDisplays)d.root.visible=false;}
  hit(controller){controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.origin,this.direction);return this.ray.intersectObject(this.mesh,false)[0]??null;}
  control(hit){if(!hit)return null;const x=hit.uv.x*W,y=(1-hit.uv.y)*H;return this.controls.find(c=>x>=c.x&&x<c.x+c.w&&y>=c.y&&y<c.y+c.h);}
  select(controller,stamp=performance.now()){
   if(controller===this.ignoreController&&stamp<this.ignoreUntil)return true;
   if(!this.visible)return false;
-  if(this.entries.find(e=>e.controller===controller)?.source?.hand)return true;
   const control=this.control(this.hit(controller));
   if(control){if(control.id!=='close')this.choose(control.id);this.close();}return true;
  }

@@ -1,3 +1,4 @@
+import {softenRepeatedRows} from './natural-layout.js?v=1.3.16';
 import {addPatternPassages} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
 import {limitProgrammeCapacity} from './programme-capacity.js?v=1.3.13';
@@ -258,5 +259,5 @@ export function createAutoMusicPlan(analysis,options={}){
  const helpers={shellTiming,shellPoints,planBudget};
  const voiced=directVoicePlan(result,options.voiceRequest,helpers);
  const opened=naturalProgrammeOpening(voiced,helpers);
- return addPatternPassages(addGoldAccents(limitProgrammeCapacity(opened,helpers),helpers),analysis,directedOptions,helpers);
+ return softenRepeatedRows(addPatternPassages(addGoldAccents(limitProgrammeCapacity(opened,helpers),helpers),analysis,directedOptions,helpers),{seed:analysis.seed+Math.imul(options.variation??0,0x9e3779b9)});
 }

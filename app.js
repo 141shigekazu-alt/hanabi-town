@@ -9,7 +9,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.15';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.16';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -40,7 +40,7 @@ import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=
 import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
 import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.13';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.1';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.16';
 import {MusicTransport} from './music-transport.js';
 import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
@@ -54,8 +54,8 @@ import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.7';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.15';
-import {XRControls} from './xr-controls.js?v=1.3.15';
+import {WristMenu} from './wrist-menu.js?v=1.3.16';
+import {XRControls} from './xr-controls.js?v=1.3.16';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
 import {EntryTip} from './entry-tip.js?v=1.3.15';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
@@ -937,13 +937,16 @@ function syncPlacementView(){
 }
 function resetTownPlacement(){
  if(bridgeView.active)return;
- controls.release();if(dioramaSaved)toggleDiorama();
- for(const [id,r] of Object.entries(PLACEMENT_LIMITS)){$(id).value=String(r.standard);}
- town.scale.setScalar(1);town.rotation.set(0,0,0);
- if(renderer.xr.isPresenting&&latestViewerTransform){const p=placementFromPose(latestViewerTransform,2,0,0,-groundBottomY);town.position.set(p.x,p.y,p.z);town.rotation.y=p.yaw;}
- else{town.position.set(0,0,0);camera.position.set(0,1.2,2.9);yaw=0;pitch=0;}
+ if(!sceneryPlacementBeforeHide)return;
+ controls.release();const saved=sceneryPlacementBeforeHide;
+ town.position.copy(saved.position);town.quaternion.copy(saved.quaternion);town.scale.copy(saved.scale);
+ camera.position.copy(saved.camera);camera.quaternion.copy(saved.cameraQuaternion);yaw=saved.yaw;pitch=saved.pitch;
+ dioramaSaved=saved.dioramaSaved;controls.diorama=!!dioramaSaved;
+ $('diorama').textContent=dioramaSaved?'通常サイズに戻る':'ジオラマサイズで観る';
+ for(const [id,values] of Object.entries(saved.settings))Object.assign($(id),values);
+ // Restore the snapshot directly, never re-run viewer-relative distance handlers.
  pendingPlace=false;town.visible=true;syncPlacementView();
- for(const id of Object.keys(PLACEMENT_LIMITS))$(id).dispatchEvent(new Event('change'));
+ if(!dioramaSaved)try{localStorage.setItem('hanabi-town-settings',JSON.stringify(settingsSnapshot()));}catch{}
  $('status').textContent='配置を標準に戻しました。';mrPanel.draw();
 }
 $('placementReset').onclick=resetTownPlacement;
@@ -1150,8 +1153,19 @@ function setPanelTab(page){
 }
 const PANEL_PAGES=[4,2,3];
 for(const [index,i] of PANEL_PAGES.entries()){$('browserTab'+i).onclick=()=>setPanelTab(i);$('browserTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=PANEL_PAGES[e.key==='Home'?0:e.key==='End'?PANEL_PAGES.length-1:(index+(e.key==='ArrowRight'?1:PANEL_PAGES.length-1))%PANEL_PAGES.length];setPanelTab(next);$('browserTab'+next).focus();};}setPanelTab(0);
+let sceneryPlacementBeforeHide=null;
 function setTownSceneryVisible(visible){
- townScenery.visible=!!visible;
+ visible=!!visible;
+ if(!visible&&townScenery.visible){
+  // Save the miniature beneath bridge/boat views, rather than their enlarged pose.
+  const base=bridgeView.active?bridgeView.saved:town;
+  sceneryPlacementBeforeHide={position:base.position.clone(),quaternion:base.quaternion.clone(),scale:base.scale.clone(),camera:(bridgeView.active?base.cameraPosition:camera.position).clone(),cameraQuaternion:(bridgeView.active?base.cameraQuaternion:camera.quaternion).clone(),yaw,pitch,dioramaSaved,settings:Object.fromEntries(['scale','height','distance'].map(id=>{const e=$(id);return [id,{value:e.value,min:e.min,max:e.max,step:e.step}];}))};
+ }else if(visible&& !townScenery.visible){
+  // Showing the town is visibility only; keep the current fireworks placement.
+  sceneryPlacementBeforeHide=null;
+ }
+
+ townScenery.visible=visible;
  const button=$('townSceneryToggle');button.textContent=visible?'街を消す（花火だけ）':'街を戻す';
  button.setAttribute('aria-pressed',String(!visible));updateReflections();syncSceneryPlacementUI();
 }
