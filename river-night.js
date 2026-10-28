@@ -1,7 +1,7 @@
 import * as T from './vendor/three.module.js';
 import {BOAT_ORIGIN} from './bridge-view.js';
 import {viewBoatPose,cruiseTurnWindow} from './boat-cruise.js';
-import {EITAI_ANGLE} from './city-layout.js';
+import {EITAI_ANGLE,BRIDGE_DECK} from './city-layout.js';
 
 // Author geometry once, merging details by material instead of one draw per rail.
 class Pieces{
@@ -20,9 +20,9 @@ class Pieces{
 }
 export const BRIDGE_DESIGNS=Object.freeze([{id:'three-arches',z:-.58},{id:'suspension',z:.05},{id:'blue-arch',z:.67}]);
 function bridgeGeometry(id){
- const body=new Pieces(),lights=new Pieces(),deck=.1025,width=.7;
+ const body=new Pieces(),lights=new Pieces(),deck=BRIDGE_DECK.height,width=BRIDGE_DECK.length;
  // Keep both navigated bridge tops and skylines; thin their deck undersides for clearance.
- const thickness=id==='suspension'||id==='blue-arch'?.010:.025;body.box(0,deck-thickness/2,0,width,thickness,.085,0x323d49);
+ const thickness=id==='suspension'||id==='blue-arch'?.010:.025;body.box(0,deck-thickness/2,0,width,thickness,BRIDGE_DECK.width,0x323d49);
  for(const z of [-.043,.043]){
   body.beam([-.35,.116,z],[.35,.116,z],.0014,0x7d939f);
   lights.beam([-.35,.109,z],[.35,.109,z],.00065,0xffd298);

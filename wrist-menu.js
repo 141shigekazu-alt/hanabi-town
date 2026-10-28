@@ -1,5 +1,5 @@
 import {SoftHand} from './soft-hand.js?v=1.3.16';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.16';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.17';
 import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
 
@@ -72,6 +72,7 @@ export class WristMenu{
   if(busy)this.gesture.reset();
   for(const e of this.entries){
    const s=e.source;if(s?.handedness!=='left')continue;
+   if(this.handLaunchSuppressed?.(s,stamp)){this.gesture.states.delete(s);continue;}
    const joint=s.hand?.get('wrist'),pose=joint?frame.getJointPose(joint,referenceSpace):s.gripSpace?frame.getPose(s.gripSpace,referenceSpace):null;
    // W3C joint -Y points out of the palm. A left-hand grip's +X does so.
    const m=pose?.transform.matrix,p=pose?.transform.position,v=transform.position,normalY=m?(joint?-m[5]:m[1]):null;

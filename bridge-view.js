@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.js';
 import {viewBoatPose} from './boat-cruise.js';
-import {EITAI_ANGLE} from './city-layout.js';
+import {EITAI_ANGLE,BRIDGE_DECK} from './city-layout.js';
 
 // Town units are authored for the miniature. XR cameras, controllers and UI
 // always stay in physical metres; only the town is enlarged around the viewer.
@@ -9,7 +9,9 @@ export const TURN_SPEED=Math.PI/4; // Full stick: 45 degrees per second.
 export const ROOFTOP_POSTURE=Object.freeze({standLift:.5,sitRadius:.42,leaveRadius:.65,frequency:5});
 // Move the seated viewpoint 2.125 metres left along the deck, midway between adjacent hangers.
 const bridgeAngle=EITAI_ANGLE;
-export const FRONT_BRIDGE=new T.Vector3(-.02125,.1025,-.026).applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
+export const BRIDGE_ENTRY_LOCAL=new T.Vector3(-.02125,BRIDGE_DECK.height,-.026);
+export const BRIDGE_WALK=Object.freeze({minX:((-BRIDGE_DECK.length/2-BRIDGE_ENTRY_LOCAL.x)*BRIDGE_SCALE+.5)*.75,maxX:((BRIDGE_DECK.length/2-BRIDGE_ENTRY_LOCAL.x)*BRIDGE_SCALE-.5)*.75,minZ:(-BRIDGE_DECK.width/2-BRIDGE_ENTRY_LOCAL.z)*BRIDGE_SCALE+.4,maxZ:(BRIDGE_DECK.width/2-BRIDGE_ENTRY_LOCAL.z)*BRIDGE_SCALE-.4});
+export const FRONT_BRIDGE=BRIDGE_ENTRY_LOCAL.clone().applyAxisAngle(new T.Vector3(0,1,0),bridgeAngle).add(new T.Vector3(.22*Math.sin(.67*2.7+.35),0,.67));
 const initialBoat=viewBoatPose(0);
 export const BOAT_ORIGIN=new T.Vector3(initialBoat.x,0,initialBoat.z);
 export const BOAT_EYE=BOAT_ORIGIN.clone().add(new T.Vector3(0,.062,-.054).applyAxisAngle(new T.Vector3(0,1,0),initialBoat.angle));
@@ -58,7 +60,7 @@ export class BridgeView{
  move(x,y,dt,viewer=null){
   if(!this.active||(!x&&!y))return;
   const boat=this.mode==='boat',rooftop=this.mode==='rooftop',angle=boat?this.boatPose.angle:rooftop?this.rooftop.angle:bridgeAngle;
-  const bounds=boat?BOAT_WALK:rooftop?this.rooftop.bounds:{minX:-1.45,maxX:1.45,minZ:-.70,maxZ:.80};
+  const bounds=boat?BOAT_WALK:rooftop?this.rooftop.bounds:BRIDGE_WALK;
   const matrix=viewer?.matrix??this.camera.matrixWorld.elements;
   const forward=new T.Vector3(-matrix[8],0,-matrix[10]);if(forward.lengthSq()<.0001)return;forward.normalize();
   const right=new T.Vector3(-forward.z,0,forward.x),delta=right.multiplyScalar(x).addScaledVector(forward,-y);

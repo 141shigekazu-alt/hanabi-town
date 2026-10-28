@@ -1,3 +1,4 @@
+import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.17';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
@@ -9,7 +10,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.16';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.17';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -35,7 +36,7 @@ import {rainEarSequence} from './rain-ears.js?v=1.3.1';
 import {SPARKLE_PROFILE,sparkleLife,createSparkleStars,sparklePoint,prepareSparklePoint} from './sparkling-stars.js?v=1.3.1';
 import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLongStarPoint} from './long-stars.js?v=1.3.1';
 import {viewBoatPose} from './boat-cruise.js?v=1.3.1';
-import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.1';
+import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.17';
 import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
 import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
@@ -52,10 +53,10 @@ import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.15';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
-import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.7';
+import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.16';
-import {XRControls} from './xr-controls.js?v=1.3.16';
+import {WristMenu} from './wrist-menu.js?v=1.3.17';
+import {XRControls} from './xr-controls.js?v=1.3.17';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
 import {EntryTip} from './entry-tip.js?v=1.3.15';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
@@ -1118,7 +1119,7 @@ function confirmPreparation(){
 $('loadLeft').onclick=()=>loadShell('left');$('loadRight').onclick=()=>loadShell('right');
 $('prepareConfirm').onclick=confirmPreparation;$('prepareCancel').onclick=cancelPreparation;
 for(let i=0;i<3;i++){$('prepareTab'+i).onclick=()=>prepareTab(i);$('prepareTab'+i).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowRight'?1:2))%3;prepareTab(next);$('prepareTab'+next).focus();};}
-function firePrepared(hand,origin,direction){
+function firePrepared(hand,origin,direction,input='trigger'){
  if(voiceUI?.busy)return;
  if(hand!=='left'&&hand!=='right')return;
  if(isPatternShell(loadedShells[hand]?.kind)&&!running&&!previewing)beginPreview();
@@ -1131,7 +1132,8 @@ function firePrepared(hand,origin,direction){
  ensureAudio();const shell=loadedShells[hand]??chosenShell();
  const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
  const ok=manualBudget.accepts(points)&&triggerEmbers.send(hand,shell,origin,direction);
- $('status').textContent=ok?(hand==='left'?'左':'右')+'トリガーで '+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
+ $('status').textContent=ok?(hand==='left'?'左':'右')+(input==='hand'?'手から ':'トリガーで ')+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
+ return ok===true;
 }
 function pauseShow(){if(previewing){previewPaused=!previewPaused;if(previewPaused)cancelFutureSounds();else ensureAudio();$('status').textContent=previewPaused?'試し打ちを一時停止しました。右Bで再開できます。':'試し打ちを再開しました。';}else if(running||showPlan)toggle();}
 const placementHomes=new Map();
@@ -1186,6 +1188,12 @@ const controls=new XRControls({entries:mrPanel.controllers,town,townTarget:townG
  // The grip already placed the town. Persist its values without replaying numeric placement.
  if(commit&&!dioramaSaved)try{localStorage.setItem('hanabi-town-settings',JSON.stringify(settingsSnapshot()));}catch{}
 }});
+
+
+const handLaunch=new HandLaunch({scene,entries:mrPanel.controllers,fire:(hand,origin,direction)=>firePrepared(hand,origin,direction,'hand'),
+ enabled:()=>!!(running||previewing&&!previewPaused)&&!voiceUI?.busy,
+ blocked:e=>handLaunchBlocked({preparing:!!preparation,grabs:controls.grabs.size,panels:[mrPanel,wristMenu,betaReviewPanel,favoritesPanel],hit:controls.panelHit(e.controller),ignore:e.controller===wristMenu.ignoreController&&performance.now()<wristMenu.ignoreUntil})});
+wristMenu.handLaunchSuppressed=(source,stamp)=>handLaunch.suppressMenu(source,stamp);
 
 function toggleDiorama(){
  if(bridgeView.active)return;
@@ -1393,7 +1401,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
  if(!renderer.xr.isPresenting){const lookYaw=yaw-(bridgeView.active?(bridgeView.mode==='boat'?boatPose.angle:bridgeView.mode==='rooftop'?rooftopDeck.angle:0):0);const target=bridgeView.active?new T.Vector3(Math.sin(lookYaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(lookYaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*(dioramaSaved?.25:1.2),(dioramaSaved?.88:new URLSearchParams(location.search).has('rainMusicTrial')?1.15:$('toraSceneCard')&&!$('toraSceneCard').hidden?.70:$('rainEarCard')&&!$('rainEarCard').hidden?((rainEarMode.endsWith('-field')||['sea-sunset-base','paddy-base'].includes(rainEarMode))?1.1:.70):(($('creativeCard')&&!$('creativeCard').hidden)||new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial'))?1.04:.55)+pitch,0);camera.lookAt(target);}
  if(!session&&bridgeView.active)bridgeView.move((walkKeys.has('KeyD')?1:0)-(walkKeys.has('KeyA')?1:0),(walkKeys.has('KeyS')?1:0)-(walkKeys.has('KeyW')?1:0),dt);
- if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible){favoritesPanel?.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);}else if(panelPreview){favoritesPanel?.update(stamp,null,null,null);mrPanel.update(stamp,null,null,null);}if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0||!!mrPanel.sliderDrag||!!betaReviewPanel.sliderDrag||!!mrPanel.childView});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled,title:showPlan?.music?musicTrackTitle(selectedMusic.id,selectedMusic.title):'',names:betaTCEnabled?showInfoText({time,running,previewing,fireworks}).names:'',canPlay:!pendingAutomaticTrack&&!selectionProblem,canPrevious:!!favoriteRun&&favoriteRun.index>0,canNext:!!favoriteRun?.hasNext,musicActive:!!showPlan?.music,current:betaClock(showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration)):time),seek:showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration:0,duration:showPlan?.music?betaClock(MUSIC_PLAN.duration):'',tail:showPlan?.music&&time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else {betaReviewPanel.release();favoritesPanel?.release();}if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(xrVisible)bridgeView.updateRooftopPosture(dt);bridgeView.listener(audio,pose?.transform);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||($('creativeCard')&&!$('creativeCard').hidden)||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible){favoritesPanel?.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);}else if(panelPreview){favoritesPanel?.update(stamp,null,null,null);mrPanel.update(stamp,null,null,null);}handLaunch.update(stamp,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0||!!mrPanel.sliderDrag||!!betaReviewPanel.sliderDrag||!!mrPanel.childView});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled,title:showPlan?.music?musicTrackTitle(selectedMusic.id,selectedMusic.title):'',names:betaTCEnabled?showInfoText({time,running,previewing,fireworks}).names:'',canPlay:!pendingAutomaticTrack&&!selectionProblem,canPrevious:!!favoriteRun&&favoriteRun.index>0,canNext:!!favoriteRun?.hasNext,musicActive:!!showPlan?.music,current:betaClock(showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration)):time),seek:showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration:0,duration:showPlan?.music?betaClock(MUSIC_PLAN.duration):'',tail:showPlan?.music&&time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else {betaReviewPanel.release();favoritesPanel?.release();}if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(xrVisible)bridgeView.updateRooftopPosture(dt);bridgeView.listener(audio,pose?.transform);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||($('creativeCard')&&!$('creativeCard').hidden)||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
  panelSurfaceTrial?.after({updateMs:renderStart-updateStart,renderMs:performance.now()-renderStart,calls:renderer.info.render.calls});
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});

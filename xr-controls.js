@@ -1,4 +1,5 @@
-import {panelBarColor} from './panel-theme.js?v=1.3.16';
+import {pulseLaunch} from './launch-haptics.js?v=1.3.17';
+import {panelBarColor} from './panel-theme.js?v=1.3.17';
 import * as T from './vendor/three.module.js';
 
 export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(value)*(Math.abs(value)-.18)/.82;}
@@ -38,7 +39,8 @@ export class XRControls{
   if(hit){if(hit.blocked)return;if(hit.object===(hit.panel.grabTarget??hit.panel.bar))this.grabPanel(e,hit,'trigger');else if(hit.object===hit.panel.mesh&&hit.panel!==this.panels[2])hit.panel.select(e.controller);return;}
   if(e.source.hand)return;
   this.cast(e.controller);
-  this.fire(e.source.handedness,this.origin.clone().addScaledVector(this.direction,.055),this.direction.clone());
+  const fired=this.fire(e.source.handedness,this.origin.clone().addScaledVector(this.direction,.055),this.direction.clone());
+  if(fired===true)pulseLaunch(e.source);
  }
  grabPanel(e,hit,input){
   const panel=hit.panel;if(panel.grab||[...this.grabs.values()].some(g=>g.panel===panel))return;

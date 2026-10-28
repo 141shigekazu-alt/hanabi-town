@@ -1,5 +1,5 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.16';
-import {helpTopic,helpPages} from './help-content.js?v=1.3.11';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.17';
+import {helpTopic,helpPages} from './help-content.js?v=1.3.17';
 import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
 
@@ -227,7 +227,7 @@ export class MRPanel{
    const trackH=bottom-top,thumb=Math.max(48,trackH*trackH/(lines.length*32)),travel=trackH-thumb;
    c.fillStyle=panelTheme().track;c.fillRect(748,top,16,trackH);c.fillStyle=panelTheme().accent;c.fillRect(748,top+travel*this.helpScroll/this.helpMaxScroll,16,thumb);
    this.controls.push({id:'helpScroll',x:728,y:top,w:44,h:trackH,slider:true,helpScroll:true,trackY:top+thumb/2,trackH:travel});
-   this.text('本文へビームを向け、スティック上下でスクロール',32,1005,22,panelTheme().muted,736);
+   this.text('スクロール：スティック上下／右のつまみを掴んで移動',32,1005,22,panelTheme().muted,736);
   }
   this.button('entryTipEnabled',(s.entryTipEnabled?'☑':'☐')+' 入室時の操作案内を表示',28,1040,744,64,()=>this.click('entryTipEnabled'),{selected:s.entryTipEnabled});
  }

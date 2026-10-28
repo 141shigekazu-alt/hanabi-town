@@ -1,6 +1,6 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js?v=1.3.16';
-import {mountHelp} from './help-content.js?v=1.3.11';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.17';
+import {mountHelp} from './help-content.js?v=1.3.17';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
  const $=id=>document.getElementById(id),make=(tag,attrs={},text='')=>{const el=document.createElement(tag);Object.assign(el,attrs);el.textContent=text;return el;};
