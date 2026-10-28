@@ -1,5 +1,5 @@
 import {pulseLaunch} from './launch-haptics.js?v=1.3.17';
-import {panelBarColor} from './panel-theme.js?v=1.3.17';
+import {panelBarColor} from './panel-theme.js?v=1.3.18';
 import * as T from './vendor/three.module.js';
 
 export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(value)*(Math.abs(value)-.18)/.82;}
@@ -12,7 +12,7 @@ export class XRControls{
   this.diorama=false;this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.grabs=new Map();this.triggerDown=new Set();this.gripDown=new Set();this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.target=new T.Vector3();this.facing=new T.Object3D();this.rotation=new T.Quaternion();this.up=new T.Vector3(0,1,0);
   for(const e of entries){
    e.controller.addEventListener('selectstart',()=>this.select(e));
-   e.controller.addEventListener('selectend',()=>this.endSelect(e));
+   e.controller.addEventListener('selectend',()=>this.endSelect(e,true));
    // A controller slot may be reused for hands without the old button ending.
    e.controller.addEventListener('connected',()=>{this.endSelect(e);this.gripDown.delete(e.controller);});
    e.controller.addEventListener('squeezestart',()=>{if(this.active&&e.source&&!e.source.hand)this.gripDown.add(e.controller);this.squeeze(e);});
@@ -20,7 +20,7 @@ export class XRControls{
    e.controller.addEventListener('disconnected',()=>{this.release(e.controller);this.triggerDown.delete(e.controller);this.gripDown.delete(e.controller);this.edges=new WeakMap();});
   }
  }
- endSelect(e){this.triggerDown.delete(e.controller);this.release(e.controller,'trigger');for(const panel of this.panels)panel.release?.(e.controller);}
+ endSelect(e,commit=false){this.triggerDown.delete(e.controller);this.release(e.controller,'trigger');for(const panel of this.panels){if(commit)panel.finishContentScroll?.(e.controller,true);panel.release?.(e.controller);}}
  begin(viewer){this.end();this.active=true;this.viewer=viewer;}
  end(){this.release();this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.triggerDown.clear();this.gripDown.clear();for(const e of this.entries)e.beam.visible=false;}
  cast(controller){controller.updateWorldMatrix(true,false);this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.origin,this.direction);}
@@ -81,7 +81,7 @@ export class XRControls{
     const button=s.gamepad?.buttons?.[0],previous=this.edges.get(s);
     if(button){const pressed=!!button.pressed;this.edges.set(s,[pressed]);
      // Require an open hand first: switching input while pinched must not click.
-     if(previous){if(pressed&&!previous[0])this.select(e);else if(!pressed&&previous[0])this.endSelect(e);}
+     if(previous){if(pressed&&!previous[0])this.select(e);else if(!pressed&&previous[0])this.endSelect(e,true);}
     }
     const grab=this.grabs.get(e.controller);
     if(grab?.panel){

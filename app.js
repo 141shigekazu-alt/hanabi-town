@@ -10,7 +10,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.17';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.18';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -22,10 +22,10 @@ import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.15';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.15';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.18';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.15';
+import {organizePanel} from './panel-layout.js?v=1.3.18';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -49,14 +49,14 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.15';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.18';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.17';
-import {XRControls} from './xr-controls.js?v=1.3.17';
+import {WristMenu} from './wrist-menu.js?v=1.3.18';
+import {XRControls} from './xr-controls.js?v=1.3.18';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
 import {EntryTip} from './entry-tip.js?v=1.3.15';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
@@ -1053,7 +1053,7 @@ const entryTip=new EntryTip(scene,{onPreferenceChanged:(hidden,saved)=>{
 $('entryTipEnabled').checked=!entryTip.suppressed;
 $('entryTipEnabled').onchange=()=>entryTip.setSuppressed(!$('entryTipEnabled').checked);
 const mrPanel=new MRPanel({scene,read:readPanel,click:id=>$(id).click(),cycle:cyclePanel,choose:choosePanel,adjust:adjustPanel,place:placeTown,exit:exitMRToPage,set:setPanelRange,pageChanged:page=>setPanelTab(page),prepareChoose:choosePreparation,prepareTab,childChanged:open=>{if(open)wristMenu.close();else if(analysisFeedback)analysisFeedback.inChild=false;}});
-$('helpTopic').addEventListener('change',()=>{mrPanel.helpScroll=0;mrPanel.draw();});
+$('helpTopic').addEventListener('change',()=>{if(mrPanel.sliderDrag?.control.contentScroll)mrPanel.release();mrPanel.helpScroll=0;mrPanel.draw();});
 for(const c of xrControllers)mrPanel.attach(c);showInfo.entries=mrPanel.controllers;betaReviewPanel.entries=mrPanel.controllers;
 favoritesPanel=new FavoritesPanel({scene,read:()=>({...favoritesUI?.state,rows:favoritesUI?.state.rows??[],busy:(favoritesUI?.state.busy??true)||libraryRestoring,rename:mrNameEditor?.state??null}),click:id=>$(id).click(),choose:(command,value)=>{if(command==='check')void favoritesUI.toggle(value);if(command==='load')void favoritesUI.load(value);if(command==='play')void favoritesUI.play(value);if(command==='reorder')void favoritesUI.reorder(value.id,value.index);if(command==='delete')void favoritesUI.remove(value);if(command==='undo')void favoritesUI.undo();if(command==='rename')renameFavoriteFromMR(value);if(command==='setlistRename')renameFavoriteFromMR(value,'setlist');if(command==='setlistEdit')favoritesUI.editSetlist(value);if(command==='setlistEntryReorder')favoritesUI.moveSetlistEntry(value.id,value.index);if(command==='setlistEntryRename')renameFavoriteFromMR(value,'setlist-entry');if(command==='setlistEntryRemove')favoritesUI.removeSetlistEntry(value);if(command==='setlistEditUndo')favoritesUI.restoreSetlistEntry();if(command==='setlistEditSave')void favoritesUI.saveSetlistEdit();if(command==='setlistEditCancel')favoritesUI.cancelSetlistEdit();if(command==='setlistLoad')void favoritesUI.loadSetlist(value);if(command==='setlistDelete')void favoritesUI.removeSetlist(value);if(command==='setlistUndo')void favoritesUI.restoreSetlist();if(command==='renameFocus')mrNameEditor.focus();if(command==='renameSave')void mrNameEditor.save();if(command==='renameCancel')mrNameEditor.close();},set:()=>{}});favoritesPanel.controllers=mrPanel.controllers;
 const wristMenu=new WristMenu({scene,entries:mrPanel.controllers,read:()=>bridgeView.active,readTC:()=>betaTCEnabled,readInfo:()=>showInfo.enabled,readDiorama:()=>!!dioramaSaved,readBoat:()=>bridgeView.mode==='boat',readRooftop:()=>bridgeView.mode==='rooftop',readRooftopSeat:()=>rooftopDeck.id,readCruiseStarted:()=>boatStarted,beforeOpen:()=>{if(mrPanel.childView)mrPanel.navigate(4);},choose:mode=>{if(mode==='roof-near'||mode==='roof-panorama'){selectRooftopSeat(mode==='roof-near'?'near':'panorama');return;}if(mode==='tc-panel'){toggleBetaTC();return;}if(mode==='boat-start'){$('boatStart').click();return;}if(mode==='show-info'){toggleShowInfo();return;}if(mode==='bridge'||mode==='boat'||mode==='rooftop'){if(bridgeView.active&&bridgeView.mode===mode)return;$(mode).click();return;}if(bridgeView.active)leaveBridge();if(mode==='diorama'&&!dioramaSaved)toggleDiorama();else if(mode==='miniature'&&dioramaSaved)toggleDiorama();}});
@@ -1150,6 +1150,7 @@ function syncSceneryPlacementUI(){
 function setPanelTab(page){
  if(page===0)page=4;mrPanel.picker=null;mrPanel.adjusting=false;mrPanel.studyMode=false;mrPanel.groundStudy=false;mrPanel.flowerStudy=false;
  preparation=null;$('preparePanel').hidden=true;mrPanel.page=page;
+ if(page===3){$('helpTopic').value='contents';$('helpTopic').dispatchEvent(new Event('change'));}
  for(let i=0;i<5;i++){$('browserPage'+i).hidden=i!==page;$('browserTab'+i).setAttribute('aria-selected',String(i===page));$('browserTab'+i).tabIndex=i===page?0:-1;}
  syncSceneryPlacementUI();mrPanel.draw();
 }
@@ -1194,6 +1195,8 @@ const handLaunch=new HandLaunch({scene,entries:mrPanel.controllers,fire:(hand,or
  enabled:()=>!!(running||previewing&&!previewPaused)&&!voiceUI?.busy,
  blocked:e=>handLaunchBlocked({preparing:!!preparation,grabs:controls.grabs.size,panels:[mrPanel,wristMenu,betaReviewPanel,favoritesPanel],hit:controls.panelHit(e.controller),ignore:e.controller===wristMenu.ignoreController&&performance.now()<wristMenu.ignoreUntil})});
 wristMenu.handLaunchSuppressed=(source,stamp)=>handLaunch.suppressMenu(source,stamp);
+// Same reveal/close/readability behavior as right A, using this frame's head pose.
+wristMenu.toggleSidebar=transform=>{mrPanel.lastTransform=transform;mrPanel.toggle();};
 
 function toggleDiorama(){
  if(bridgeView.active)return;

@@ -1,14 +1,18 @@
 import {favoriteDisplay} from './favorite-programmes.js';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.17';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.18';
 import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
-import {MRPanel} from './mr-panel.js?v=1.3.15';
+import {MRPanel} from './mr-panel.js?v=1.3.18';
 const TOP=240,PITCH=132,ROWS=6,BOTTOM=TOP+ROWS*PITCH;
 export function favoriteDropIndex(y,offset,count){return Math.max(0,Math.min(count-1,offset+Math.floor((y-TOP)/PITCH)));}
 export function favoriteInsertionSlot(y,offset,count){return Math.max(offset,Math.min(count,offset+ROWS,offset+Math.floor((y-TOP+PITCH/2)/PITCH)));}
 export function favoriteMoveTarget(slot,source,count){return Math.max(0,Math.min(count-1,slot>source?slot-1:slot));}
 export class FavoritesPanel extends MRPanel{
  constructor(options){super(options);this.offset=0;this.setlistOffset=0;this.listMode='favorites';this.dragRow=null;this.listScroll=0;this.setlistScroll=0;this.editScroll=0;}
+ contentScrollArea(){
+  const state=this.read();if(this.menuId||state.rename||state.busy)return null;
+  return {key:state.setlistEdit?'edit:'+state.setlistEdit.token:this.listMode,x:18,y:TOP,w:756,h:BOTTOM-TOP,scroll:delta=>this.scrollList(delta)};
+ }
  beginSlider(control,controller,ray){
   if(control.favoriteScroll){this.sliderDrag={control,controller};this.slideToRay(ray);return;}
   if(!control.favoriteDrag)return super.beginSlider(control,controller,ray);
@@ -77,7 +81,7 @@ export class FavoritesPanel extends MRPanel{
   if(this.dragRow?.editing){const slot=Math.max(offset,Math.min(offset+ROWS,this.dragRow.slot)),y=TOP+(slot-offset)*PITCH-remainder-8;c.fillStyle=panelTheme().accent;c.fillRect(20,y-3,750,6);c.beginPath();c.moveTo(20,y-11);c.lineTo(36,y);c.lineTo(20,y+11);c.closePath();c.fill();c.fillRect(492,y-19,278,31);this.text('ここに入れる',516,y-3,23,panelTheme().primaryInk,240);}
   c.restore();this.controls=this.controls.filter((a,i)=>{if(i<listControls)return true;const end=Math.min(BOTTOM,a.y+a.h);a.y=Math.max(TOP,a.y);a.h=Math.max(0,end-a.y);return a.h>0;});
   if(edit.items.length>ROWS){const h=ROWS*PITCH,thumb=Math.max(48,h*ROWS/edit.items.length),max=(edit.items.length-ROWS)*PITCH;c.fillStyle=panelTheme().track;c.fillRect(780,TOP,10,h);c.fillStyle=panelTheme().accent;c.fillRect(780,TOP+(h-thumb)*this.editScroll/max,10,thumb);this.controls.push({id:'favoriteScroll',x:774,y:TOP,w:24,h,slider:true,favoriteScroll:true});}
-  this.wrap(edit.message||(edit.dirty?'変更はまだ保存されていません。':'⠿を掴んで並べ替え · スティックでスクロール'),28,1070,744,2,28);
+  this.wrap(edit.message||(edit.dirty?'変更はまだ保存されていません。':'⠿を掴んで並べ替え · つまんで上下・スティックでスクロール'),28,1070,744,2,28);
   this.button('setlistEditSave',s.busy?'保存しています…':'変更を保存',28,1132,744,62,()=>this.choose('setlistEditSave'),{primary:true,disabled:s.busy||!edit.dirty});
   this.button('setlistEditCancel',edit.dirty?'変更せず戻る':'セットリストへ戻る',28,1208,744,62,()=>this.choose('setlistEditCancel'),{disabled:s.busy});
  }
@@ -125,7 +129,7 @@ export class FavoritesPanel extends MRPanel{
    c.fillStyle=panelTheme().track;c.fillRect(780,TOP,10,h);c.fillStyle=panelTheme().accent;c.fillRect(780,TOP+(h-thumb)*this[scrollKey]/max,10,thumb);
    this.controls.push({id:'favoriteScroll',x:774,y:TOP,w:24,h,slider:true,favoriteScroll:true});
   }
-  this.text('スティックでスクロール',28,1090,23,panelTheme().muted);
+  this.text('つまんで上下・スティックでスクロール',28,1090,23,panelTheme().muted);
   this.text(`${rows.length?this[key]+1:0}–${Math.min(this[key]+ROWS+(remainder>0?1:0),rows.length)} / ${rows.length}`,560,1090,23,panelTheme().muted);
   if(sets)this.button('setlistCreate','♥の曲を選んで新しく作る',28,1132,744,62,()=>{this.listMode='favorites';});
   else{

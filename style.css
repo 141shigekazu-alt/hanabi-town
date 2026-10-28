@@ -192,3 +192,5 @@ header .site-intro{max-width:100%}
 #betaReviewClock .beta-track-title{min-width:0;max-width:300px;margin-left:10px;color:var(--panel-text,#e3e6e6);font-size:14px;line-height:1.45;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 #betaTrackTitle:empty{display:none}
 #betaReviewClock .beta-tail-time{flex-shrink:0}
+
+.help-contents{display:grid;gap:9px}.help-contents button{text-align:left;margin:0;padding:13px 12px;line-height:1.6;min-height:48px}.help-back{margin:0 0 20px;text-align:left;min-height:44px}
