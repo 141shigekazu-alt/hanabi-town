@@ -1,5 +1,5 @@
 import {SoftHand} from './soft-hand.js?v=1.3.16';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.19';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.20';
 import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
 
