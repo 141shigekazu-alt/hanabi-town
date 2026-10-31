@@ -1,5 +1,5 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.18';
-import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.18';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.19';
+import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.19';
 import {drawPanelSurface} from './panel-surface.js?v=1.3.15';
 import * as T from './vendor/three.module.js';
 

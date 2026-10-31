@@ -1,5 +1,5 @@
 import {pulseLaunch} from './launch-haptics.js?v=1.3.17';
-import {panelBarColor} from './panel-theme.js?v=1.3.18';
+import {panelBarColor} from './panel-theme.js?v=1.3.19';
 import * as T from './vendor/three.module.js';
 
 export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(value)*(Math.abs(value)-.18)/.82;}
