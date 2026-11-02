@@ -1,4 +1,5 @@
-import {trackUsage} from './analytics.js?v=1.3.20';
+import {NATURAL_TAIL_TIME_STRETCH,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
+import {trackUsage} from './analytics.js?v=1.3.21';
 import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.17';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
@@ -11,9 +12,9 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.20';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.21';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
-import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeTailColor,creativePointScale} from './creative-shells.js';
+import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
 import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?v=1.3.10';
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
@@ -23,10 +24,10 @@ import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.15';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.20';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.21';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.20';
+import {organizePanel} from './panel-layout.js?v=1.3.21';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -50,14 +51,14 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.20';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.21';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.20';
-import {XRControls} from './xr-controls.js?v=1.3.20';
+import {WristMenu} from './wrist-menu.js?v=1.3.21';
+import {XRControls} from './xr-controls.js?v=1.3.21';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
 import {EntryTip} from './entry-tip.js?v=1.3.15';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
@@ -427,7 +428,7 @@ function launch(kind='core',size=5,position=null){
  if(isPatternShell(kind)&&!patternSizes(kind).includes(size))return false;
  if(kind==='kiku'&&size!==3)return false;if(['petalflower','goldflower'].includes(kind)&&![3,5,10].includes(size))return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
- if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='sparklelarge'&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!(kind==='silver'&&position?.wide))return false;
+ if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='sparklelarge'&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!['silver','willow'].includes(kind))return false;
  const shellRandom=position?.reviewSeed===undefined?rand:betaRandom(position.reviewSeed);
  const flowerSeed=(isFlowerShell(kind)||isCreativeShell(kind))?(position?.reviewSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
  // Explicitly planned flight values remain authoritative; manual flower shells use the same natural profile.
@@ -437,7 +438,7 @@ function launch(kind='core',size=5,position=null){
  let spec=TYPES[kind];const scale=isPatternShell(kind)?PATTERN_SIZES[size]:SIZES[size];if(!spec||!scale)return false;
  if(kind==='longstar'||kind==='sparklelarge'){const life=kind==='sparklelarge'?sparkleLife(size):longStarLife(size);spec={...spec,life,fadeStart:life};}
  const z=position?.z??(shellRandom()*1.6-.85),x=position?.x??(riverCenter(z)+(shellRandom()>.5?1:-1)*(.12+shellRandom()*.7));
- const y=scale.height+(position?.heightOffset??naturalFlight?.heightOffset??0),r=scale.radius*(naturalFlight?.radiusScale??1)*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=isPatternShell(kind)?PATTERN_PROFILE.trails:isCreativeShell(kind)?CREATIVE_PROFILES[kind].trails:kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:(kind==='petalflower'||kind==='goldflower')?petalGeometry(size).trails:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
+ const y=scale.height+(position?.heightOffset??naturalFlight?.heightOffset??0),r=scale.radius*(naturalFlight?.radiusScale??1)*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:isPatternShell(kind)?PATTERN_PROFILE.trails:isCreativeShell(kind)?CREATIVE_PROFILES[kind].trails:kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:(kind==='petalflower'||kind==='goldflower')?petalGeometry(size).trails:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?shellRandom()*1000:0;
  let flowerStars=null;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
@@ -482,7 +483,7 @@ function launch(kind='core',size=5,position=null){
  if(sparkleStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of sparkleStars){directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(star.layer<2?scheme[0]:scheme[1]);}}
  const creativeCandy=kind==='drum'&&position?.palette==='drum-candy';
  const creativeStars=isCreativeShell(kind)?createCreativeStars(kind,size,flowerSeed,{pose:position?.creativePose??'natural'}):null;
- if(creativeStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const [i,star] of creativeStars.entries()){directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(creativeCandy?new T.Color(candyColor(i,flowerSeed,scheme.map(c=>c.getHex()))):star.group==='body'?new T.Color(creativeTailColor(kind,position?.palette)):scheme[star.head%scheme.length]);}}
+ if(creativeStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const [i,star] of creativeStars.entries()){const headColor=creativeHeadColor(star,palette);directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(creativeCandy?new T.Color(candyColor(i,flowerSeed,scheme.map(c=>c.getHex()))):headColor!==null?new T.Color(headColor):star.group==='body'?new T.Color(creativeTailColor(kind,position?.palette)):scheme[star.head%scheme.length]);}}
  const patternSeed=isPatternShell(kind)?(position?.patternSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
  const patternPose=patternSeed===null?null:samplePatternPose(patternSeed);
  const patternStars=isPatternShell(kind)?createPatternStars(kind,patternSeed,{scatter:position?.patternScatter??Number($('patternScatter')?.value??1.65)}):null;
@@ -502,6 +503,9 @@ function launch(kind='core',size=5,position=null){
  // These per-star values are constant for the entire shell. Keep double precision.
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
+ const naturalTails=['silver','willow'].includes(kind)?createNaturalTails(n,trailCount,spec.life,shellRandom):null;
+ // Only the two-shaku willow/kamuro falls more gently; burn and afterglow keep their accepted timing.
+ if(naturalTails)spec={...spec,gravity:spec.gravity*(size===20?.80:1),life:naturalTailLifetime(naturalTails,spec.life)*NATURAL_TAIL_TIME_STRETCH};
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
  const m=new T.PointsMaterial({size:isPatternShell(kind)?PATTERN_PROFILE.pointSize:isCreativeShell(kind)?.011:(kind==='longstar'||kind==='sparklelarge')?.010:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  if(creativeStars&&kind!=='planet'){
@@ -517,6 +521,7 @@ function launch(kind='core',size=5,position=null){
   m.customProgramCacheKey=()=> 'long-star-sizes-v1';
  }
  if(sparkleStars){const pointSizes=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)pointSizes[i*trailCount+j]=sparkleStars[i].layer<2?(j===0?2.1:1.12):.72;g.setAttribute('sparkleSize',new T.BufferAttribute(pointSizes,1));m.onBeforeCompile=shader=>{shader.vertexShader='attribute float sparkleSize;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * sparkleSize;');};m.customProgramCacheKey=()=> 'sparkle-large-sizes-v1';}
+ if(naturalTails)attachNaturalTails(g,m,naturalTails,trailCount);
  const pendingChildAge=isSenrin(kind)?{value:-1}:null;
  if(pendingChildAge){const childAt=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)childAt[i*trailCount+j]=clusterDelays[Math.floor(i/24)];g.setAttribute('hanabiChildAt',new T.BufferAttribute(childAt,1));}
  omitUnlitFragments(m,pendingChildAge);
@@ -533,7 +538,7 @@ function launch(kind='core',size=5,position=null){
   if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
  }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,soundStudy:!!position?.soundStudy,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize,undefined,0,null,null,null,{kind:f.kind,size:f.size});
+ const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,naturalTails,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,soundStudy:!!position?.soundStudy,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize,undefined,0,null,null,null,{kind:f.kind,size:f.size});
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
@@ -555,10 +560,10 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
  if(t>f.spec.life){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
 } }
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
- const f=fireworks[k],age=time-f.start,t=age-f.ascent;
+ const f=fireworks[k],age=time-f.start,t=f.naturalTails?naturalTailAge(age-f.ascent):age-f.ascent;
  if(f.pendingChildAge)f.pendingChildAge.value=t;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
- const fade=isPatternShell(f.kind)||isCreativeShell(f.kind)||f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||(f.kind==='sunflower'||f.kind==='petalflower'||f.kind==='goldflower')||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
+ const fade=f.naturalTails||isPatternShell(f.kind)||isCreativeShell(f.kind)||f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||(f.kind==='sunflower'||f.kind==='petalflower'||f.kind==='goldflower')||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
  let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0,lightShellR2=0;
  const willowHistory=f.kind==='willow'?Math.min(Math.max(0,t),(f.trailCount-1)*f.spec.tail):0;
  const willowTailGlow=f.kind==='willow'?Math.min(1,Math.max(0,t)/.12):0;
@@ -571,13 +576,14 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  }
  f.pointSample??={};f.starFrame??={};
  for(let i=0;i<f.n;i++){
- const prepared=t<0?null:f.kind==='sparklelarge'?prepareSparklePoint(f.sparkleStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):f.kind==='longstar'?prepareLongStarPoint(f.longStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):null;
+ const prepared=t<0?null:f.naturalTails?prepareNaturalTail(f.naturalTails[i],t,f.starFrame):f.kind==='sparklelarge'?prepareSparklePoint(f.sparkleStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):f.kind==='longstar'?prepareLongStarPoint(f.longStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):null;
  for(let j=0;j<f.trailCount;j++){
  const index=(i*f.trailCount+j)*3;let x,y,z,brightness,longBlue=0,creativeMix=1;
  if(t<0){
  const trail=(i%24)*.003+j*.004,riseAge=f.kind==='silver'?Math.max(0,age-j*.03):age;
  const drift=Math.max(0,Math.min(1,riseAge/f.ascent));x=f.launchX+(f.x-f.launchX)*drift;y=Math.max(.02,f.y*(f.size<10?Math.pow(riseAge/f.ascent,.85):(1-Math.pow(1-Math.min(1,riseAge/(f.ascent-(f.size===20?.6:.28))),2)))-(f.kind==='silver'?0:trail));z=f.launchZ+(f.z-f.launchZ)*drift;
  brightness=f.hideAscent?0:f.kind==='ear'?(i===0&&j<5?.22*(1-j/5):0):i<24?(1-j/f.trailCount)*(f.kind==='silver'?2.2:1.4):0;
+ if(f.naturalTails)brightness=f.hideAscent?0:i<24&&j<24?(1-j/24)*(f.kind==='silver'?2.2:1.4):0;
  }
  else if(f.creativeStars){const v=creativePoint(f.creativeStars[i],f.r,t,j,f.trailCount,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;creativeMix=v.headMix;}
  else if(f.patternStars){const v=patternPoint(f.patternStars[i],f.r,t,j,f.trailCount,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;}
@@ -600,6 +606,21 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  }
  else if(f.kind==='ear'){
  const v=earPoint(f.earStars[i],f.r,t,j,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
+ }
+ else if(f.naturalTails){
+ const star=f.naturalTails[i],v=naturalTailSample(star,prepared,j,f.pointSample),at=v.at,dir=f.directions[i],silver=f.kind==='silver';
+ const emberAge=v.emberAge,k=j*6,birth=star.birth;
+ // Birth positions/velocities stay fixed until this pool slot emits again.
+ // Like large comets, falling embers do not recompute their launch trajectory each frame.
+ if(j===0||star.birthAt[j]!==at){
+  const drag=silver?.90:f.size===20?.7:1.9,gravity=f.spec.gravity,rise=silver?.065:.085;
+  const radius=f.r*f.shells[i]*(silver?f.silverVariation[i]:1),decay=Math.exp(-drag*at),travel=radius*(1-decay),remaining=decay*radius*drag;
+  birth[k]=f.x+dir.x*travel;birth[k+1]=f.y+dir.y*travel+rise*at-gravity*at*at;birth[k+2]=f.z+dir.z*travel;
+  birth[k+3]=dir.x*remaining*.04+star.dx[j];birth[k+4]=dir.y*remaining*.04+star.dy[j];birth[k+5]=dir.z*remaining*.04+star.dz[j];star.birthAt[j]=at;
+ }
+ x=birth[k]+birth[k+3]*emberAge;y=birth[k+1]+birth[k+4]*emberAge-.025*emberAge*emberAge;z=birth[k+2]+birth[k+5]*emberAge;
+ brightness=v.brightness*(1-Math.max(0,Math.min(1,(.045-y)/.027)));
+ if(silver&&t<.08)brightness*=1+1.6*(1-t/.08);
  }
  else if(f.kind==='silver'){
  // The tail is a short history of the same star, never a fresh delayed shell.
@@ -633,6 +654,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(f.kind==='candy'?(f.starLayers[i]===0?(j===0?3.2:1.05):(j===0?1.2:.35)):(j===0?2:.9));
  // Fade tails along with their heads so the whole break has a clean ending.
  }
+ if(f.naturalTails)f.g.attributes.naturalSize.array[i*f.trailCount+j]=t<0?f.naturalTails[i].sizes[j]:naturalTailSize(f.naturalTails[i],j,f.pointSample.warm,f.pointSample.burn);
  if(f.kind==='ear'&&y<=.025)brightness=0;
  f.positions[index]=x;f.positions[index+1]=f.kind==='ear'?y:Math.max(.018,y);f.positions[index+2]=z;
  // Head samples already computed above: no second particle pass or temporary vectors.
@@ -640,9 +662,10 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
- const col=f.starColors[i];if(f.patternStars&&t>=0&&t<.065){const white=Math.pow(1-t/.065,2);f.colors[index]=(col.r+(1-col.r)*white)*brightness;f.colors[index+1]=(col.g+(1-col.g)*white)*brightness;f.colors[index+2]=(col.b+(1-col.b)*white)*brightness;}else if(f.creativeStars&&t>=0){const tail=f.creativeColoredTail?col:f.creativeTail;f.colors[index]=(tail.r+(col.r-tail.r)*creativeMix)*brightness;f.colors[index+1]=(tail.g+(col.g-tail.g)*creativeMix)*brightness;f.colors[index+2]=(tail.b+(col.b-tail.b)*creativeMix)*brightness;}else if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
+ const col=f.starColors[i];if(f.naturalTails&&t>=0){const warm=f.pointSample.warm;f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness*(1-.25*warm);f.colors[index+2]=col.b*brightness*(1-.38*warm);}else if(f.patternStars&&t>=0&&t<.065){const white=Math.pow(1-t/.065,2);f.colors[index]=(col.r+(1-col.r)*white)*brightness;f.colors[index+1]=(col.g+(1-col.g)*white)*brightness;f.colors[index+2]=(col.b+(1-col.b)*white)*brightness;}else if(f.creativeStars&&t>=0){const tail=f.creativeColoredTail?col:f.creativeTail;f.colors[index]=(tail.r+(col.r-tail.r)*creativeMix)*brightness;f.colors[index+1]=(tail.g+(col.g-tail.g)*creativeMix)*brightness;f.colors[index+2]=(tail.b+(col.b-tail.b)*creativeMix)*brightness;}else if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  }
+ if(f.naturalTails)f.g.attributes.naturalSize.needsUpdate=true;
  f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;f.m.opacity=fade;
  f.reflectionGain=0;f.reflectionRadius=0;
  if(light>0){
@@ -916,7 +939,7 @@ $('senrinSoundStudy').onclick=()=>{
   $('status').textContent='千輪の尺・二尺を交互に4発。二尺の小玉は低音と控えめな残響を加えています。';
  };
  $('tailSoundStudy').onclick=()=>{
-  const kind=$('type').value==='willow'?'willow':'silver',size=Number($('size').value)===20&&kind==='silver'?20:10;
+  const kind=$('type').value==='willow'?'willow':'silver',size=Number($('size').value)===20?20:10;
   beginPreview();burstQueue=Array.from({length:6},(_,i)=>({at:i*7,kind,size,position:{x:0,z:.05,wide:size===20,startAt:i*7}}));
   $('status').textContent='尾の音を6発で聴き比べます。バラバラの並び・高さ・音色を一発ずつ少し変えています。';
  };
@@ -962,8 +985,8 @@ function previewPointer(e,activate=false){const r=canvas.getBoundingClientRect()
 canvas.onpointerdown=e=>{if(panelPreview){previewPointer(e,true);canvas.setPointerCapture(e.pointerId);return;}drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);};canvas.onpointermove=e=>{if(panelPreview){previewPointer(e);return;}if(!drag)return;yaw+=(e.clientX-drag[0])*.003;pitch=bridgeView.active?Math.max(-1.48,Math.min(1.48,pitch-(e.clientY-drag[1])*.003)):Math.max(-.35,Math.min(.35,pitch+(e.clientY-drag[1])*.002));drag=[e.clientX,e.clientY];};canvas.onpointerup=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onpointercancel=()=>{drag=null;if(panelPreview){mrPanel.release();favoritesPanel?.release();}};canvas.onwheel=e=>{if(panelPreview&&favoritesPanel?.visible&&!favoritesPanel.menuId&&!mrNameEditor?.state){e.preventDefault();favoritesPanel.scrollList(e.deltaY);return;}if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){if(isPatternShell(kind))return patternSizes(kind).includes(Number(value));if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;if($('patternBatchControls'))$('patternBatchControls').hidden=!isPatternShell(kind);for(const o of $('size').options)if(o.value==='2')o.textContent=isPatternShell(kind)?'2号玉':'穂';for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isPatternShell(kind)){if(!patternSizes(kind).includes(Number($('size').value)))$('size').value='3';return;}else if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['2','20'].includes($('size').value))$('size').value='5';}
+function allowedSize(kind,value){if(['silver','willow'].includes(kind))return ['3','5','10','20'].includes(value);if(isPatternShell(kind))return patternSizes(kind).includes(Number(value));if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;if($('patternBatchControls'))$('patternBatchControls').hidden=!isPatternShell(kind);for(const o of $('size').options)if(o.value==='2')o.textContent=isPatternShell(kind)?'2号玉':'穂';for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isPatternShell(kind)){if(!patternSizes(kind).includes(Number($('size').value)))$('size').value='3';return;}else if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['silver','willow'].includes(kind)){if(!['3','5','10','20'].includes($('size').value))$('size').value='5';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label||'この花火の配色';return option;}));
@@ -2032,7 +2055,7 @@ if(flowerTrialQuery.has('flowerTrial')){setPanelTab(1);mrPanel.flowerStudy=true;
 // Separate creative-shell bench. The approved automatic programmes remain the
 // reference while these three new shells are reviewed individually.
 let creativeKind='butterfly',creativeSeed=0x141771;
-const creativeDescriptions={butterfly:'６色の大きな先端を、短い金の尾で見せる蝶。垂れる前から羽が消え始めます。',planet:'青紫の丸い星、中央の金の花、斜めに伸びる金の帯を重ねます。',drum:'少数の大星と細い尾の扇に、腰をぐるりと囲む大星の輪を重ねます。斜めからも見比べてください。'};
+const creativeDescriptions={butterfly:'羽の形と尾を残し、暗い余韻までゆっくり消える蝶。羽・縁の配色を選べます。触角は羽ほど長く、縁と異なる色の２つの星で見せます。整った蝶から片羽が少し崩れる蝶まで、開き方に個体差があります。',planet:'青紫の丸い星、中央の金の花、斜めに伸びる金の帯を重ねます。',drum:'少数の大星と細い尾の扇に、腰をぐるりと囲む大星の輪を重ねます。斜めからも見比べてください。'};
 function creativeShoot(age=null){
  beginPreview();flowerStudy=null;cometFinishAt=null;cometCompleted=false;
  for(const id of ['rainEarCard','longStarCard','toraSceneCard'])if($(id))$(id).hidden=true;

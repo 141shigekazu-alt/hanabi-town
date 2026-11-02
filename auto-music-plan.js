@@ -1,3 +1,4 @@
+import {NATURAL_TAIL_SAMPLES,naturalTailLifeBound} from './natural-tails.js';
 import {softenRepeatedRows} from './natural-layout.js?v=1.3.16';
 import {addPatternPassages} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
@@ -23,7 +24,7 @@ import {createCometPattern} from './comets.js?v=1.3.13';
 import {createStarBundlePattern} from './star-bundles.js?v=1.3.13';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const round=x=>+x.toFixed(4)||0;
-export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
+export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:['silver','willow'].includes(kind)?naturalTailLifeBound(TYPES[kind].life):kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
 export function shellPoints(kind,size,wide=false,starDensity=1){
  if(isPatternShell(kind))return patternStarCount(kind)*PATTERN_PROFILE.trails;
  if(isCreativeShell(kind))return creativePoints(kind,size);
@@ -33,7 +34,7 @@ export function shellPoints(kind,size,wide=false,starDensity=1){
  if(kind==='sparklelarge'){const c=sparkleCounts(size);return(c.large+c.companions+c.core)*48;}
  if(kind==='senrin'||kind==='candysenrin')return 30*24*4;
  const spec=TYPES[kind],stars=SIZES[size].stars*(size===3&&['kiku','silver','willow'].includes(kind)?clamp(starDensity,.5,1):1),number=spec.radii.reduce((sum,_,i)=>sum+Math.round(stars*(wide?.72:1)*(spec.layerWeights?.[i]??(i===0?1:i===1?.6:.35))),0);
- return number*(kind==='silver'?12:kind==='willow'?12:kind==='kiku'?16:kind==='sunflower'?36:kind==='candyburst'?24:kind==='candy'?12:10);
+ return number*(['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:kind==='kiku'?16:kind==='sunflower'?36:kind==='candyburst'?24:kind==='candy'?12:10);
 }
 export function planBudget(shots){
  const events=shots.flatMap(s=>{const t=shellTiming(s.kind,s.size),points=shellPoints(s.kind,s.size,s.position?.wide,s.position?.starDensity??1);return[{at:s.at,upper:s.kind==='ear'?0:1,ears:s.kind==='ear'?1:0,points},{at:s.opening+t.life+.1,upper:s.kind==='ear'?0:-1,ears:s.kind==='ear'?-1:0,points:-points}];}).sort((a,b)=>a.at-b.at||a.upper-b.upper||a.ears-b.ears);

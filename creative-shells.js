@@ -1,3 +1,4 @@
+import {createButterflyVariation,prepareButterflyTrail,butterflyPoint} from './butterfly-afterglow.js';
 import {CANDY_PALETTES} from './candy-colors.js';
 import {variationRandom} from './flower-variation.js';
 
@@ -6,19 +7,51 @@ import {variationRandom} from './flower-variation.js';
 export const CREATIVE_KINDS=['butterfly','planet','drum'];
 export const isCreativeShell=kind=>CREATIVE_KINDS.includes(kind);
 export const CREATIVE_PROFILES={
- butterfly:{label:'蝶',life:2.7,trails:64},
+ butterfly:{label:'蝶',life:3.3,trails:64},
  planet:{label:'惑星',life:3.3,trails:48},
  drum:{label:'鼓',life:2.9,trails:96}
 };
 const PALETTES={
- butterfly:[{id:'original',label:'６色の先端 × 短い金の尾',colors:[0xff393f,0x548bff,0x67f591,0xff73c8,0xb67bff,0xffd52e],tailColor:0xffc16b},{id:'butterfly-pink',label:'桃・紫・水色の先端 × 短い銀の尾',colors:[0xff73c8,0xb67bff,0x66ddff],tailColor:0xe9ecff},{id:'butterfly-gold',label:'金・橙の先端 × 短い金の尾',colors:[0xffd48b,0xff8b32,0xffedc6],tailColor:0xffb84e}],
+ butterfly:[
+  {id:'original',label:'金の羽 × ６色の縁',colors:[0xff393f,0x548bff,0x67f591,0xff73c8,0xb67bff,0xffd52e],tailColor:0xffc16b},
+  {id:'butterfly-pink',label:'銀の羽 × 桃・紫・水色の縁',colors:[0xff73c8,0xb67bff,0x66ddff],tailColor:0xe9ecff},
+  {id:'butterfly-gold',label:'金の羽 × 金・橙の縁',colors:[0xffd48b,0xff8b32,0xffedc6],tailColor:0xffb84e},
+  {id:'butterfly-silver',label:'銀の羽 × ６色の縁',colors:[0xff393f,0x548bff,0x67f591,0xff73c8,0xb67bff,0xffd52e],tailColor:0xe9ecff},
+  {id:'butterfly-aqua',label:'水色の羽 × ６色の縁',colors:[0xff393f,0x548bff,0x67f591,0xff73c8,0xb67bff,0xffd52e],tailColor:0x66ddff},
+  {id:'butterfly-orange',label:'オレンジの羽 × ６色の縁',colors:[0xff393f,0x548bff,0x67f591,0xff73c8,0xb67bff,0xffd52e],tailColor:0xff8b32},
+  {id:'butterfly-silver-pink',label:'銀の羽 × 桃一色の縁',colors:[0xff73c8],tailColor:0xe9ecff},
+  {id:'butterfly-aqua-white',label:'水色の羽 × 白一色の縁',colors:[0xf0f6ff],tailColor:0x66ddff},
+  {id:'butterfly-orange-purple',label:'オレンジの羽 × 紫一色の縁',colors:[0xb67bff],tailColor:0xff8b32},
+  {id:'butterfly-pink-white',label:'桃の羽 × 白一色の縁',colors:[0xf0f6ff],tailColor:0xff73c8},
+  {id:'butterfly-gold-split',label:'金の羽 × 上は桃・下は紫の縁',colors:[0xff73c8,0xb67bff],tailColor:0xffc16b,edgeByLobe:{upper:0xff73c8,lower:0xb67bff}},
+  {id:'butterfly-silver-split',label:'銀の羽 × 上は桃・下は水色の縁',colors:[0xff73c8,0x66ddff],tailColor:0xe9ecff,edgeByLobe:{upper:0xff73c8,lower:0x66ddff}},
+  {id:'butterfly-aqua-split',label:'水色の羽 × 上は白・下は紫の縁',colors:[0xf0f6ff,0xb67bff],tailColor:0x66ddff,edgeByLobe:{upper:0xf0f6ff,lower:0xb67bff}}
+ ],
  planet:[{id:'original',label:'青紫の球 × 金の帯',colors:[0x929bff,0xffe0a2,0xffbb60]},{id:'planet-aqua',label:'水色の球 × 桃の帯',colors:[0x66ddff,0xfff1d0,0xff73c8]},{id:'planet-purple',label:'紫の球 × 銀の帯',colors:[0xb67bff,0xffd28b,0xf0f6ff]}],
  drum:[{id:'original',label:'白銀の扇 × 紅の先端',colors:[0xff453c,0xfff3e2,0xffe4bc]},{id:'drum-blue',label:'白銀の扇 × 青の先端',colors:[0x548bff,0xf0f6ff,0xd8e4ff]},{id:'drum-gold',label:'金の扇 × 桃の先端',colors:[0xff73c8,0xffe2a0,0xffbd60]},{id:'drum-candy',label:'全部キャンディー · ５色',colors:CANDY_PALETTES[0].colors,coloredTail:true}]
 };
 export const creativePalettes=kind=>PALETTES[kind]??[];
+// Two distinct antenna stars, kept away from the selected wing-edge palette.
+const BUTTERFLY_ANTENNA_COLORS={
+ original:[0xf4fbff,0xffad3d],
+ 'butterfly-pink':[0xb3ff42,0xffad3d],
+ 'butterfly-gold':[0xff73c8,0x42eaff],
+ 'butterfly-silver':[0xf4fbff,0xffad3d],
+ 'butterfly-aqua':[0xf4fbff,0xffad3d],
+ 'butterfly-orange':[0xf4fbff,0x42eaff],
+ 'butterfly-silver-pink':[0x42eaff,0xffd52e],
+ 'butterfly-aqua-white':[0xff73c8,0xb67bff],
+ 'butterfly-orange-purple':[0x42eaff,0xff73c8],
+ 'butterfly-pink-white':[0x42eaff,0xffad3d],
+ 'butterfly-gold-split':[0x42eaff,0xffd52e],
+ 'butterfly-silver-split':[0xb67bff,0xffad3d],
+ 'butterfly-aqua-split':[0xff73c8,0xffad3d]
+};
+export const butterflyAntennaColors=palette=>BUTTERFLY_ANTENNA_COLORS[palette.id]??BUTTERFLY_ANTENNA_COLORS.original;
+export const creativeHeadColor=(star,palette)=>star.group==='antenna'?butterflyAntennaColors(palette)[star.antennaSide===-1?0:1]:star.headColor??(star.group==='wing'?palette.edgeByLobe?.[star.wingLobe]:undefined)??null;
 export const creativeTailColor=(kind,id='original')=>{if(id==='programme-gold')return 0xffc16b;const p=creativePalettes(kind).find(p=>p.id===id)??creativePalettes(kind)[0];return p?.tailColor??p?.colors[2];};
-export const creativePointScale=(star,trail)=>star.group==='waist-ring'?(trail===0?2.85:1):star.group==='wing'?(trail===0?2.15:trail===1?1.35:.85):star.group==='fan'?(trail===0?2.65:trail===1?1.45:.80):1;
-export function creativeCounts(kind,size){const large=size===10;return kind==='butterfly'?4*(large?24:size===3?12:18)*2+12:kind==='drum'?2*(large?34:24)+(large?20:16):kind==='planet'?(large?220:150)+(large?174:118)+(large?164:116):0;}
+export const creativePointScale=(star,trail)=>star.group==='antenna'?(trail===0?3.4:.68):star.group==='waist-ring'?(trail===0?2.85:1):star.group==='wing'?(trail===0?2.15:trail===1?1.35:.85):star.group==='fan'?(trail===0?2.65:trail===1?1.45:.80):1;
+export function creativeCounts(kind,size){const large=size===10;return kind==='butterfly'?4*(large?24:size===3?12:18)*2+14:kind==='drum'?2*(large?34:24)+(large?20:16):kind==='planet'?(large?220:150)+(large?174:118)+(large?164:116):0;}
 export const creativeSizes=kind=>kind==='butterfly'?[3,5,10]:[5,10];
 export const creativePoints=(kind,size)=>creativeCounts(kind,size)*CREATIVE_PROFILES[kind].trails;
 const unit=(x,y,z)=>{const n=Math.hypot(x,y,z);return[x/n,y/n,z/n];};
@@ -46,9 +79,10 @@ export function createCreativeStars(kind,size,seed,{pose='natural'}={}){
   for(let side of [-1,1])for(let lobe of [-1,1])for(let k=0;k<rays;k++){
    const u=(k+.3+r()*.4)/rays,angle=((lobe===1?14+64*u:-65+53*u)+signed()*.65)*Math.PI/180;
    const speed=(lobe===1?1.28:1.05)*(.83+.17*Math.sin(Math.PI*u));
-   for(let strand=0;strand<2;strand++)add([side*Math.cos(angle)*speed,Math.sin(angle)*speed,(strand?1:-1)*(.026+.035*Math.sin(Math.PI*u))+signed()*.018],'wing',{history:.84+r()*.08,life:2.35+signed()*.10,fade:1.05});
+   for(let strand=0;strand<2;strand++)add([side*Math.cos(angle)*speed,Math.sin(angle)*speed,(strand?1:-1)*(.026+.035*Math.sin(Math.PI*u))+signed()*.018],'wing',{wingSide:side,wingRay:k,wingU:u,wingNormal:rotate([0,0,1],roll,yaw,pitch),wingLobe:lobe===1?'upper':'lower',history:.84+r()*.08,life:2.35+signed()*.10,fade:1.05});
   }
   for(let k=0;k<12;k++)add([signed()*.045,(k/11-.5)*.29,signed()*.028],'body',{head:2,history:.13,life:1.8,fade:.70});
+  for(const [side,color] of [[-1,0xff73c8],[1,0xb67bff]])add([side*.13,1.08,0],'antenna',{antennaSide:side,head:2,headColor:color,history:.13,life:2.6,fade:1.2});
  }else if(kind==='drum'){
   const n=large?34:24;
   for(let side of [-1,1])for(let k=0;k<n;k++){
@@ -70,12 +104,14 @@ export function createCreativeStars(kind,size,seed,{pose='natural'}={}){
   for(let k=0;k<ring;k++){const a=(k+r()*.25)/ring*Math.PI*2;add([Math.cos(a)*1.39,Math.sin(a)*.13,Math.sin(a)*.66],'ring',{history:.84+r()*.08,life:2.83+signed()*.15,fade:1.45});}
  }
  if(kind==='butterfly'){const offset=Math.floor(stars[0].phase*3);for(let i=0;i<stars.length;i++)if(stars[i].group==='wing'){stars[i].head=(Math.floor(i/2)+offset)%6;stars[i].gravity*=.55;}}
+ if(kind==='butterfly'){const variation=createButterflyVariation(seed);stars.forEach((star,i)=>prepareButterflyTrail(star,seed,i,CREATIVE_PROFILES.butterfly.trails,variation));}
  return stars;
 }
 
 // The tail samples each star's recent path, rather than drawing a permanent
 // line from the centre. Head and tail fade together before gravity ruins it.
 export function creativePoint(star,radius,time,trail,trails,out={}){
+ if(star.butterflyTrail)return butterflyPoint(star,radius,time,trail,trails,out);
  const age=time-star.delay,lag=star.history*trail/(trails-1),at=Math.max(0,age-lag),travel=radius*star.speed*(1-Math.exp(-star.drag*at));
  const d=star.direction;out.x=d[0]*travel;out.y=d[1]*travel+.042*at-star.gravity*at*at;out.z=d[2]*travel;
  const fade=age<0?0:Math.pow(Math.max(0,Math.min(1,(star.life-age)/(star.life-star.fade))),1.25);
