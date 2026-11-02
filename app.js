@@ -1,5 +1,5 @@
-import {NATURAL_TAIL_TIME_STRETCH,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
-import {trackUsage} from './analytics.js?v=1.3.21';
+import {NATURAL_TAIL_TIME_STRETCH,naturalTailStretch,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
+import {trackUsage} from './analytics.js?v=1.3.22';
 import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.17';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
@@ -12,7 +12,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.21';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.22';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -24,10 +24,10 @@ import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.15';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.21';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.22';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.21';
+import {organizePanel} from './panel-layout.js?v=1.3.22';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -51,14 +51,14 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.21';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.22';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.21';
-import {XRControls} from './xr-controls.js?v=1.3.21';
+import {WristMenu} from './wrist-menu.js?v=1.3.22';
+import {XRControls} from './xr-controls.js?v=1.3.22';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
 import {EntryTip} from './entry-tip.js?v=1.3.15';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
@@ -505,7 +505,7 @@ function launch(kind='core',size=5,position=null){
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
  const naturalTails=['silver','willow'].includes(kind)?createNaturalTails(n,trailCount,spec.life,shellRandom):null;
  // Only the two-shaku willow/kamuro falls more gently; burn and afterglow keep their accepted timing.
- if(naturalTails)spec={...spec,gravity:spec.gravity*(size===20?.80:1),life:naturalTailLifetime(naturalTails,spec.life)*NATURAL_TAIL_TIME_STRETCH};
+ if(naturalTails)spec={...spec,gravity:spec.gravity*(size===20?.80:1),tailTimeStretch:naturalTailStretch(size),life:naturalTailLifetime(naturalTails,spec.life)*naturalTailStretch(size)};
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
  const m=new T.PointsMaterial({size:isPatternShell(kind)?PATTERN_PROFILE.pointSize:isCreativeShell(kind)?.011:(kind==='longstar'||kind==='sparklelarge')?.010:kind==='ear'?.004:isSenrin(kind)?.012:kind==='willow'?.012:.015,map:sprite,vertexColors:true,transparent:true,depthWrite:false,blending:T.AdditiveBlending});bridgeView.point(m,fireworkMaps);const p=new T.Points(g,m);p.frustumCulled=false;town.add(p);
  if(creativeStars&&kind!=='planet'){
@@ -560,7 +560,7 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
  if(t>f.spec.life){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
 } }
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
- const f=fireworks[k],age=time-f.start,t=f.naturalTails?naturalTailAge(age-f.ascent):age-f.ascent;
+ const f=fireworks[k],age=time-f.start,t=f.naturalTails?naturalTailAge(age-f.ascent,f.spec.tailTimeStretch):age-f.ascent;
  if(f.pendingChildAge)f.pendingChildAge.value=t;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
  const fade=f.naturalTails||isPatternShell(f.kind)||isCreativeShell(f.kind)||f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||(f.kind==='sunflower'||f.kind==='petalflower'||f.kind==='goldflower')||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);

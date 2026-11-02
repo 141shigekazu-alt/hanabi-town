@@ -1,4 +1,4 @@
-import {NATURAL_TAIL_SAMPLES,naturalTailLifeBound} from './natural-tails.js';
+import {NATURAL_TAIL_SAMPLES,naturalTailStretch,naturalTailLifeBound} from './natural-tails.js';
 import {softenRepeatedRows} from './natural-layout.js?v=1.3.16';
 import {addPatternPassages} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
@@ -24,7 +24,7 @@ import {createCometPattern} from './comets.js?v=1.3.13';
 import {createStarBundlePattern} from './star-bundles.js?v=1.3.13';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const round=x=>+x.toFixed(4)||0;
-export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:['silver','willow'].includes(kind)?naturalTailLifeBound(TYPES[kind].life):kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
+export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:['silver','willow'].includes(kind)?naturalTailLifeBound(TYPES[kind].life,naturalTailStretch(size)):kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
 export function shellPoints(kind,size,wide=false,starDensity=1){
  if(isPatternShell(kind))return patternStarCount(kind)*PATTERN_PROFILE.trails;
  if(isCreativeShell(kind))return creativePoints(kind,size);
