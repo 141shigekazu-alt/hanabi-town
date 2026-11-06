@@ -1,8 +1,8 @@
-import {groundReservation} from './flower-programmes.js?v=1.3.13';
+import {groundReservation} from './flower-programmes.js?v=1.3.24';
 // Final allocation pass for newly composed shows. A complete flower bed and
 // flock stay together; only optional aerial filler yields to reserved scenes.
 export function limitProgrammeCapacity(plan,{shellTiming,shellPoints,planBudget}){
- let ground=plan.fans.map(f=>{const g=groundReservation(f,plan.programmeStyle.seed);return {...g,source:f,points:g.cost*(g.small?11:362)};});
+ let ground=plan.fans.map(f=>{const g=groundReservation(f,plan.programmeStyle.seed);return {...g,source:f,points:g.points};});
  const cost=s=>shellPoints(s.kind,s.size,s.position?.wide,s.position?.starDensity??1),end=s=>s.opening+shellTiming(s.kind,s.size).life+.1;
  let shots=[...plan.shots],removed=0,removedFans=0;
  function breach(){

@@ -1,6 +1,13 @@
+import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.24';
+import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.24';
+prepareRecordedSend().catch(error=>console.warn('手元の発射音を準備できませんでした',error));
+import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.24';
+import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.24';
+import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.24';
+import {RoofProgramme} from './roof-programme.js?v=1.3.24';
 import {NATURAL_TAIL_TIME_STRETCH,naturalTailStretch,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
-import {trackUsage} from './analytics.js?v=1.3.23';
-import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.23';
+import {trackUsage} from './analytics.js?v=1.3.24';
+import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.24';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
@@ -12,7 +19,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.23';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.24';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -20,14 +27,14 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.15';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.24';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.23';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.24';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.23';
+import {organizePanel} from './panel-layout.js?v=1.3.24';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -42,8 +49,8 @@ import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.17';
 import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
 import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.13';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.16';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.24';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.24';
 import {MusicTransport} from './music-transport.js';
 import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
@@ -51,21 +58,21 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.23';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.24';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.23';
-import {XRControls} from './xr-controls.js?v=1.3.23';
+import {WristMenu} from './wrist-menu.js?v=1.3.24';
+import {XRControls} from './xr-controls.js?v=1.3.24';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip} from './entry-tip.js?v=1.3.15';
+import {EntryTip} from './entry-tip.js?v=1.3.24';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
 let candyFreezeAt=null;
-const SMALL_STYLE_LABELS={...Object.fromEntries(TORA_MOUNTAIN_COLORS.map(c=>[c.id,c.label+'の星・'+(c.id==='mountain-gold'?'金':'銀')+'の尾'])),'tora-row-mix':'桃・水色・緑の列',...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
+const SMALL_STYLE_LABELS={'candy-tips':'キャンディー色星・金の尾',...Object.fromEntries(TORA_MOUNTAIN_COLORS.map(c=>[c.id,c.label+'の星・'+(c.id==='mountain-gold'?'金':'銀')+'の尾'])),'tora-row-mix':'桃・水色・緑の列',...Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,p.label])),gold:'金の星・金の尾',silver:'白の星・銀の尾',red:'紅の星・金の尾',blue:'青の星・銀の尾',green:'緑の星・金の尾','gold-silver':'金の星・銀の尾','white-gold':'白の星・金の尾','red-silver':'紅の星・銀の尾','blue-gold':'青の星・金の尾','green-silver':'緑の星・銀の尾'};
 // Separate from town/program/silver randomness, and never sampled during animation.
 const sampleShellShape=createShellShapeSampler();
 const panelPreview=new URLSearchParams(location.search).get('mrpanel')==='1';
@@ -367,7 +374,7 @@ function clearMusicSequence({keepFavorite=false}={}){
  if(!keepFavorite)clearFavoriteFestival();musicSequence=null;$('musicSequenceState').textContent=MUSIC_SHOWS.map(item=>item.title).join(' → ')+'。余韻まで観て、次の曲へ。';
 }
 function selectMusic(chosen,transport=new MusicTransport(chosen.src,{autoload:false})){
- music.stop();const plan=replaceRetiredPlan(chosen.plan);selectedMusic=plan===chosen.plan?chosen:{...chosen,plan};MUSIC_PLAN=plan;music=transport;
+ music.stop();const plan=upgradeTigerProgramme(replaceRetiredPlan(chosen.plan),{trackId:chosen.id});selectedMusic=plan===chosen.plan?chosen:{...chosen,plan};MUSIC_PLAN=plan;music=transport;
  music.setVolume(Number($('musicVolume').value));music.clickEnabled=$('musicClick').checked;
  $('musicTrack').value=chosen.id;$('musicState').textContent=chosen.description;musicLastUI=-1;syncMusicScenes();
 }
@@ -538,12 +545,13 @@ function launch(kind='core',size=5,position=null){
   if(life<spec.life)spec={...spec,life:Math.max(.5,life)};
  }
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
- const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,naturalTails,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,soundStudy:!!position?.soundStudy,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize,undefined,0,null,null,null,{kind:f.kind,size:f.size});
+ const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,naturalTails,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,soundStudy:!!position?.soundStudy,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};f.ascentSeed=position?.reviewSeed??crypto.getRandomValues(new Uint32Array(1))[0]; if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}if(size>=3&&!f.hideAscent)f.ascentStroke=new ShellAscent(town,f,bridgeView,sprite);
+ fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize,undefined,0,null,null,null,{kind:f.kind,size:f.size});
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
  if(showPlan?.music)musicLog.push({scheduled:position?.startAt,actual:time,opening:(position?.startAt??time)+ascent,kind,size,points:n*trailCount});
  return true;
 }
-function clearFireworks(){resetMusicFxQuiet();triggerEmbers.clear();soundEngine?.cancelScheduled?.();for(const f of fireworks){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
+function clearFireworks(){resetMusicFxQuiet();triggerEmbers.clear();soundEngine?.cancelScheduled?.();for(const f of fireworks){f.ascentStroke?.dispose();town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();}fireworks=[];}
 // Free expired launch slots and fire sounds before queued shots, without computing points.
 function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime;for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=age-f.ascent;
@@ -557,10 +565,16 @@ function updateFireworkEvents(){const audioNow=soundEngine?.context?.currentTime
  if(isSenrin(f.kind)&&t>=f.clusterDelays[0]&&!f.childSoundPlayed){f.childSoundPlayed=true;f.childSoundDue=f.clusterDelays[0]+soundDelay;if(f.soundMode==='recorded')f.childVariation??=soundEngine?.chooseSoundVariation?.('senrin-children',f.size);(!groundStudySilent)&&soundEngine?.playSenrinChildren(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.childSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.soundMode??$('audioMode').value,f.size,f.childVariation);}
  const afterDelay=tailCrackleDelayFor(f);
  if(['silver','willow'].includes(f.kind)&&f.soundMode==='recorded'&&t>=afterDelay&&!f.afterSoundPlayed){f.afterSoundPlayed=true;f.afterSoundDue=soundDelay+afterDelay;f.afterVariation??=soundEngine?.chooseSoundVariation?.(f.kind+'-crackle',f.size);(!groundStudySilent)&&soundEngine?.playOpeningCrackle?.(f.x,audioNow===undefined?undefined:audioNow+Math.max(0,f.afterSoundDue-t),bridgeView.active?bridgeView.position(f.x,f.y,f.z):null,f.kind,f.size,f.afterVariation);}
- if(t>f.spec.life){town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
+ if(t>f.spec.life){f.ascentStroke?.dispose();town.remove(f.p,f.refl);f.g.dispose();f.m.dispose();f.refl.geometry.dispose();f.refl.material.dispose();fireworks.splice(k,1);continue;}
 } }
 function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k>=0;k--){
  const f=fireworks[k],age=time-f.start,t=f.naturalTails?naturalTailAge(age-f.ascent,f.spec.tailTimeStretch):age-f.ascent;
+ if(f.ascentStroke){
+  f.ascentStroke.update(age,camera);
+  if(age>=f.ascent+f.ascentStroke.profile.tailLife){f.ascentStroke.dispose();f.ascentStroke=null;}
+  if(t<0){f.g.setDrawRange(0,0);f.refl.visible=false;continue;}
+  f.g.setDrawRange(0,f.n*f.trailCount);
+ }
  if(f.pendingChildAge)f.pendingChildAge.value=t;
  const fadeStart=f.spec.fadeStart??f.spec.life*.5;
  const fade=f.naturalTails||isPatternShell(f.kind)||isCreativeShell(f.kind)||f.kind==='sparklelarge'||f.kind==='longstar'||f.kind==='ear'||(f.kind==='sunflower'||f.kind==='petalflower'||f.kind==='goldflower')||t<0?1:Math.pow(Math.max(0,1-Math.max(0,t-fadeStart)/(f.spec.life-fadeStart)),1.4);
@@ -575,6 +589,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   for(let j=0;j<f.trailCount;j++){const lag=j*f.spec.tail,at=Math.max(0,t-lag),k=j*4;f.candyTrailCache[k]=1-Math.exp(-1.9*at);f.candyTrailCache[k+1]=.085*at;f.candyTrailCache[k+2]=f.spec.gravity*at*at;f.candyTrailCache[k+3]=(t>=lag?1:0)*Math.pow(1-j/f.trailCount,1.7);}
  }
  f.pointSample??={};f.starFrame??={};
+ if(f.naturalTails&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateNaturalShellPoints(f,t));}else{
  for(let i=0;i<f.n;i++){
  const prepared=t<0?null:f.naturalTails?prepareNaturalTail(f.naturalTails[i],t,f.starFrame):f.kind==='sparklelarge'?prepareSparklePoint(f.sparkleStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):f.kind==='longstar'?prepareLongStarPoint(f.longStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):null;
  for(let j=0;j<f.trailCount;j++){
@@ -654,6 +669,8 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  brightness=(t>=lag+(f.spec.ignition?.[f.starLayers[i]]??0)?1:0)*Math.pow(1-j/f.trailCount,1.7)*(f.kind==='candy'?(f.starLayers[i]===0?(j===0?3.2:1.05):(j===0?1.2:.35)):(j===0?2:.9));
  // Fade tails along with their heads so the whole break has a clean ending.
  }
+ // Brighten the living star cores; keep all cooling tail samples and fades intact.
+ if(t>=0&&j===0&&f.size>=3)brightness*=1.25;
  if(f.naturalTails)f.g.attributes.naturalSize.array[i*f.trailCount+j]=t<0?f.naturalTails[i].sizes[j]:naturalTailSize(f.naturalTails[i],j,f.pointSample.warm,f.pointSample.burn);
  if(f.kind==='ear'&&y<=.025)brightness=0;
  f.positions[index]=x;f.positions[index+1]=f.kind==='ear'?y:Math.max(.018,y);f.positions[index+2]=z;
@@ -663,6 +680,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
  const col=f.starColors[i];if(f.naturalTails&&t>=0){const warm=f.pointSample.warm;f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness*(1-.25*warm);f.colors[index+2]=col.b*brightness*(1-.38*warm);}else if(f.patternStars&&t>=0&&t<.065){const white=Math.pow(1-t/.065,2);f.colors[index]=(col.r+(1-col.r)*white)*brightness;f.colors[index+1]=(col.g+(1-col.g)*white)*brightness;f.colors[index+2]=(col.b+(1-col.b)*white)*brightness;}else if(f.creativeStars&&t>=0){const tail=f.creativeColoredTail?col:f.creativeTail;f.colors[index]=(tail.r+(col.r-tail.r)*creativeMix)*brightness;f.colors[index+1]=(tail.g+(col.g-tail.g)*creativeMix)*brightness;f.colors[index+2]=(tail.b+(col.b-tail.b)*creativeMix)*brightness;}else if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
+ }
  }
  }
  if(f.naturalTails)f.g.attributes.naturalSize.needsUpdate=true;
@@ -691,15 +709,17 @@ const comets=new CometField({town,bridge:bridgeView,map:sprite,headMaps:firework
  soundEngine.playComet(s.x,audio.currentTime+Math.max(0,delay-(now-s.at)),position,$('audioMode').value,!!s.small);
  if($('audioMode').value==='recorded')cometTailSounds.set(key,{x:s.x,small:!!s.small,visualAt:s.at+.10,due:s.at+.10+delay,position,key:soundEngine.nextRecordedCrackle(),played:false,variation:soundEngine.chooseSoundVariation(s.small?'small-tail':'large-tail')});
 }});
-function clearFans(){flowerStudy=null;if($('toraSceneCard'))$('toraSceneCard').hidden=true;for(const e of cometTailSounds.values())if(e.played&&e.due>time)try{e.source?.stop();}catch{}cometTailSounds.clear();comets.clear();cometSoundSlots.clear();cometFinishAt=null;cometCompleted=false;}
+const roofProgramme=new RoofProgramme(town,sprite,bridgeView,fireworkMaps,(...args)=>comets.onLaunch(...args));
+function clearFans(){roofProgramme.clear();flowerStudy=null;if($('toraSceneCard'))$('toraSceneCard').hidden=true;for(const e of cometTailSounds.values())if(e.played&&e.due>time)try{e.source?.stop();}catch{}cometTailSounds.clear();comets.clear();cometSoundSlots.clear();cometFinishAt=null;cometCompleted=false;}
 function launchFans(mode='fan',startAt=time,style=mode==='cross'?'silver':'gold',options={}){
  if(voiceUI?.busy)return false;
+ if(mode==='grand-roof')return roofProgramme.launch(startAt);
  if(showPlan&&!showPlan.music&&!previewing&&showPlan.programmeStyle?.color==='gold')options={...options,programmeGold:true};
  return comets.launch(mode,style,startAt,options);
 }
 function updateFans(){
  while(fanQueue.length&&fanQueue[0].at<=time){const cue=fanQueue.shift();if(time-cue.at>.35)continue;launchFans(cue.mode,cue.at,cue.style,cue.options);}
- comets.update(time);
+ comets.update(time);roofProgramme.update(time,camera);
  for(const [key,e] of cometTailSounds){
   if(time>e.due+3.5){cometTailSounds.delete(key);continue;}
   if(!e.played&&time>=e.visualAt&&$('audioMode').value==='recorded'&&soundEngine&&audio){e.played=true;e.source=soundEngine.playRecordedCrackle(e.x,audio.currentTime+Math.max(0,e.due-time),e.position,e.small?'small-tail':'large-tail',e.key,e.variation);}
@@ -1156,6 +1176,7 @@ function firePrepared(hand,origin,direction,input='trigger'){
  ensureAudio();const shell=loadedShells[hand]??chosenShell();
  const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
  const ok=manualBudget.accepts(points)&&triggerEmbers.send(hand,shell,origin,direction);
+ if(ok===true)playPreparedSend(audio,soundEngine.master,hand,shell);
  $('status').textContent=ok?(hand==='left'?'左':'右')+(input==='hand'?'手から ':'トリガーで ')+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
  return ok===true;
 }
@@ -1437,7 +1458,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if(questDiagnostics.enabled)questDiagnostics.record(stamp,{showTime:Number(time.toFixed(3)),running,xr:!!session,view:bridgeView.active?bridgeView.mode:dioramaSaved?'diorama':'miniature',updateCpuMs:renderStart-updateStart,renderCpuMs:performance.now()-renderStart,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),groundPoints:comets.points??0,audioState:audio?.state,spatial:soundEngine?.spatialStats,sidebarVisible:mrPanel.visible,sidebarReadable:mrPanel.isReadable(),tcEnabled:betaTCEnabled,tcVisible:betaReviewPanel.mesh.visible,tcMusicActive:betaReviewPanel.state?.musicActive});
 });
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-window.__hanabi={get sceneryVisible(){return townScenery.visible;},get rooftopState(){return {seatId:rooftopDeck.id,roof:{...rooftopDeck.roof},floor:rooftopDeck.floor,beaconHeight:rooftopDeck.beaconHeight,seat:rooftopDeck.seat.toArray(),angle:rooftopDeck.angle,mode:bridgeView.mode,active:bridgeView.active,townPosition:town.position.toArray(),townQuaternion:town.quaternion.toArray(),townScale:town.scale.toArray(),cameraPosition:camera.position.toArray(),cameraQuaternion:camera.quaternion.toArray(),bounds:{...rooftopDeck.bounds}};},get favoritePanelState(){return{visible:favoritesPanel.visible,busy:!!favoritesUI?.state.busy||libraryRestoring,playback:favoritePlaybackState(),controls:favoritesPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:favoritesPanel.mesh.matrixWorld.toArray()};},get panelState(){return{page:mrPanel.page,adjusting:!!mrPanel.adjusting,modal:!!mrPanel.childView,parentVisible:!!mrPanel.parentSurface?.visible,scale:mrPanel.mesh.scale.toArray(),position:mrPanel.mesh.position.toArray(),parentPosition:mrPanel.parentSurface?.position.toArray(),controls:mrPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:mrPanel.mesh.matrixWorld.toArray(),cameraMatrix:camera.matrixWorld.toArray(),cameraProjection:camera.projectionMatrix.toArray()};},beginFlowerStudy,get flowerStudy(){return flowerStudy;},get flowerGeometry(){return {shells:fireworks.map(f=>({kind:f.kind,size:f.size,start:f.start,launchX:f.launchX,launchZ:f.launchZ,ascentHead:Array.from(f.positions.subarray(0,3)),life:f.spec.life,points:f.n*f.trailCount,x:f.x,y:f.y,z:f.z,r:f.r,ascent:f.ascent,ignitionDelay:f.ignitionDelay,ascentOffset:f.ascentOffset,shape:f.shape,flowerVariation:f.flowerVariation,flowerStars:f.flowerStars,creativeStars:f.creativeStars,directions:f.directions.map(d=>[d.x,d.y,d.z]),opening:f.start+f.ascent,colors:f.starColors.map(c=>c.getHex())})),large:comets.active.map(s=>({x:s.x,z:s.z,start:s.start,burn:s.burn,character:s.character,vx:s.vx,vy:s.vy,drag:s.drag,gravity:s.gravity,end:s.end})),small:comets.bundles.active.map(s=>({x:s.x,z:s.z,start:s.start,count:s.stars.length,character:s.character,end:s.end,stars:s.stars.map(st=>({x:st.x,y:st.y,vx:st.vx,vy:st.vy,vz:st.vz,drag:st.drag,gravity:st.gravity,at:st.at,life:st.life,stopAt:st.stopAt,summitTarget:st.summitTarget}))}))};},riverNight,towerLighting,get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?bridgeView.mode:'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},launch,advance,clearFireworks,restart};
+window.__hanabi={get sceneryVisible(){return townScenery.visible;},get rooftopState(){return {seatId:rooftopDeck.id,roof:{...rooftopDeck.roof},floor:rooftopDeck.floor,beaconHeight:rooftopDeck.beaconHeight,seat:rooftopDeck.seat.toArray(),angle:rooftopDeck.angle,mode:bridgeView.mode,active:bridgeView.active,townPosition:town.position.toArray(),townQuaternion:town.quaternion.toArray(),townScale:town.scale.toArray(),cameraPosition:camera.position.toArray(),cameraQuaternion:camera.quaternion.toArray(),bounds:{...rooftopDeck.bounds}};},get favoritePanelState(){return{visible:favoritesPanel.visible,busy:!!favoritesUI?.state.busy||libraryRestoring,playback:favoritePlaybackState(),controls:favoritesPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:favoritesPanel.mesh.matrixWorld.toArray()};},get panelState(){return{page:mrPanel.page,adjusting:!!mrPanel.adjusting,modal:!!mrPanel.childView,parentVisible:!!mrPanel.parentSurface?.visible,scale:mrPanel.mesh.scale.toArray(),position:mrPanel.mesh.position.toArray(),parentPosition:mrPanel.parentSurface?.position.toArray(),controls:mrPanel.controls.map(({id,x,y,w,h})=>({id,x,y,w,h})),matrix:mrPanel.mesh.matrixWorld.toArray(),cameraMatrix:camera.matrixWorld.toArray(),cameraProjection:camera.projectionMatrix.toArray()};},beginFlowerStudy,get flowerStudy(){return flowerStudy;},get flowerGeometry(){return {shells:fireworks.map(f=>({kind:f.kind,size:f.size,start:f.start,launchX:f.launchX,launchZ:f.launchZ,ascentHead:Array.from(f.positions.subarray(0,3)),life:f.spec.life,points:f.n*f.trailCount,x:f.x,y:f.y,z:f.z,r:f.r,ascent:f.ascent,ignitionDelay:f.ignitionDelay,ascentOffset:f.ascentOffset,shape:f.shape,flowerVariation:f.flowerVariation,flowerStars:f.flowerStars,creativeStars:f.creativeStars,directions:f.directions.map(d=>[d.x,d.y,d.z]),opening:f.start+f.ascent,colors:f.starColors.map(c=>c.getHex())})),large:comets.active.map(s=>({x:s.x,z:s.z,start:s.start,burn:s.burn,character:s.character,vx:s.vx,vy:s.vy,drag:s.drag,gravity:s.gravity,end:s.end})),small:comets.bundles.active.map(s=>({x:s.x,z:s.z,start:s.start,count:s.stars.length,character:s.character,end:s.end,stars:s.stars.map(st=>({x:st.x,y:st.y,vx:st.vx,vy:st.vy,vz:st.vz,drag:st.drag,gravity:st.gravity,at:st.at,life:st.life,stopAt:st.stopAt,summitTarget:st.summitTarget}))}))};},riverNight,towerLighting,get state(){return{running,previewing,time,active:fireworks.length,viewMode:bridgeView.active?bridgeView.mode:'miniature',buildings:town.children.length,xr:renderer.xr.isPresenting,queued:burstQueue.length,fans:comets.groups,groundPoints:comets.points??0,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),shots:fireworks.map(f=>({kind:f.kind,size:f.size,layers:f.spec.radii.length,radius:f.r,ascent:f.ascent})),geometries:renderer.info.memory.geometries};},get mrReport(){return mrReport();},firePrepared,launch,advance,clearFireworks,restart};
 
 syncPlacementView();
 $('build').textContent='ベータ版 '+BUILD_VERSION;
@@ -1556,7 +1577,7 @@ function pauseMusicForVisibility(){
  if(running&&showPlan?.music){time=music.pause();running=false;cancelFutureSounds();triggerEmbers.clear();syncShowButtons();$('status').textContent='鑑賞を離れたので、曲と花火を一時停止しました。';}
 }
 // A scheduled duration is a lower bound. User-launched shells may outlive the programme.
-function musicCanFinish(){return time>=MUSIC_PLAN.showDuration&&!soundEngine?.openingCodaActive&&!fireworks.length&&!triggerEmbers.count&&!comets.groups&&!burstQueue.length&&!fanQueue.length;}
+function musicCanFinish(){return time>=MUSIC_PLAN.showDuration&&!soundEngine?.openingCodaActive&&!fireworks.length&&!triggerEmbers.count&&!comets.groups&&!roofProgramme.active&&!burstQueue.length&&!fanQueue.length;}
 function advanceMusic(dt){
  time=music.currentTime;updateMusicFxQuiet();
  advanceEmbers(dt);updateFireworkEvents();
@@ -1907,7 +1928,7 @@ $('showNotice').textContent='保存した曲を確認中…';
 
 if(new URLSearchParams(location.search).has('autoMusicTrial')){setPanelTab(4);town.scale.setScalar(1);camera.position.set(0,1.45,3.5);camera.lookAt(0,1.15,0);scene.fog.density=.025;}
 
-window.__musicStudy={get state(){return{time,transport:music.currentTime,running,pending:burstQueue.length,active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),sourceActive:!!music.source,contextState:audio?.state,spatial:soundEngine?.spatialStats,clicks:music.clicks.size,log:musicLog};},get plan(){return MUSIC_PLAN;}};
+window.__musicStudy={get state(){return{ascentProfiles:fireworks.filter(f=>f.ascentStroke).map(f=>({size:f.size,opening:f.start+f.ascent,age:time-f.start,ascent:f.ascent,profile:f.ascentStroke.profile,seed:f.ascentStroke.seed,stats:f.ascentStroke.stats,oldPointCount:f.g.drawRange.count})),roof:roofProgramme.stats,groundDropped:comets.dropped+comets.bundles.dropped,time,transport:music.currentTime,running,pending:burstQueue.length,active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),sourceActive:!!music.source,contextState:audio?.state,spatial:soundEngine?.spatialStats,clicks:music.clicks.size,log:musicLog};},get plan(){return MUSIC_PLAN;}};
 
 if($('candyCard')){
  town.rotation.set(0,0,0);town.scale.setScalar(1);camera.position.set(0,1.15,3.0);camera.lookAt(0,.72,-.12);scene.fog.density=.025;
@@ -2103,3 +2124,6 @@ $('patternChoiceApply').onclick=async()=>{
  if(ok){$('patternChoiceStatus').textContent='✓ '+request.summary+'構成ができました。花火大会へ戻って開演できます。';voiceUI.resetDraft();}mrPanel.draw();
 };
 $('patternChoiceClose').onclick=()=>{if(voiceUI.busy)voiceUI.cancel();voiceUI.resetDraft();$('patternChoiceCard').hidden=true;$('patternChoiceOpen').setAttribute('aria-expanded','false');mrPanel.draw();};
+
+// Prepare this authored Quest trial through the normal music and MR controls.
+if(['localhost','127.0.0.1'].includes(location.hostname))window.__tigerProgramme={seek:seekBetaMusic,async prepare(id="hanabi-no-yoru"){await chooseMusicTrack(id,"original");return {title:MUSIC_PLAN.title,shots:MUSIC_PLAN.shots.length,fans:MUSIC_PLAN.fans.length};},setWidth(value){roofProgramme.widthScale=Math.max(1,Math.min(1.5,Number(value)||1));return roofProgramme.widthScale;}};

@@ -1,10 +1,11 @@
+import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.24';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
 import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.3.1';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
-import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.13';
+import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.24';
 
 // An independent stream: ground shots cannot change the shapes of upper shells.
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
@@ -39,7 +40,8 @@ const TYPES=new Set(COMET_PATTERNS.map(p=>p.id));
 export function createCometPattern(id='fan',style='gold',seed=1,options={}){
  if(id==='flower-stem-large')return flowerGroundShots(id,seed,options);
  if(TORA_LARGE_PATTERNS.some(p=>p.id===id))return createToraLargePattern(id,COMET_STYLES[style]?style:'silver',seed);
- if(id.startsWith('small-'))return createStarBundlePattern(id,style,seed);
+ if(id==='sync-fan')return synchronizedTigerShots(seed,options).large;
+ if(id.startsWith('small-'))return createStarBundlePattern(id,style,seed,options);
  if(!TYPES.has(id))id='fan';if(!COMET_STYLES[style])style='gold';
  const shots=[],random=randomFrom(seed),add=(x,angle,height,at=0,z=-.72)=>shots.push({x,y:.035,z,angle,height,at,style,seed:Math.floor(random()*0xffffffff)});
  if(id==='single')add(0,0,.72);
@@ -102,6 +104,7 @@ export class CometField{
   const group=++this.group;this.seed=(this.seed+0x9e3779b9)>>>0;
   const shots=createCometPattern(pattern,style,options.reviewSeed??this.seed,options);
   if(this.active.length+this.pending.length+shots.length>this.capacity){this.dropped++;return false;}
+  if(pattern==='sync-fan'&&!this.bundles.launch('small-sync-fan',options.smallStyle??'sync-bluegreen',at,{...options,reviewSeed:options.reviewSeed??this.seed}))return false;
   for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(options.programmeGold?{programmeGold:true}:{}),...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
@@ -118,7 +121,7 @@ export class CometField{
     const t=age-particle.at;if(t<0||t>=particle.life)continue;
     const x=particle.x+particle.dx*t,y=particle.y+particle.dy*t-.15*t*t,z=particle.z+particle.dz*t;
     if(y<=.012)continue;
-    const warm=clamp(t/particle.life,0,1),gain=Math.pow(1-warm,1.6)*particle.glint*(s.styleData.tailGain??(s.style==='gold'?1.20:.94));
+    const warm=clamp(t/particle.life,0,1),gain=Math.pow(1-warm,1.6)*particle.glint*(s.motion?.tailGain??s.styleData.tailGain??(s.style==='gold'?1.20:.94));
     this.tailPositions[tails*3]=x;this.tailPositions[tails*3+1]=y;this.tailPositions[tails*3+2]=z;
     // Golden sparks cool toward orange; silver keeps its cooler, shorter afterglow.
     this.tailColors[tails*3]=s.tailColor.r*gain;this.tailColors[tails*3+1]=s.tailColor.g*gain*(1-(s.styleData.coloredTail||s.style==='silver'||s.style==='blue'?0:.35)*warm);this.tailColors[tails*3+2]=s.tailColor.b*gain*(1-(s.styleData.coloredTail?0:.42)*warm);tails++;

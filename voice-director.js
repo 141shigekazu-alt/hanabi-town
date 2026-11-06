@@ -1,6 +1,6 @@
 import {spacedVoiceShots} from './voice-spacing.js?v=1.3.10';
 import {mirrorShellPosition} from './shell-flight.js';
-import {groundReservation} from './flower-programmes.js?v=1.3.13';
+import {groundReservation} from './flower-programmes.js?v=1.3.24';
 import {stylePalette} from './programme-style.js?v=1.3.10';
 // Keep musical opening times. Every resized shell is checked with ground stars.
 export function directVoicePlan(plan,request,{shellTiming,shellPoints,planBudget}){

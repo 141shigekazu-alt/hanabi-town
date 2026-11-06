@@ -1,20 +1,20 @@
 import {earProgrammeFits} from './ear-capacity.js';
 import {flowerGardenPassage} from './flower-scenes.js';
 import {groundCapacity} from './music-feeling.js?v=1.3.13';
-import {createCometPattern} from './comets.js?v=1.3.13';
-import {createStarBundlePattern} from './star-bundles.js?v=1.3.13';
+import {createCometPattern} from './comets.js?v=1.3.24';
+import {createStarBundlePattern,starBundlePointCost} from './star-bundles.js?v=1.3.24';
 const round=x=>+x.toFixed(4),overlap=(a,b)=>a.start<b.end&&a.end>b.start;
 export function groundReservation(f,seed){
  const small=f.mode.startsWith('small-'),rate=f.options?.motionRate??1;
  const shots=small?createStarBundlePattern(f.mode,f.style,seed,f.options):createCometPattern(f.mode,f.style,seed,f.options);
  const cost=small?shots.reduce((n,s)=>n+s.count*s.angles.length,0):shots.length;
- return{start:f.at,end:f.at+(Math.max(0,...shots.map(s=>s.at))+(small?3.3:4.5))/Math.min(1,rate),small,cost};
+ return{start:f.at,end:f.at+(Math.max(0,...shots.map(s=>s.at))+(small?3.3:4.5))/Math.min(1,rate),small,cost,points:small?shots.reduce((n,s)=>n+starBundlePointCost(s),0):cost*362};
 }
 // Bounds for allocation, not screen brightness. Include every pending ground star.
 export function flowerProgrammeBudget(shots,fans,{shellTiming,shellPoints},seed=1){
  const events=[];
  for(const s of shots){const points=shellPoints(s.kind,s.size,s.position?.wide,s.position?.starDensity??1);events.push({at:s.at,points},{at:s.opening+shellTiming(s.kind,s.size).life+.1,points:-points});}
- for(const f of fans){const r=groundReservation(f,seed),points=r.cost*(r.small?11:362);events.push({at:r.start,points},{at:r.end,points:-points});}
+ for(const f of fans){const r=groundReservation(f,seed),points=r.points;events.push({at:r.start,points},{at:r.end,points:-points});}
  events.sort((a,b)=>a.at-b.at||a.points-b.points);
  let used=0,peakPoints=0;for(const e of events){used+=e.points;peakPoints=Math.max(peakPoints,used);}return{peakPoints};
 }
