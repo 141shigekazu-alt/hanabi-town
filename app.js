@@ -1,14 +1,14 @@
-import {createMoonSky} from './moon-sky.js?v=1.3.26';
-import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.26';
-import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.26';
+import {createMoonSky} from './moon-sky.js?v=1.3.27';
+import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.27';
+import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.27';
 prepareRecordedSend().catch(error=>console.warn('手元の発射音を準備できませんでした',error));
-import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.26';
-import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.26';
-import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.26';
-import {RoofProgramme} from './roof-programme.js?v=1.3.26';
+import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.27';
+import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.27';
+import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.27';
+import {RoofProgramme} from './roof-programme.js?v=1.3.27';
 import {NATURAL_TAIL_TIME_STRETCH,naturalTailStretch,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
-import {trackUsage} from './analytics.js?v=1.3.26';
-import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.26';
+import {trackUsage} from './analytics.js?v=1.3.27';
+import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.27';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
@@ -20,7 +20,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.26';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.27';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -28,14 +28,14 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.26';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.27';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.26';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.27';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.26';
+import {organizePanel} from './panel-layout.js?v=1.3.27';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -50,8 +50,8 @@ import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.17';
 import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
 import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.26';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.26';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.27';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.27';
 import {MusicTransport} from './music-transport.js';
 import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
@@ -59,16 +59,16 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.26';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.27';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.26';
-import {XRControls} from './xr-controls.js?v=1.3.26';
+import {WristMenu} from './wrist-menu.js?v=1.3.27';
+import {XRControls} from './xr-controls.js?v=1.3.27';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip} from './entry-tip.js?v=1.3.26';
+import {EntryTip} from './entry-tip.js?v=1.3.27';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -380,10 +380,11 @@ function selectMusic(chosen,transport=new MusicTransport(chosen.src,{autoload:fa
  music.setVolume(Number($('musicVolume').value));music.clickEnabled=$('musicClick').checked;
  $('musicTrack').value=chosen.id;$('musicState').textContent=chosen.description;musicLastUI=-1;syncMusicScenes();
 }
+function countMusicStart(){trackUsage(selectedMusic.id?.startsWith('import:')?'imported_show_start':'show_start');}
 function startLoadedMusicShow(){
  if(analysisFeedback?.phase==='complete'){analysisFeedback=null;$('analysisFeedback').hidden=true;}
  music.stop();clearFireworks();clearFans();fanQueue=[];burstQueue=[];burstSlots.clear();previewing=false;previewPaused=false;time=0;cueIndex=0;musicLastUI=-1;
- prepareMusicProgram();ensureAudio();music.play(audio,0,soundEngine?.mixInput);running=true;trackUsage('show_start');
+ prepareMusicProgram();ensureAudio();music.play(audio,0,soundEngine?.mixInput);running=true;countMusicStart();
  if(favoriteRun){favoriteRun.armed=false;favoriteRun.phase='playing';favoriteRun.prefetch();favoritesUI?.setFestival('開演中 · '+favoriteRun.label);}
  $('status').textContent=selectedMusic.description;
  if(musicSequence)$('musicSequenceState').textContent='連続鑑賞 · '+(musicSequence.index+1)+' / '+musicSequence.tracks.length+'曲目 · '+selectedMusic.title;
@@ -835,7 +836,7 @@ function restart(){
  if(voiceUI?.busy)return;
  if(favoriteRun&&['gap','loading','switch'].includes(favoriteRun.phase))return;
  cancelAutomaticPreparation();const musical=!!showPlan?.music;cancelMusicRequest();music.stop();previewing=false;previewPaused=false;fanQueue=[];clearFans();clearFireworks();burstQueue=[];burstSlots.clear();time=0;nextLaunch=.8;cueIndex=0;$('last').textContent='次の一玉を待つ';
- if(musical){prepareMusicProgram();ensureAudio();music.play(audio,0,soundEngine?.mixInput);running=true;trackUsage('show_start');}else{showPlan=null;if(!running)toggle();else{prepareProgram();trackUsage('show_start');}}syncShowButtons();
+ if(musical){prepareMusicProgram();ensureAudio();music.play(audio,0,soundEngine?.mixInput);running=true;countMusicStart();}else{showPlan=null;if(!running)toggle();else{prepareProgram();trackUsage('show_start');}}syncShowButtons();
 }
 
 function beginPreview(){
@@ -910,7 +911,7 @@ function toggle(){
  if(showPlan?.music){
   if(!running){
    if(musicCanFinish()){clearFireworks();clearFans();time=0;prepareMusicProgram();}
-   ensureAudio();music.play(audio,time,soundEngine?.mixInput);running=true;if(time===0)trackUsage('show_start');
+   ensureAudio();music.play(audio,time,soundEngine?.mixInput);running=true;if(time===0)countMusicStart();
   }else{time=music.pause();running=false;cancelFutureSounds();}
   syncShowButtons();$('status').textContent=running?'音楽と花火を鑑賞中です。':'音楽と花火を一時停止しました。';return;
  }
