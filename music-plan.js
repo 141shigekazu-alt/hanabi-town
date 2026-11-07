@@ -1,4 +1,4 @@
-import {HANABI_ORIGINAL_PLAN as original} from './hanabi-original-plan.js?v=1.3.25';
+import {HANABI_ORIGINAL_PLAN as original} from './hanabi-original-plan.js?v=1.3.26';
 // Music times use the existing measured 花火の夜 anchors, in seconds.
 const fans=[],shots=[],sections=[];
 const section=(at,label)=>sections.push({at,label,previewStart:Math.max(0,at-1)});
@@ -27,4 +27,4 @@ section(100,'屋根型を一度、素で見せる');fan(100.94,'grand-roof');
 section(110.4,'屋根型の再演とカムロの重なり');fan(110.4,'grand-roof');volley(113.95,'silver',10,[-1.5,-1,-.5,0,.5,1,1.5],'original',.55);
 section(115,'全幅の大扇から、最後のカムロへ');fan(115.1,'small-wide-fan','candy-tips',{ignition:'together'});volley(115.69157211889551,'silver',10,[-1.35,-.90,-.45,0,.45,.90,1.35],'original',.72);
 section(119.6,'下段を止めて、上空の余韻を観る');
-export const MUSIC_PLAN={authoredTigerProgramme:true,...original,title:'花火の夜',revision:'1.3.25',showDuration:130,finalPreviewStart:100,finalOpening:115.69157211889551,finalFullSpreadAt:118.25,middlePreviewStart:50,pyramidAt:59.97,upperLimit:14,sections,shots:shots.sort((a,b)=>a.at-b.at),fans:fans.sort((a,b)=>a.at-b.at),method:'採用子トラ・山打ち３方式・大扇・シンクロ・屋根型からカムロへ。既存の花火の夜の実測タイミングを使用。'};
+export const MUSIC_PLAN={authoredTigerProgramme:true,...original,title:'花火の夜',revision:'1.3.26',showDuration:130,finalPreviewStart:100,finalOpening:115.69157211889551,finalFullSpreadAt:118.25,middlePreviewStart:50,pyramidAt:59.97,upperLimit:14,sections,shots:shots.sort((a,b)=>a.at-b.at),fans:fans.sort((a,b)=>a.at-b.at),method:'採用子トラ・山打ち３方式・大扇・シンクロ・屋根型からカムロへ。既存の花火の夜の実測タイミングを使用。'};

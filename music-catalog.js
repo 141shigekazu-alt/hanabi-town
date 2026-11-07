@@ -1,4 +1,4 @@
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.25';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.26';
 
 const titleOrder=new Intl.Collator('ja',{numeric:true,sensitivity:'base',ignorePunctuation:true});
 // Picker order only. Never change a saved setlist or its playback order.
