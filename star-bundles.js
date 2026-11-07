@@ -1,6 +1,6 @@
-import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.24';
-import {openingColourShots,layerColourShots,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.24';
-import {compactFanShots} from './compact-fans.js?v=1.3.24';
+import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.25';
+import {openingColourShots,layerColourShots,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.25';
+import {compactFanShots} from './compact-fans.js?v=1.3.25';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
@@ -416,11 +416,13 @@ export class StarBundleField{
   }
   }
   this.headGeometry.setDrawRange(0,heads);this.tailGeometry.setDrawRange(0,tails);
-  const velocity=this.tailGeometry.attributes.emberVelocity;
-  velocity.clearUpdateRanges();if(tails){velocity.addUpdateRange(0,tails*3);velocity.needsUpdate=true;}
-  this.headGeometry.attributes.tipSize.needsUpdate=true;this.tailGeometry.attributes.emberSize.needsUpdate=true;
-  this.headGeometry.attributes.childTiger.needsUpdate=true;this.tailGeometry.attributes.childTiger.needsUpdate=true;
-  for(const g of [this.headGeometry,this.tailGeometry]){g.attributes.position.needsUpdate=true;g.attributes.color.needsUpdate=true;}
+  // Upload only the populated prefix. Drawing and all particle values stay unchanged.
+  for(const [geometry,count] of [[this.headGeometry,heads],[this.tailGeometry,tails]]){
+   for(const attribute of Object.values(geometry.attributes)){
+    attribute.clearUpdateRanges();
+    if(count){attribute.addUpdateRange(0,count*attribute.itemSize);attribute.needsUpdate=true;}
+   }
+  }
   this.heads.visible=this.glow.visible=heads>0;this.tails.visible=tails>0;this.points=heads*2+tails;
  }
  clear(){this.active=[];this.pending=[];this.headGeometry.setDrawRange(0,0);this.tailGeometry.setDrawRange(0,0);this.heads.visible=this.glow.visible=this.tails.visible=false;this.points=0;}

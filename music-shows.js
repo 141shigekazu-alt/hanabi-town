@@ -1,6 +1,6 @@
 import {softenRepeatedRows} from './natural-layout.js?v=1.3.16';
 import {PASTEL_PLAN} from './pastel-plan.js?v=1.1.16';
-import {MUSIC_PLAN} from './music-plan.js?v=1.3.24';
+import {MUSIC_PLAN} from './music-plan.js?v=1.3.25';
 import {NATSU_NAGORI_PLAN} from './natsu-nagori-plan.js?v=1.1.16';
 import {RAIN_SONG_PLAN} from './rain-song-plan.js?v=1.3.1';
 // Catalog order also defines continuous playback order.

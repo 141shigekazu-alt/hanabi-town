@@ -1,13 +1,13 @@
-import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.24';
-import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.24';
+import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.25';
+import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.25';
 prepareRecordedSend().catch(error=>console.warn('手元の発射音を準備できませんでした',error));
-import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.24';
-import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.24';
-import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.24';
-import {RoofProgramme} from './roof-programme.js?v=1.3.24';
+import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.25';
+import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.25';
+import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.25';
+import {RoofProgramme} from './roof-programme.js?v=1.3.25';
 import {NATURAL_TAIL_TIME_STRETCH,naturalTailStretch,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
-import {trackUsage} from './analytics.js?v=1.3.24';
-import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.24';
+import {trackUsage} from './analytics.js?v=1.3.25';
+import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.25';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
@@ -19,7 +19,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.24';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.25';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -27,14 +27,14 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.24';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.25';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.24';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.25';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.24';
+import {organizePanel} from './panel-layout.js?v=1.3.25';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -49,8 +49,8 @@ import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.17';
 import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
 import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
-import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.24';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.24';
+import {CometField,COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.25';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.25';
 import {MusicTransport} from './music-transport.js';
 import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
@@ -58,16 +58,16 @@ import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayNam
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
 import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.15';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.24';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.25';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.24';
-import {XRControls} from './xr-controls.js?v=1.3.24';
+import {WristMenu} from './wrist-menu.js?v=1.3.25';
+import {XRControls} from './xr-controls.js?v=1.3.25';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip} from './entry-tip.js?v=1.3.24';
+import {EntryTip} from './entry-tip.js?v=1.3.25';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -506,11 +506,12 @@ function launch(kind='core',size=5,position=null){
  for(let i=0;i<directions.length;i++)(flowerStars?deformFlowerVector:deformShellVector)(directions[i],shape,isSenrin(kind)?.35:shells[i]<.75?.65:1);
  for(const center of clusterCenters)deformShellVector(center,shape);
  if(kind==='candy'){const seed=position?.candySeed??(0x141715+Math.floor(time*1000));for(let i=0;i<starColors.length;i++)starColors[i]=new T.Color(starLayers[i]===0?candyColor(i,seed,scheme.map(c=>c.getHex())):scheme.length===1?scheme[0].getHex():0xffeec7);}
+ if(position?.prepareSilverStock)return {seed:position.reviewSeed,target:directions.length,count:trailCount,life:spec.life,random:shellRandom,tails:[]};
  const n=directions.length,positions=new Float32Array(n*trailCount*3),colors=new Float32Array(n*trailCount*3);
  // These per-star values are constant for the entire shell. Keep double precision.
  const silverVariation=kind==='silver'?Float64Array.from({length:n},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37)):null;
  const silverLife=kind==='silver'?Float64Array.from({length:n},(_,i)=>5.3+.65*(.5+.5*Math.sin((i+silverSeed)*4.13))):null;
- const naturalTails=['silver','willow'].includes(kind)?createNaturalTails(n,trailCount,spec.life,shellRandom):null;
+ const naturalTails=position?.stockTail?.tails??(['silver','willow'].includes(kind)?createNaturalTails(n,trailCount,spec.life,shellRandom):null);
  // Only the two-shaku willow/kamuro falls more gently; burn and afterglow keep their accepted timing.
  if(naturalTails)spec={...spec,gravity:spec.gravity*(size===20?.80:1),tailTimeStretch:naturalTailStretch(size),life:naturalTailLifetime(naturalTails,spec.life)*naturalTailStretch(size)};
  const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(positions,3));g.setAttribute('color',new T.BufferAttribute(colors,3));
@@ -846,7 +847,7 @@ function beginPreview(){
  $('status').textContent='試し打ち中。選んだ花火だけを上げます。';ensureAudio();
 }
 function advanceEmbers(dt){
- triggerEmbers.update(dt,shot=>{const ok=launch(shot.shell.kind,shot.shell.size,{x:shot.target.x,z:shot.target.z,palette:shot.shell.palette,manual:true});$('status').textContent=ok?(shot.hand==='left'?'左':'右')+'から送った '+shellName(shot.shell)+' が打ち上がりました。':'いまは打ち上げが混み合っています。少し間を置いてもう一度どうぞ。';});
+ triggerEmbers.update(dt,shot=>{const ok=launch(shot.shell.kind,shot.shell.size,{x:shot.target.x,z:shot.target.z,palette:shot.shell.palette,manual:true,reviewSeed:shot.shell.stockTail?.seed,stockTail:shot.shell.stockTail});$('status').textContent=ok?(shot.hand==='left'?'左':'右')+'から送った '+shellName(shot.shell)+' が打ち上がりました。':'いまは打ち上げが混み合っています。少し間を置いてもう一度どうぞ。';});
 }
 function advance(dt){
  if(voiceUI?.busy)return;
@@ -1113,6 +1114,17 @@ function toggleShowInfo(){toggleBetaTC();}
 $('showInfo').onclick=toggleShowInfo;
 // Each hand keeps a snapshot of the chosen shell; changing the picker later
 // does not silently replace a prepared shell during the automatic show.
+const silverStock=[];
+let buildingSilver=null;
+function refillSilverStock(){
+ if(silverStock.length>=12||!Object.values(loadedShells).some(s=>s?.kind==='silver'&&s.size===10))return;
+ const deadline=performance.now()+.6;
+ if(!buildingSilver)buildingSilver=launch('silver',10,{prepareSilverStock:true,manual:true,x:0,z:0,reviewSeed:crypto.getRandomValues(new Uint32Array(1))[0]});
+ const job=buildingSilver;
+ if(!job)return;
+ do{job.tails.push(createNaturalTails(1,job.count,job.life,job.random)[0]);}while(job.tails.length<job.target&&performance.now()<deadline);
+ if(job.tails.length===job.target){silverStock.push(job);buildingSilver=null;}
+}
 const DEFAULT_PREPARED_SHELLS={left:{kind:'triple',size:20,palette:'original'},right:{kind:'silver',size:10,palette:'original'}};
 const loadedShells={left:null,right:null};
 function restoreDefaultShells(){
@@ -1175,7 +1187,11 @@ function firePrepared(hand,origin,direction,input='trigger'){
  // A prepared hand always wins, including when the trial tab stays selected.
  ensureAudio();const shell=loadedShells[hand]??chosenShell();
  const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
- const ok=manualBudget.accepts(points)&&triggerEmbers.send(hand,shell,origin,direction);
+ const needsStock=shell.kind==='silver'&&shell.size===10;
+ const tail=needsStock?silverStock[0]:null;
+ if(needsStock&&!tail){$('status').textContent='次の尺の銀かむろを準備中です。';return false;}
+ const allowed=manualBudget.accepts(points);const ok=allowed&&triggerEmbers.send(hand,tail?{...shell,stockTail:tail}:shell,origin,direction);
+ if(ok&&tail)silverStock.shift();
  if(ok===true)playPreparedSend(audio,soundEngine.master,hand,shell);
  $('status').textContent=ok?(hand==='left'?'左':'右')+(input==='hand'?'手から ':'トリガーで ')+shellName(shell)+' を街へ送りました。':'いまは描画の負荷が大きいため、追加の発射を待っています。少し間を置いてもう一度どうぞ。';
  return ok===true;
@@ -1449,7 +1465,7 @@ let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
  if($('candyCard'))$('candyClock').textContent='経過 '+time.toFixed(1)+'秒'+(previewPaused?' · 一時停止':'');
  if(!renderer.xr.isPresenting){const lookYaw=yaw-(bridgeView.active?(bridgeView.mode==='boat'?boatPose.angle:bridgeView.mode==='rooftop'?rooftopDeck.angle:0):0);const target=bridgeView.active?new T.Vector3(Math.sin(lookYaw)*Math.cos(pitch),Math.sin(pitch),-Math.cos(lookYaw)*Math.cos(pitch)).add(camera.position):new T.Vector3(Math.sin(yaw)*(dioramaSaved?.25:1.2),(dioramaSaved?.88:new URLSearchParams(location.search).has('rainMusicTrial')?1.15:$('toraSceneCard')&&!$('toraSceneCard').hidden?.70:$('rainEarCard')&&!$('rainEarCard').hidden?((rainEarMode.endsWith('-field')||['sea-sunset-base','paddy-base'].includes(rainEarMode))?1.1:.70):(($('creativeCard')&&!$('creativeCard').hidden)||new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial'))?1.04:.55)+pitch,0);camera.lookAt(target);}
  if(!session&&bridgeView.active)bridgeView.move((walkKeys.has('KeyD')?1:0)-(walkKeys.has('KeyA')?1:0),(walkKeys.has('KeyS')?1:0)-(walkKeys.has('KeyW')?1:0),dt);
- if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible){favoritesPanel?.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);}else if(panelPreview){favoritesPanel?.update(stamp,null,null,null);mrPanel.update(stamp,null,null,null);}handLaunch.update(stamp,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0||!!mrPanel.sliderDrag||!!betaReviewPanel.sliderDrag||!!mrPanel.childView});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled,title:showPlan?.music?musicTrackTitle(selectedMusic.id,selectedMusic.title):'',names:betaTCEnabled?showInfoText({time,running,previewing,fireworks}).names:'',canPlay:!pendingAutomaticTrack&&!selectionProblem,canPrevious:!!favoriteRun&&favoriteRun.index>0,canNext:!!favoriteRun?.hasNext,musicActive:!!showPlan?.music,current:betaClock(showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration)):time),seek:showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration:0,duration:showPlan?.music?betaClock(MUSIC_PLAN.duration):'',tail:showPlan?.music&&time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else {betaReviewPanel.release();favoritesPanel?.release();}if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(xrVisible)bridgeView.updateRooftopPosture(dt);bridgeView.listener(audio,pose?.transform);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||($('creativeCard')&&!$('creativeCard').hidden)||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);
+ if(xrVisible&&!running&&(!previewing||previewPaused))triggerEmbers.draw();if(xrVisible){towerLighting.update(dt);riverNight.reflections.material.uniforms.uDetail.value=bridgeView.active&&bridgeView.mode==='boat'?2.5:1;riverNight.update(stamp/1000);rooftopCranes.update(stamp/1000);}updateRoofLights(stamp/1000);updateReflections();if(frame&&xrVisible){favoritesPanel?.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);mrPanel.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform);}else if(panelPreview){favoritesPanel?.update(stamp,null,null,null);mrPanel.update(stamp,null,null,null);}handLaunch.update(stamp,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(frame&&xrVisible)wristMenu.update(stamp,frame,renderer.xr.getReferenceSpace(),pose?.transform,{drawHands:bridgeView.active||mrMeta?.sessionMode==='immersive-vr',busy:controls.grabs.size>0||!!mrPanel.sliderDrag||!!betaReviewPanel.sliderDrag||!!mrPanel.childView});showInfo.update({time,running,previewing,fireworks},pose?.transform,!!session,xrVisible);betaReviewPanel.update({active:betaTCEnabled,title:showPlan?.music?musicTrackTitle(selectedMusic.id,selectedMusic.title):'',names:betaTCEnabled?showInfoText({time,running,previewing,fireworks}).names:'',canPlay:!pendingAutomaticTrack&&!selectionProblem,canPrevious:!!favoriteRun&&favoriteRun.index>0,canNext:!!favoriteRun?.hasNext,musicActive:!!showPlan?.music,current:betaClock(showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration)):time),seek:showPlan?.music?(betaDragging?Number($('betaMusicSeek').value):Math.min(time,MUSIC_PLAN.duration))/MUSIC_PLAN.duration:0,duration:showPlan?.music?betaClock(MUSIC_PLAN.duration):'',tail:showPlan?.music&&time>MUSIC_PLAN.duration?'余韻＋'+(time-MUSIC_PLAN.duration).toFixed(1)+'秒':'',running,busy:musicBusy},pose?.transform,!!session,xrVisible);if(xrVisible){betaReviewPanel.drag(stamp,frame,renderer.xr.getReferenceSpace());betaReviewPanel.touch(stamp,frame,renderer.xr.getReferenceSpace(),controls.grabs.size>0||!!mrPanel.sliderDrag);}else {betaReviewPanel.release();favoritesPanel?.release();}if(xrVisible)showInfo.drag(stamp,frame,renderer.xr.getReferenceSpace());else showInfo.release();if(frame)controls.update(dt,xrVisible?frame:null,renderer.xr.getReferenceSpace(),xrVisible?pose?.transform:null);if(xrVisible)bridgeView.updateRooftopPosture(dt);bridgeView.listener(audio,pose?.transform);const renderStart=performance.now();if(($('toraSceneCard')&&!$('toraSceneCard').hidden||$('rainEarCard')&&!$('rainEarCard').hidden||$('candyCard')||new URLSearchParams(location.search).has('rainMusicTrial')||new URLSearchParams(location.search).has('candyShow')||($('creativeCard')&&!$('creativeCard').hidden)||(new URLSearchParams(location.search).has('largeStarTrial')||new URLSearchParams(location.search).has('sparkleTrial')))&&!session){const width=Math.max(240,innerWidth-370);renderer.setViewport(0,0,width,innerHeight);camera.aspect=width/innerHeight;camera.updateProjectionMatrix();}renderer.render(scene,camera);if(xrVisible)refillSilverStock();
  panelSurfaceTrial?.after({updateMs:renderStart-updateStart,renderMs:performance.now()-renderStart,calls:renderer.info.render.calls});
  if(frame&&mrMetrics&&xrVisible){
   const row=mrMetrics.record(stamp,{particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0),calls:renderer.info.render.calls,renderMs:performance.now()-renderStart,updateMs:renderStart-updateStart,showTime:time,frameRate:session.frameRate});

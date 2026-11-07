@@ -8,6 +8,7 @@ export function updateNaturalShellPoints(f,t){
  const silver=f.kind==='silver',drag=silver?.90:f.size===20?.7:1.9,gravity=f.spec.gravity,rise=silver?.065:.085;
  const flash=silver&&t<.08?1+1.6*(1-t/.08):1;
 
+ const headDecay=Math.exp(-drag*t);
  for(let i=0;i<f.n;i++){
   const star=f.naturalTails[i],birth=star.birth,dir=f.directions[i],col=f.starColors[i];
   const radius=f.r*f.shells[i]*(silver?f.silverVariation[i]:1);
@@ -17,14 +18,21 @@ export function updateNaturalShellPoints(f,t){
    let at,emberAge,warm,burn,glow;
    if(j===0){at=t;emberAge=0;warm=0;burn=burnNow;glow=2*star.glow*head*(1-.35*burn);}
    else{
-    const phase=star.phase[j],cycle=Math.floor((emit-phase)/star.period),birthTime=phase+cycle*star.period,age=t-birthTime,life=star.emberLife[j];
+    const phase=star.phase[j],previous=burnAt[j];
+    // Near a cycle boundary use the original calculation, including its rounding.
+    const reuse=emit>previous+1e-10 && emit<previous+star.period-1e-10;
+    const birthTime=reuse?previous:phase+Math.floor((emit-phase)/star.period)*star.period,age=t-birthTime,life=star.emberLife[j];
     at=Math.max(0,birthTime);emberAge=Math.max(0,age);warm=Math.min(1,Math.max(0,age/life));
     if(burnAt[j]!==birthTime){burnCache[j]=smooth(star.end*.22,star.end,birthTime);burnAt[j]=birthTime;}
-    burn=burnCache[j];glow=cycle<0||age<0||age>=life?0:Math.pow(1-warm,1.6)*star.weights[j]*star.glow*1.65*(1-.22*burn);
+    burn=burnCache[j];glow=birthTime<0||age<0||age>=life?0:Math.pow(1-warm,1.6)*star.weights[j]*star.glow*1.65*(1-.22*burn);
    }
    const k=j*6,index=(i*count+j)*3;
+   if(glow===0){
+    colors[index]=0;colors[index+1]=0;colors[index+2]=0;
+    continue;
+   }
    if(j===0||star.birthAt[j]!==at){
-    const decay=Math.exp(-drag*at),travel=radius*(1-decay),remaining=decay*radius*drag;
+    const decay=j===0?headDecay:Math.exp(-drag*at),travel=radius*(1-decay),remaining=decay*radius*drag;
     birth[k]=f.x+dir.x*travel;birth[k+1]=f.y+dir.y*travel+rise*at-gravity*at*at;birth[k+2]=f.z+dir.z*travel;
     birth[k+3]=dir.x*remaining*.04+star.dx[j];birth[k+4]=dir.y*remaining*.04+star.dy[j];birth[k+5]=dir.z*remaining*.04+star.dz[j];star.birthAt[j]=at;
    }
@@ -32,7 +40,7 @@ export function updateNaturalShellPoints(f,t){
    let brightness=glow*(1-Math.max(0,Math.min(1,(.045-y)/.027)));
    if(silver&&t<.08)brightness*=flash;
    if(j===0&&f.size>=3)brightness*=1.25;
-   const consumed=Math.max(0,Math.min(1,burn)),cooled=Math.max(0,Math.min(1,warm));
+   const consumed=burn,cooled=warm;
    sizes[i*count+j]=j===0?star.sizes[0]*(1-.82*consumed):star.sizes[j]*.8*(1-.60*cooled*cooled)*(1-.35*consumed);
    positions[index]=x;positions[index+1]=Math.max(.018,y);positions[index+2]=z;
    if(j===0&&brightness>0){const py=positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}}
