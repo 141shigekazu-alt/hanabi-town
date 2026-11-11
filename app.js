@@ -1069,7 +1069,7 @@ function moveBrowserView(dx,dy,reset=false){
 }
 window.addEventListener('hanabi-view-move',e=>moveBrowserView(e.detail.x||0,e.detail.y||0,!!e.detail.reset));
 window.addEventListener('keydown',e=>{
- if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.target.closest?.('input,select,textarea,button,[contenteditable=true]')||renderer.xr.isPresenting||bridgeView.active||panelPreview)return;
+ if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.target.closest?.('input,select,textarea,[contenteditable=true],#panel,#favoritesWindow')||renderer.xr.isPresenting||bridgeView.active||panelPreview)return;
  const direction={ArrowLeft:[-.08,0],ArrowRight:[.08,0],ArrowUp:[0,.08],ArrowDown:[0,-.08]}[e.key];
  if(direction){e.preventDefault();moveBrowserView(...direction);}
 });
