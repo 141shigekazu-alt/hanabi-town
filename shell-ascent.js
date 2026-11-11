@@ -1,5 +1,5 @@
 import * as T from './vendor/three.module.js';
-import {ascentWobble,shellAscentSeed,wobbleParameters,sampleAscentWobble} from './ascent-wobble.js?v=1.3.28';
+import {ascentWobble,shellAscentSeed,wobbleParameters,sampleAscentWobble} from './ascent-wobble.js?v=1.3.29';
 const clamp=v=>Math.max(0,Math.min(1,v)),smooth=v=>{v=clamp(v);return v*v*(3-2*v);};
 export const ASCENT_PROFILE=Object.freeze({width:.0025,headSize:.012,tailLife:1.20,samples:480,wobble:.0025});
 export function shellAscentProfile(size){

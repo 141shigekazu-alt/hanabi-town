@@ -1,12 +1,12 @@
 import {diesRedStyles} from './dies-red-review.js';
-import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.28';
+import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.29';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
 import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.3.1';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
-import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.28';
+import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.29';
 
 // An independent stream: ground shots cannot change the shapes of upper shells.
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}

@@ -1,6 +1,6 @@
 import {SoftHand} from './soft-hand.js?v=1.3.16';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.28';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.28';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.29';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.29';
 import * as T from './vendor/three.module.js';
 
 // A deliberate neutral -> palm-up motion; a held pose never repeats.

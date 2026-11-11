@@ -16,7 +16,16 @@ export function trackUsage(event){if(['mr_enter','vr_enter','show_start','import
 function mount(){
  const box=document.createElement('section');box.id='usageDetails';box.hidden=true;box.setAttribute('aria-label','利用回数の集計について');
  box.innerHTML='<strong>利用回数の集計について</strong><p>花火街の改善のため、日付ごとのページ表示・MR入場・開演（うち持ち込み曲での開演）の回数を集計しています。Cookieや利用者IDは使わず、曲名・音源・音声入力は送りません。 <a href="privacy.html" target="_blank" rel="noopener">詳しく見る</a></p><p id="usageCountState"></p><button type="button" id="usageCountToggle"></button><button type="button" id="usageCountClose">閉じる</button>';
- const link=document.createElement('button');link.type='button';link.id='usageSettings';link.textContent='利用回数の集計について';link.onclick=()=>{box.hidden=!box.hidden;};document.body.append(box,link);
+ const link=document.createElement('button');link.type='button';link.id='usageSettings';link.textContent='利用回数の集計について';link.onclick=()=>{box.hidden=!box.hidden;};document.body.append(box);
+ function placeSettings(){
+  const help=document.getElementById('browserPage3');
+  if(!help?.querySelector('#helpContent'))return false;
+  help.append(link);return true;
+ }
+ if(!placeSettings()){
+  const observer=new MutationObserver(()=>{if(placeSettings())observer.disconnect();});
+  observer.observe(document.body,{childList:true,subtree:true});
+ }
  const state=document.getElementById('usageCountState'),toggle=document.getElementById('usageCountToggle');
  function update(){state.textContent=disabled?'このブラウザからの集計は停止しています。':'このブラウザからは回数だけを集計しています。';toggle.textContent=disabled?'回数の集計を有効にする':'このブラウザからの集計を停止する';}
  toggle.onclick=()=>{

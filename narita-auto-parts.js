@@ -1,6 +1,6 @@
 import {naritaScore,NARITA_PARTS} from './narita-patterns.js';
 import {SIZES} from './fireworks.js?v=1.3.10';
-import {tigerReservations,tigerReservationPeaks} from './adopted-tiger-programmes.js?v=1.3.28';
+import {tigerReservations,tigerReservationPeaks} from './adopted-tiger-programmes.js?v=1.3.29';
 export {NARITA_PARTS};
 export const NARITA_REVISION='narita-parts02';
 const round=x=>+x.toFixed(6),overlap=(a,b)=>a.start<b.end&&b.start<a.end;
