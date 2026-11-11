@@ -1,8 +1,8 @@
 import {earProgrammeFits} from './ear-capacity.js';
 import {flowerGardenPassage} from './flower-scenes.js';
 import {groundCapacity} from './music-feeling.js?v=1.3.13';
-import {createCometPattern} from './comets.js?v=1.3.29';
-import {createStarBundlePattern,starBundlePointCost} from './star-bundles.js?v=1.3.29';
+import {createCometPattern} from './comets.js?v=1.3.30';
+import {createStarBundlePattern,starBundlePointCost} from './star-bundles.js?v=1.3.30';
 const round=x=>+x.toFixed(4),overlap=(a,b)=>a.start<b.end&&a.end>b.start;
 export function groundReservation(f,seed){
  const small=f.mode.startsWith('small-'),rate=f.options?.motionRate??1;

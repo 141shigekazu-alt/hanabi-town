@@ -1,6 +1,6 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js?v=1.3.29';
-import {mountHelp} from './help-content.js?v=1.3.29';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.30';
+import {mountHelp} from './help-content.js?v=1.3.30';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
  const $=id=>document.getElementById(id),make=(tag,attrs={},text='')=>{const el=document.createElement(tag);Object.assign(el,attrs);el.textContent=text;return el;};
@@ -51,13 +51,21 @@ export function organizePanel(){
  field(playback,'roomBrightness');
  const importPanel=details(card,'＋ 曲を取り込む','showImport');
  $('showRoom').after(importPanel);
+ const importAction=make('button',{id:'importAction',type:'button'});
+ importAction.append(make('strong',{id:'importActionTitle'},'＋ 曲を取り込む'),make('span',{id:'importActionDetail'},'MP3・WAVなど · 12秒〜10分 · 160MBまで'));
+ importAction.setAttribute('aria-describedby','importActionDetail');
+ importAction.onclick=()=>{if(importAction.getAttribute('aria-busy')==='true'){$('autoMusicCancel').click();return;}if(!$('autoMusicFile').disabled)$('autoMusicFile').click();};
+ importAction.querySelector('#importActionDetail').setAttribute('role','status');
+ importAction.querySelector('#importActionDetail').setAttribute('aria-live','polite');
+ importPanel.before(importAction);
+
  move(importPanel,'autoMusicDrop');
  const feedback=make('section',{id:'analysisFeedback',className:'analysis-feedback',hidden:true});feedback.setAttribute('aria-live','polite');feedback.setAttribute('aria-atomic','true');
  feedback.append(make('strong',{id:'analysisHeading'},'曲を解析中…'));move(feedback,'autoMusicProgress');move(feedback,'autoMusicStatus');move(feedback,'autoMusicCancel');importPanel.append(feedback);
  $('showRebuild').after($('autoMusicRebuildFeedback'));
  const reanalysis=make('div',{id:'showReanalysis'});importPanel.append(reanalysis);move(reanalysis,'musicReanalyze');
 
- const advanced=details(card,'構成の詳細・調整','showAdvanced');
+ const advanced=details(card,'構成の詳細・調整','showAdvanced');advanced.append(reanalysis);
  move(advanced,'autoMusicResult');move(advanced,'autoMusicAnalysisSource');field(advanced,'autoMusicPacing');
  move(advanced,'autoMusicExport');
  const scene=make('div',{id:'showSceneControls'});advanced.append(scene);field(scene,'musicScene');move(scene,'musicScenePlay');move(scene,'musicTimeline');move(scene,'musicTime');move(scene,'musicState');

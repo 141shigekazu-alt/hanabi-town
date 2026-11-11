@@ -1,6 +1,6 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.29';
-import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.29';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.29';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.30';
+import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.30';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.30';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;

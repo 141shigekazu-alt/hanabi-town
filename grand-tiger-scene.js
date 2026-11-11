@@ -1,7 +1,7 @@
 import * as T from './vendor/three.module.js';
-import {RisingStroke} from './rising-stroke.js?v=1.3.29';
-import {StarBundleField} from './star-bundles.js?v=1.3.29';
-import {mainCues,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.29';
+import {RisingStroke} from './rising-stroke.js?v=1.3.30';
+import {StarBundleField} from './star-bundles.js?v=1.3.30';
+import {mainCues,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.30';
 export class GrandTigerScene{
  constructor(scene,map,bridge={point(){}},headMaps=null){
   this.strokes=mainCues().map(cue=>{const group=new T.Group();group.position.x=cue.x;scene.add(group);const field=new RisingStroke(group);field.params.vx=cue.vx;field.params.vy*=1+.016*Math.sin(cue.seed);return {cue,group,field};});

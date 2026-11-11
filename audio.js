@@ -1,4 +1,4 @@
-import {AerialSoundGate} from './ground-sound-gate.js?v=1.3.29';
+import {AerialSoundGate} from './ground-sound-gate.js?v=1.3.30';
 export const OPENING_LEVEL_TRIMS={"10":{"Torii_Shaku_001":0.4921875,"Torii_V011":1,"Torii_V030":0.60546875,"Torii_V032":0.52734375,"Torii_V022_S1_07":0.5234375,"Torii_V026_S1_06":0.50390625},"20":{"Torii_2Shaku_001":1,"Torii_V022":0.92578125,"Torii_V026":0.91015625}};
 export const WHISTLE_LEVEL_TRIMS={"Whistle_01":0.671875,"Whistle_02":0.83203125,"Whistle_03":0.96875,"Whistle_04":0.94921875,"Whistle_05":1,"Whistle_06":0.8046875};
 import {TORII_SAMPLES,TORII_OPENINGS,TORII_LAUNCHES,TORII_TORA,TORII_TAILS,isTorii,toriiSamples} from './torii-audio.js?v=1.3.15';
