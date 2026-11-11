@@ -1,6 +1,6 @@
-import {rareTigerFinaleProposal} from './rare-tiger-finales.js?v=1.3.27';
-import {createCometPattern,makeComet,SMALL_COMET_STYLES} from './comets.js?v=1.3.27';
-import {createStarBundlePattern,makeStarBundle,STAR_BUNDLE_TIME_SCALE} from './star-bundles.js?v=1.3.27';
+import {rareTigerFinaleProposal} from './rare-tiger-finales.js?v=1.3.28';
+import {createCometPattern,makeComet,SMALL_COMET_STYLES} from './comets.js?v=1.3.28';
+import {createStarBundlePattern,makeStarBundle,STAR_BUNDLE_TIME_SCALE} from './star-bundles.js?v=1.3.28';
 const memo=new WeakMap(),CAPACITY={small:1536,large:96};
 export const TIGER_PROGRAMME_REVISION='adopted-tigers06';
 const isCandy=style=>String(style).startsWith('candy-');
@@ -44,7 +44,7 @@ export function upgradeTigerProgramme(plan,{trackId=''}={}){
  const rows=fans.map((f,i)=>tigerReservations(f,i,trackId));let order=0,last=-Infinity;
  const policy=featurePolicy(plan,trackId),maxFeatures=policy.max;
  for(let i=0;i<fans.length&&order<maxFeatures;i++){
-  const cue=fans[i];if(!eligible.has(cue.mode)||cue.at-last<policy.gap||cue.at>(plan.duration??Infinity)-4||cue.tigerSourceMode)continue;
+  const cue=fans[i];if(cue.group?.startsWith('narita-')||!eligible.has(cue.mode)||cue.at-last<policy.gap||cue.at>(plan.duration??Infinity)-4||cue.tigerSourceMode)continue;
   const wanted=policy.pool[order%policy.pool.length],style=tipStyle(cue.style),calm=policy.calm;
   let mode=wanted==='small-wide-fan'&&calm?'small-wide-fan-delayed':wanted;
   const base={...cue,mode,style:mode==='sync-fan'?'gold':style,tigerSourceMode:cue.mode,options:{...cue.options,coloredTip:true,tipColor:SMALL_COMET_STYLES[style]?.head,...(mode==='sync-fan'?{smallStyle:style,single:calm}:{}),...(mode.includes('wide-fan')?{ignition:order%2?'left':'right'}:{})}};

@@ -42,6 +42,7 @@ export const KIKU_PALETTES=[
  ...[...FLOWER_COLORS.filter(c=>c.id==='flower-yellow'),...FLOWER_COLORS.filter(c=>c.id!=='flower-yellow')].map(c=>({id:c.id,label:c.label,colors:[c.color]})),
  {id:'original',label:'金',colors:[0xffd18a]},
  {id:'red',label:'紅',colors:[0xff393f]},
+ {id:'orange',label:'橙',colors:[0xff8b32]},
  {id:'blue',label:'青',colors:[0x548bff]},
  {id:'green',label:'緑',colors:[0x67f591]},
  {id:'pink',label:'桃',colors:[0xff73c8]},

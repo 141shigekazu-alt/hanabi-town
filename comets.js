@@ -1,16 +1,19 @@
-import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.27';
+import {diesRedStyles} from './dies-red-review.js';
+import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.28';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
 import {TORA_LARGE_PATTERNS,createToraLargePattern} from './tora-scenes.js?v=1.3.1';
 import {CANDY_COMET_STYLES,candyColor} from './candy-colors.js?v=1.1.16';
 import * as T from './vendor/three.module.js';
-import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.27';
+import {StarBundleField,STAR_BUNDLE_PATTERNS,STAR_BUNDLE_EXTRA_STYLES,createStarBundlePattern} from './star-bundles.js?v=1.3.28';
 
 // An independent stream: ground shots cannot change the shapes of upper shells.
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const COMET_STYLES={
+ 'flame-red':{label:'紅の星・紅の尾',head:0xff263f,tail:0xff263f,burn:1.28,afterglow:1.65,spread:.045,lanes:3},
+ 'flame-red-silver':{label:'紅の星・紅の細い尾',head:0xff263f,tail:0xff263f,burn:1.08,afterglow:.78,spread:.030,lanes:2},
  ...CANDY_COMET_STYLES,
  'flower-green':{label:'緑の星・緑の尾',head:0x32ff70,tail:0x32cf61,burn:1.5,afterglow:1.15,spread:.024,lanes:3,coloredTail:true,headPalette:[0x32ff70]},
  pink:{label:'桃の星・銀の尾',head:0xff73c8,tail:0xdbeeff,burn:1.02,afterglow:.78,spread:.030,lanes:2},
@@ -20,6 +23,7 @@ export const COMET_STYLES={
  red:{label:'紅の星・金の尾',head:0xff263f,tail:0xffb463,burn:1.16,afterglow:1.25,spread:.037,lanes:3},
  blue:{label:'青の星・銀の尾',head:0x397dff,tail:0xc3deff,burn:1.14,afterglow:.90,spread:.030,lanes:2}
 };
+Object.assign(COMET_STYLES,{purple:{...COMET_STYLES.gold,label:'紫の星・金の尾',head:0xa54aff},orange:{...COMET_STYLES.gold,label:'橙の星・金の尾',head:0xff780f}},diesRedStyles(COMET_STYLES));
 export const SMALL_COMET_STYLES={...COMET_STYLES,...STAR_BUNDLE_EXTRA_STYLES};
 export const COMET_PATTERNS=[
  {id:'single',label:'一本の星と尾',description:'先端が先に消え、金や銀の火の粉が残ります。'},
@@ -38,6 +42,7 @@ export const COMET_PATTERNS=[
 ];
 const TYPES=new Set(COMET_PATTERNS.map(p=>p.id));
 export function createCometPattern(id='fan',style='gold',seed=1,options={}){
+ if(id==='narita-strokes')return (options.naritaShots??[]).map(s=>({...s,motion:{...s.motion}}));
  if(id==='flower-stem-large')return flowerGroundShots(id,seed,options);
  if(TORA_LARGE_PATTERNS.some(p=>p.id===id))return createToraLargePattern(id,COMET_STYLES[style]?style:'silver',seed);
  if(id==='sync-fan')return synchronizedTigerShots(seed,options).large;
@@ -78,6 +83,7 @@ export function makeComet(shot,start){
  const samples=shot.motion?.tailSamples??80;
  const tail=Array.from({length:samples*style.lanes},(_,i)=>({at:(Math.floor(i/style.lanes)+random()*.85)/samples*burn,dx:(random()-.5)*style.spread,dy:(random()-.5)*.025,dz:(random()-.5)*style.spread,life:(shot.motion?.afterglow??style.afterglow)*(.65+random()*.5),glint:.80+random()*.35}));
  const comet={...shot,start,character,burn,drag,gravity,vy,vx:shot.motion?.vx===undefined?Math.tan(angle)*vy:shot.motion.vx*Math.sqrt(character.height)+character.lean*vy,vz:(random()-.5)*.02,tail,styleData:style,headColor:new T.Color(style.headPalette?candyColor(0,shot.seed,style.headPalette):style.head),tailColor:new T.Color(style.coloredTail?candyColor(0,shot.seed,style.headPalette):style.tail),end:burn+Math.max(...tail.map(s=>s.life))};
+ if(Number.isFinite(shot.tipColor))comet.headColor.setHex(shot.tipColor);
  if(shot.programmeGold){comet.headColor.setHex(0xffcf77);comet.tailColor.setHex(0xffbc61);}
  for(const s of tail){const birth=cometPosition(comet,s.at),remaining=Math.exp(-drag*s.at);s.x=birth.x;s.y=birth.y;s.z=birth.z;s.dx+=comet.vx*remaining*.04;s.dy+=vy*remaining*.025;s.dz+=comet.vz*.05;}
  return comet;
@@ -105,7 +111,7 @@ export class CometField{
   const shots=createCometPattern(pattern,style,options.reviewSeed??this.seed,options);
   if(this.active.length+this.pending.length+shots.length>this.capacity){this.dropped++;return false;}
   if(pattern==='sync-fan'&&!this.bundles.launch('small-sync-fan',options.smallStyle??'sync-bluegreen',at,{...options,reviewSeed:options.reviewSeed??this.seed}))return false;
-  for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(options.programmeGold?{programmeGold:true}:{}),...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
+  for(const s of shots)this.pending.push({...s,at:at+s.at,group,...(Number.isFinite(options.tipColor)?{tipColor:options.tipColor}:{}),...(options.programmeGold?{programmeGold:true}:{}),...(options.motionRate?{timeScale:1/Math.max(.25,Math.min(2,Number(options.motionRate)))}:{})});
   this.pending.sort((a,b)=>a.at-b.at);return true;
  }
  update(time){

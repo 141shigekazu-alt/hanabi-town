@@ -2,7 +2,7 @@
 export class MusicTransport {
  constructor(url,{autoload=true}={}){
   this.url=url;this.buffer=null;this.source=null;this.context=null;this.gain=null;this.offset=0;this.started=0;this.clockRunning=false;
-  this.volume=.35;this.clickEnabled=false;this.clicks=new Set();this.clickCursor=0;this.ready=null;
+  this.preRoll=0;this.volume=.35;this.clickEnabled=false;this.clicks=new Set();this.clickCursor=0;this.ready=null;
   if(autoload)this.load();
  }
  load(){
@@ -17,18 +17,19 @@ export class MusicTransport {
   this.context=context;this.destination=destination;this.clockRunning=true;
   // At 0:00 the short lead-in leaves enough time for the first ascent.
   this.started=context.currentTime+.08;this.clickCursor=0;
-  if(this.offset<this.buffer.duration){
-   this.gain=context.createGain();this.gain.gain.value=this.volume;this.gain.connect(destination);
+  if(this.offset<this.buffer.duration+this.preRoll){
+   this.gain=context.createGain();this.gain.gain.value=this.volume;this.meter=context.createAnalyser();this.meter.fftSize=512;this.meterData=new Float32Array(512);this.gain.connect(this.meter).connect(destination);
    const source=context.createBufferSource();this.source=source;source.buffer=this.buffer;source.connect(this.gain);
-   source.onended=()=>{source.disconnect();if(this.source===source)this.source=null;};source.start(this.started,this.offset);
+   source.onended=()=>{source.disconnect();if(this.source===source)this.source=null;};source.start(this.started+Math.max(0,this.preRoll-this.offset),Math.max(0,this.offset-this.preRoll));
   }
  }
  cancelClicks(){for(const n of this.clicks){try{n.stop();}catch{}n.disconnect();}this.clicks.clear();}
  pause(){
   const at=this.currentTime;if(this.source){try{this.source.stop();}catch{}this.source.disconnect();this.source=null;}
-  this.gain?.disconnect();this.gain=null;this.cancelClicks();this.offset=at;this.clockRunning=false;return at;
+  this.gain?.disconnect();this.meter?.disconnect();this.meter=null;this.gain=null;this.cancelClicks();this.offset=at;this.clockRunning=false;return at;
  }
  stop(){this.pause();this.offset=0;this.clickCursor=0;}
+ get signalRms(){if(!this.meter)return 0;this.meter.getFloatTimeDomainData(this.meterData);let sum=0;for(const v of this.meterData)sum+=v*v;return Math.sqrt(sum/this.meterData.length);}
  setVolume(value){this.volume=value;if(this.gain)this.gain.gain.setTargetAtTime(value,this.context.currentTime,.03);}
  updateClicks(beats){
   if(!this.source)return;const t=this.currentTime;

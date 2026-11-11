@@ -1,8 +1,9 @@
-import {NATURAL_TAIL_SAMPLES,naturalTailStretch,naturalTailLifeBound} from './natural-tails.js';
+import {applyNaritaParts} from './narita-auto-parts.js';
+import {NATURAL_TAIL_SAMPLES,naturalTailStretch,naturalTailStretchFor,naturalTailLifeBound} from './natural-tails.js';
 import {softenRepeatedRows} from './natural-layout.js?v=1.3.16';
 import {addPatternPassages} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
-import {limitProgrammeCapacity} from './programme-capacity.js?v=1.3.27';
+import {limitProgrammeCapacity} from './programme-capacity.js?v=1.3.28';
 import {requestedFinale} from './voice-finale.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
 import {addGoldAccents} from './gold-accents.js?v=1.3.13';
@@ -13,18 +14,18 @@ import {isCreativeShell,creativePoints} from './creative-shells.js';
 import {addEarPassages} from './ear-programmes.js?v=1.3.13';
 import {flowerPalette} from './retired-shells.js';
 import {petalGeometry} from './flower-scenes.js';
-import {addFlowerPassages} from './flower-programmes.js?v=1.3.27';
+import {addFlowerPassages} from './flower-programmes.js?v=1.3.28';
 import {directMusicFeeling,musicFeeling} from './music-feeling.js?v=1.3.13';
 import {automaticRepeatHeads} from './auto-repeat-heads.js?v=1.3.1';
 import {createSlowMusicPlan} from './auto-music-slow.js?v=1.3.13';
 import {SIZES,TYPES,EAR_PROFILE} from './fireworks.js?v=1.3.10';
 import {longStarCounts,longStarLife} from './long-stars.js?v=1.3.1';
 import {sparkleCounts,sparkleLife} from './sparkling-stars.js?v=1.3.1';
-import {createCometPattern} from './comets.js?v=1.3.27';
-import {createStarBundlePattern} from './star-bundles.js?v=1.3.27';
+import {createCometPattern} from './comets.js?v=1.3.28';
+import {createStarBundlePattern} from './star-bundles.js?v=1.3.28';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const round=x=>+x.toFixed(4)||0;
-export function shellTiming(kind,size){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:['silver','willow'].includes(kind)?naturalTailLifeBound(TYPES[kind].life,naturalTailStretch(size)):kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
+export function shellTiming(kind,size,position=null){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:['silver','willow'].includes(kind)?naturalTailLifeBound(TYPES[kind].life,naturalTailStretchFor(size,position)):kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}
 export function shellPoints(kind,size,wide=false,starDensity=1){
  if(isPatternShell(kind))return patternStarCount(kind)*PATTERN_PROFILE.trails;
  if(isCreativeShell(kind))return creativePoints(kind,size);
@@ -37,7 +38,7 @@ export function shellPoints(kind,size,wide=false,starDensity=1){
  return number*(['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:kind==='kiku'?16:kind==='sunflower'?36:kind==='candyburst'?24:kind==='candy'?12:10);
 }
 export function planBudget(shots){
- const events=shots.flatMap(s=>{const t=shellTiming(s.kind,s.size),points=shellPoints(s.kind,s.size,s.position?.wide,s.position?.starDensity??1);return[{at:s.at,upper:s.kind==='ear'?0:1,ears:s.kind==='ear'?1:0,points},{at:s.opening+t.life+.1,upper:s.kind==='ear'?0:-1,ears:s.kind==='ear'?-1:0,points:-points}];}).sort((a,b)=>a.at-b.at||a.upper-b.upper||a.ears-b.ears);
+ const events=shots.flatMap(s=>{const t=shellTiming(s.kind,s.size,s.position),points=shellPoints(s.kind,s.size,s.position?.wide,s.position?.starDensity??1);return[{at:s.at,upper:s.kind==='ear'?0:1,ears:s.kind==='ear'?1:0,points},{at:s.opening+t.life+.1,upper:s.kind==='ear'?0:-1,ears:s.kind==='ear'?-1:0,points:-points}];}).sort((a,b)=>a.at-b.at||a.upper-b.upper||a.ears-b.ears);
  let upper=0,ears=0,points=0,peakUpper=0,peakEars=0,peakPoints=0;for(const e of events){upper+=e.upper;ears+=e.ears;points+=e.points;peakUpper=Math.max(peakUpper,upper);peakEars=Math.max(peakEars,ears);peakPoints=Math.max(peakPoints,points);}
  return {peakUpper,peakEars,peakPoints};
 }
@@ -260,5 +261,6 @@ export function createAutoMusicPlan(analysis,options={}){
  const helpers={shellTiming,shellPoints,planBudget};
  const voiced=directVoicePlan(result,options.voiceRequest,helpers);
  const opened=naturalProgrammeOpening(voiced,helpers);
- return softenRepeatedRows(addPatternPassages(addGoldAccents(limitProgrammeCapacity(opened,helpers),helpers),analysis,directedOptions,helpers),{seed:analysis.seed+Math.imul(options.variation??0,0x9e3779b9)});
+ const finished=softenRepeatedRows(addPatternPassages(addGoldAccents(limitProgrammeCapacity(opened,helpers),helpers),analysis,directedOptions,helpers),{seed:analysis.seed+Math.imul(options.variation??0,0x9e3779b9)});
+ return applyNaritaParts(finished,analysis,options,{shellTiming,shellPoints,planBudget});
 }

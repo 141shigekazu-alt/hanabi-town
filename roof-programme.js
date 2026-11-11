@@ -1,6 +1,6 @@
 import * as T from './vendor/three.module.js';
-import {GrandTigerScene} from './grand-tiger-scene.js?v=1.3.27';
-import {mainCues} from './grand-tiger-cues.js?v=1.3.27';
+import {GrandTigerScene} from './grand-tiger-scene.js?v=1.3.28';
+import {mainCues} from './grand-tiger-cues.js?v=1.3.28';
 export class RoofProgramme {
  constructor(town,map,bridge,headMaps,onLaunch){
   Object.assign(this,{town,onLaunch});this.widthScale=1.5;

@@ -9,8 +9,14 @@ export function updateNaturalShellPoints(f,t){
  const flash=silver&&t<.08?1+1.6*(1-t/.08):1;
 
  const headDecay=Math.exp(-drag*t);
+ if(t<(f.naturalUpdateLast??-1))for(const star of f.naturalTails){star.finalDead=false;}
+ f.naturalUpdateLast=t;
  for(let i=0;i<f.n;i++){
   const star=f.naturalTails[i],birth=star.birth,dir=f.directions[i],col=f.starColors[i];
+  // Once the final ember is out, it cannot emit again. Clear once, then do
+  // no per-ember arithmetic. Rewinding re-enables the original path above.
+  if(t>=star.until){if(!star.finalDead){colors.fill(0,i*count*3,(i+1)*count*3);star.finalDead=true;}continue;}
+
   const radius=f.r*f.shells[i]*(silver?f.silverVariation[i]:1);
   const emit=Math.min(t,star.end),burnNow=smooth(star.end*.22,star.end,t),head=1-smooth(star.end-.30,star.end,t);
   const burnCache=star.burnCache??=new Float64Array(count),burnAt=star.burnCacheAt??=new Float64Array(count).fill(NaN);
@@ -36,7 +42,7 @@ export function updateNaturalShellPoints(f,t){
     birth[k]=f.x+dir.x*travel;birth[k+1]=f.y+dir.y*travel+rise*at-gravity*at*at;birth[k+2]=f.z+dir.z*travel;
     birth[k+3]=dir.x*remaining*.04+star.dx[j];birth[k+4]=dir.y*remaining*.04+star.dy[j];birth[k+5]=dir.z*remaining*.04+star.dz[j];star.birthAt[j]=at;
    }
-   const x=birth[k]+birth[k+3]*emberAge,y=birth[k+1]+birth[k+4]*emberAge-.025*emberAge*emberAge,z=birth[k+2]+birth[k+5]*emberAge;
+   const x=birth[k]+birth[k+3]*emberAge,y=birth[k+1]+birth[k+4]*emberAge-.025*(f.spec.naturalEmberFallScale??1)*emberAge*emberAge,z=birth[k+2]+birth[k+5]*emberAge;
    let brightness=glow*(1-Math.max(0,Math.min(1,(.045-y)/.027)));
    if(silver&&t<.08)brightness*=flash;
    if(j===0&&f.size>=3)brightness*=1.25;

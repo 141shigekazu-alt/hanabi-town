@@ -1,6 +1,7 @@
-import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.27';
-import {openingColourShots,layerColourShots,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.27';
-import {compactFanShots} from './compact-fans.js?v=1.3.27';
+import {diesRedStyles} from './dies-red-review.js';
+import {synchronizedTigerShots} from './tiger-sync.js?v=1.3.28';
+import {openingColourShots,layerColourShots,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.28';
+import {compactFanShots} from './compact-fans.js?v=1.3.28';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {variationRandom,centeredVariation} from './flower-variation.js';
 import {flowerGroundShots} from './flower-scenes.js';
@@ -15,6 +16,8 @@ export const starBundlePointCost=shot=>shot.count*shot.angles.length*(starBundle
 export const STAR_BUNDLE_TIME_SCALE=1.3;
 function randomFrom(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
 export const STAR_BUNDLE_EXTRA_STYLES={
+ 'red-orange-tail':{label:'赤星・橙の尾',head:0xff263f,tail:0xff8b32},
+ 'flame-red':{label:'紅の星・紅の尾',head:0xff263f,tail:0xff263f},
  'adopted-row-tips':{label:'桃・水色・緑の色星',head:0xff73c8,tail:0xffbd65,tipPalette:[0xff73c8,0x66ddff,0x32ff70]},
  ...GRAND_STYLES,
  'sync-bluegreen':{head:0x31baff,tail:0xffbd65,tipPalette:[0x31baff,0x93ff32]},
@@ -30,6 +33,7 @@ export const STAR_BUNDLE_EXTRA_STYLES={
  'blue-gold':{label:'青の星・金の尾',head:0x397dff,tail:0xffbd65},
  'green-silver':{label:'緑の星・銀の尾',head:0x32ff70,tail:0xdbeeff}
 };
+Object.assign(STAR_BUNDLE_EXTRA_STYLES,diesRedStyles({...STAR_BUNDLE_EXTRA_STYLES,red:{head:0xff263f,tail:0xffb463}}));
 export const STAR_BUNDLE_PATTERNS=[
  {id:'small-wide-fan-delayed',label:'子トラ · 時間差を広げた大扇',description:'離れた根元を160msずつ点火し、ゆったり扇を流します。'},
  {id:'small-wide-fan',label:'子トラ · 離れた根元の大扇',description:'横に離した11か所からすぼみ子トラを外へ傾け、大きな一つの扇を作ります。'},
@@ -147,6 +151,7 @@ function rawStarBundlePattern(id,style='gold',seed=1,options={}){
  return shots;
 }
 export function createStarBundlePattern(id,style='gold',seed=1,options={}){
+ if(id==='small-narita-upright')return (options.naritaShots??[]).map(s=>({...s,angles:[...s.angles]}));
  const legacyMountain=['small-mountain-bundles','small-mountain-triple','small-mountain-twins','small-mountain-upright'].includes(id);
  const shots=legacyMountain?rawStarBundlePattern('small-mountain-outward',style,seed,{...options,coloredTip:!['gold','silver'].includes(style),...(id==='small-mountain-triple'?{}:{centers:[-.68,.68]})}):rawStarBundlePattern(id,style,seed,options);
  if(id.startsWith('small-flower-'))return shots;
@@ -175,7 +180,7 @@ function smallTailProfile(span,random,count=TAIL_POINTS){
   dz:Float64Array.from({length:count},()=>(random()-.5)*.003),
   weight:Float64Array.from({length:count},()=>.88+random()*.24),
   size:Float32Array.from({length:count},()=>.94+random()*.12),
-  birthAt:new Float64Array(count).fill(NaN),birth:new Float64Array(count*3)};
+  emitted:new Float64Array(count),birthAt:new Float64Array(count).fill(NaN),birth:new Float64Array(count*3)};
 }
 // All small tiger strokes leave independently cooling embers.
 // A denser, non-recycling pool avoids stretching ten dots into a dotted line.
@@ -205,14 +210,14 @@ function smallTailSample(star,profile,span,age,index,out){
  const phase=profile.phase[index],cycle=profile.retained?0:Math.floor((Math.min(age,star.life)-phase)/span),at=phase+cycle*span,elapsed=age-at,life=profile.life[index];
  if(cycle<0||elapsed<0||elapsed>=life)return false;
  const k=index*3;
- if(profile.birthAt[index]!==at){const p=bundleStarPosition(star,at);profile.birth[k]=p.x;profile.birth[k+1]=p.y;profile.birth[k+2]=p.z;profile.birthAt[index]=at;
+ if(profile.birthAt[index]!==at){const p=bundleStarPosition(star,at);profile.birth[k]=p.x;profile.birth[k+1]=p.y;profile.birth[k+2]=p.z;profile.birthAt[index]=at;profile.emitted[index]=star.gain*clamp(at/.030,0,1)*Math.pow(clamp((star.life-at)/(star.fadeDuration??.42),0,1),1.25);
   const decay=Math.exp(-star.drag*Math.min(at,star.stopAt??at));
   profile.tangent[k]=star.vx*decay;
   profile.tangent[k+1]=star.vy*decay-star.gravity*(1-decay)/star.drag;
   profile.tangent[k+2]=star.vz*decay;}
  const warm=profile.retained?clamp((age-profile.holdAt[index])/profile.fadeLife[index],0,1):elapsed/life;
  out.x=profile.birth[k]+profile.dx[index]*warm;out.y=profile.birth[k+1]+profile.dy[index]*warm-.002*warm*warm;out.z=profile.birth[k+2]+profile.dz[index]*warm;
- const emitted=star.gain*clamp(at/.030,0,1)*Math.pow(clamp((star.life-at)/(star.fadeDuration??.42),0,1),1.25);
+ const emitted=profile.emitted[index];
  // Retained embers cool continuously from birth; keep their width so the
  // rising strokes remain legible while older roots grow dimmer.
  const cooling=profile.retained?warm*warm:clamp((warm-.35)/.65,0,1),thinning=profile.retained?warm:clamp((warm-.65)/.35,0,1);
