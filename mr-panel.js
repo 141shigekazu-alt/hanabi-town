@@ -1,6 +1,6 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.30';
-import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.30';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.30';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.31';
+import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.31';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.31';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -399,7 +399,7 @@ export class MRPanel{
    this.button('trackMenuToggle','…',694,245,78,60,()=>this.click('trackMenuToggle'),{disabled:!s.trackCanRename});
    const ready=s.readiness?.phase==='ready',err=s.readiness?.phase==='error';
    this.text(s.readiness?.heading??'準備中…',486,221,21,err?'#ffbeb4':ready?'#9ed5b9':panelTheme().accent,282);
-   this.text(s.analysisFeedback?.phase==='complete'?'✓ 解析が完了しました':(s.musicless?'音楽なし':s.autoMusicFeeling.selected)+' ／ 構成 '+(s.normalBuildNumber??1),32,334,22,s.analysisFeedback?.phase==='complete'?panelTheme().accent:panelTheme().muted,736);
+   this.text(s.readiness?.phase==='preparing'?s.readiness.setting:s.analysisFeedback?.phase==='complete'?'✓ 解析が完了しました':(s.musicless?'音楽なし':s.autoMusicFeeling.selected)+' ／ 構成 '+(s.normalBuildNumber??1),32,334,22,s.analysisFeedback?.phase==='complete'?panelTheme().accent:panelTheme().muted,736);
    this.button('showWatch',s.showWatchLabel??'▶ 花火大会を開演',28,365,744,88,()=>this.click('showWatch'),{primary:true,disabled:!!s.showWatchDisabled});
    if(s.setlistSelect?.options?.length>1)this.button('setlistSelect',s.setlistSelect.selected+'  ▾',28,475,744,60,()=>{this.picker={id:'setlistSelect',offset:0};});
    else this.text('気に入った大会は、右上の ♥ から保存できます',32,505,23,panelTheme().muted,736);

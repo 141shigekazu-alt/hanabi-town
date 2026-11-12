@@ -1,6 +1,6 @@
-import {rareTigerFinaleProposal} from './rare-tiger-finales.js?v=1.3.30';
-import {createCometPattern,makeComet,SMALL_COMET_STYLES} from './comets.js?v=1.3.30';
-import {createStarBundlePattern,makeStarBundle,STAR_BUNDLE_TIME_SCALE} from './star-bundles.js?v=1.3.30';
+import {rareTigerFinaleProposal} from './rare-tiger-finales.js?v=1.3.31';
+import {createCometPattern,makeComet,SMALL_COMET_STYLES} from './comets.js?v=1.3.31';
+import {createStarBundlePattern,makeStarBundle,STAR_BUNDLE_TIME_SCALE} from './star-bundles.js?v=1.3.31';
 const memo=new WeakMap(),CAPACITY={small:1536,large:96};
 export const TIGER_PROGRAMME_REVISION='adopted-tigers06';
 const isCandy=style=>String(style).startsWith('candy-');

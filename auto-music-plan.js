@@ -3,7 +3,7 @@ import {NATURAL_TAIL_SAMPLES,naturalTailStretch,naturalTailStretchFor,naturalTai
 import {softenRepeatedRows} from './natural-layout.js?v=1.3.16';
 import {addPatternPassages} from './pattern-programmes.js?v=1.3.13';
 import {isPatternShell,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
-import {limitProgrammeCapacity} from './programme-capacity.js?v=1.3.30';
+import {limitProgrammeCapacity} from './programme-capacity.js?v=1.3.31';
 import {requestedFinale} from './voice-finale.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
 import {addGoldAccents} from './gold-accents.js?v=1.3.13';
@@ -14,15 +14,15 @@ import {isCreativeShell,creativePoints} from './creative-shells.js';
 import {addEarPassages} from './ear-programmes.js?v=1.3.13';
 import {flowerPalette} from './retired-shells.js';
 import {petalGeometry} from './flower-scenes.js';
-import {addFlowerPassages} from './flower-programmes.js?v=1.3.30';
+import {addFlowerPassages} from './flower-programmes.js?v=1.3.31';
 import {directMusicFeeling,musicFeeling} from './music-feeling.js?v=1.3.13';
 import {automaticRepeatHeads} from './auto-repeat-heads.js?v=1.3.1';
 import {createSlowMusicPlan} from './auto-music-slow.js?v=1.3.13';
 import {SIZES,TYPES,EAR_PROFILE} from './fireworks.js?v=1.3.10';
 import {longStarCounts,longStarLife} from './long-stars.js?v=1.3.1';
 import {sparkleCounts,sparkleLife} from './sparkling-stars.js?v=1.3.1';
-import {createCometPattern} from './comets.js?v=1.3.30';
-import {createStarBundlePattern} from './star-bundles.js?v=1.3.30';
+import {createCometPattern} from './comets.js?v=1.3.31';
+import {createStarBundlePattern} from './star-bundles.js?v=1.3.31';
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const round=x=>+x.toFixed(4)||0;
 export function shellTiming(kind,size,position=null){return {ascent:kind==='ear'?1.65:size===20?5.6:size===10?3.12:(1+size*.035)*1.2*(2.62/1.62),life:['silver','willow'].includes(kind)?naturalTailLifeBound(TYPES[kind].life,naturalTailStretchFor(size,position)):kind==='longstar'?longStarLife(size):kind==='sparklelarge'?sparkleLife(size):TYPES[kind].life};}

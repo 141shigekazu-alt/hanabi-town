@@ -1,5 +1,5 @@
-import {drawPanelSurface} from './panel-surface.js?v=1.3.30';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.30';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.31';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.31';
 import * as T from './vendor/three.module.js';
 import {ShowInfoPanel} from './show-info.js?v=1.3.10';
 
