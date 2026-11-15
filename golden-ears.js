@@ -1,7 +1,8 @@
 // A low aerial tuft. Stars keep their outward momentum and bend under gravity;
 // cooling trail particles vanish from the root towards the drooping tips.
 // The size is an artistic 2-go approximation, not a measurement of the source.
-export const EAR_PROFILE={stars:28,trails:48,burn:5.6,life:6.75,pointSize:.013,lineWidth:1.3};
+export const EAR_SOFT_TRIAL=true;
+export const EAR_PROFILE={stars:28,trails:EAR_SOFT_TRIAL?144:48,burn:5.6,life:6.75,pointSize:.013,lineWidth:1.3};
 function stream(seed){let s=seed>>>0;return()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296);}
 export function createEarStars(seed){
  const random=stream(seed),yaw=(random()-.5)*1.1,lean=(random()<.5?-1:1)*(.10+random()*.16),reach=.90+random()*.25;
@@ -21,8 +22,14 @@ function trajectory(star,radius,t,out){
  // after the rise. No inward return, and no translation of the root.
  out.side=radius*star.vx*.68*travel;out.y=radius*(star.vy*.70*travel-.2214285714*(t-travel)/drag-.045*settling*settling);out.velocity=radius*star.vx*.68*Math.exp(-drag*t);out.travel=travel;return out;
 }
+const birthCache=new WeakMap();
+export function earEmberSamples(star){
+ let samples=birthCache.get(star);if(samples)return samples;
+ samples=Array.from({length:EAR_PROFILE.trails},(_,j)=>{const q=(j-1)/(EAR_PROFILE.trails-2),hash=Math.sin(star.vx*713.1+star.vy*391.7+j*127.13)*43758.5453,noise=(hash-Math.floor(hash))*2-1;
+ return {birth:j===0?0:EAR_PROFILE.burn*(1-q+(EAR_SOFT_TRIAL&&j>1&&j<EAR_PROFILE.trails-1?noise*.24/(EAR_PROFILE.trails-2):0)),grain:EAR_SOFT_TRIAL?.92+.08*noise:1};});birthCache.set(star,samples);return samples;
+}
 export function earPoint(star,radius,age,trail,out={}){
- const head=trail===0,birth=head?age:EAR_PROFILE.burn*(1-(trail-1)/(EAR_PROFILE.trails-2));
+ const head=trail===0,sample=earEmberSamples(star)[trail],birth=head?age:sample.birth;
  const t=Math.min(age,birth),elapsed=Math.max(0,age-t),p=trajectory(star,radius,t,out);
  const outwardDrift=head?0:p.velocity*elapsed*.06*(birth/EAR_PROFILE.burn);
  const side=p.side+outwardDrift;
@@ -35,7 +42,10 @@ export function earPoint(star,radius,age,trail,out={}){
   (age>=birth?.72*star.glow*(.45+.55*birth/EAR_PROFILE.burn)*fade:0);
  // Old sparks cool first. The birth-zero root stays at the original break
  // until it goes dark; later sparks retain their direction and gently fall.
- out.x=side*Math.cos(star.yaw);out.y=p.y-fall;out.z=side*Math.sin(star.yaw)+radius*star.depth*p.travel;out.brightness=brightness;return out;
+ const warmth=Math.max(0,1-elapsed/2.2);
+ out.size=EAR_SOFT_TRIAL&&!head?.55+.23*warmth:1;
+ const intensity=EAR_SOFT_TRIAL&&!head?.80*sample.grain:1;
+ out.x=side*Math.cos(star.yaw);out.y=p.y-fall;out.z=side*Math.sin(star.yaw)+radius*star.depth*p.travel;out.brightness=brightness*intensity;return out;
 }
 
 // Separate ignition stream: seven close reports, rather than one fused sound.

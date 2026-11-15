@@ -15,3 +15,9 @@ export function candyColor(index,seed,colors){
  return colors[(index*stride+hash%colors.length)%colors.length];
 }
 export const CANDY_COMET_STYLES=Object.fromEntries(CANDY_PALETTES.map(p=>[p.id,{label:p.label,head:p.colors[0],headPalette:p.colors,tail:p.colors[0],coloredTail:true,headGain:1.9,bundleCountScale:.42,colorSpread:.22,tailGain:.38,burn:1.04,afterglow:.88,spread:.020,lanes:2}]));
+
+export const CANDY_BIG_PAIR_PALETTES=[
+ {id:'candy-pair-aqua-lime',label:'２色ペア・水色 × ライム',colors:[0x22cfff,0x68ff24]},
+ {id:'candy-pair-pink-aqua',label:'２色ペア・桃 × 水色',colors:[0xff28cf,0x22cfff]},
+ {id:'candy-pair-purple-lemon',label:'２色ペア・紫 × レモン黄',colors:[0xa33aff,0xffe629]}
+];

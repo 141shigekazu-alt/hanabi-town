@@ -432,4 +432,10 @@ Object.assign(EN,{
 "花を主役に":"Flowers Take Center Stage"
 });
 Object.assign(EN,{"MRに入っています…":"Entering MR…","Questの入室を待っています…":"Waiting for Quest…","街と音を準備しています…":"Preparing town and audio…"});
+Object.assign(EN,{
+"菊":"Chrysanthemum","牡丹":"Peony",
+"２色ペア・水色 × ライム":"Color Pair · Aqua × Lime",
+"２色ペア・桃 × 水色":"Color Pair · Pink × Aqua",
+"２色ペア・紫 × レモン黄":"Color Pair · Purple × Lemon Yellow"
+});
 export {EN};

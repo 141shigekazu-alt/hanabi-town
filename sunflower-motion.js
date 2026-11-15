@@ -13,7 +13,7 @@ function radialPoint(direction,radius,shell,age,trail,trailCount,life,expansionR
  const starLife=life*(star?.fade??1)*(variation?.fade??1),fadeAt=Math.min(fadeStart,starLife*.65);
  const fadeAge=Math.max(0,age-fadeAt)/(starLife-fadeAt);
  const fade=Math.pow(Math.max(0,1-fadeAge),1.65);
- return {x:direction.x*travel+(variation?.windX??0)*at*at,y:direction.y*travel-(variation&&shell>.75?.004*at*at:0),z:direction.z*travel+(variation?.windZ??0)*at*at,brightness:(trail===0?2:.9)*tail*fade*(star?Math.min(1,elapsed/.025):1)};
+ return {x:direction.x*travel+(variation?.windX??0)*at*at,y:direction.y*travel-(variation&&shell>.75?.004*at*at:0),z:direction.z*travel+(variation?.windZ??0)*at*at,brightness:(trail===0?2:.9*(star?.legacyTrails??(profile===SUNFLOWER_PROFILE?36:36))/trailCount*Math.min(1,at/.08))*tail*fade*(star?Math.min(1,elapsed/.025):1)};
 }
 
 // Reference-photo variant: a shared downward acceleration bends the long gold tails.

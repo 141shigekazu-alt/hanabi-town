@@ -1,7 +1,7 @@
 import * as T from './vendor/three.module.js';
 import {RoofLakeStroke} from './roof-lake-stroke.js';
-import {StarBundleField} from './star-bundles.js?v=1.3.33';
-import {mainCues,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.33';
+import {StarBundleField} from './star-bundles.js?v=1.3.34';
+import {mainCues,GRAND_STYLES} from './grand-tiger-cues.js?v=1.3.34';
 export class GrandTigerScene{
  constructor(scene,map,bridge={point(){}},headMaps=null){
   this.strokes=mainCues().map(cue=>{const group=new T.Group();group.position.x=cue.x;scene.add(group);const field=new RoofLakeStroke(group,cue.seed);field.params.vx=cue.vx;field.params.vy*=1+.016*Math.sin(cue.seed);return {cue,group,field};});

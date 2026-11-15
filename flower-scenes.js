@@ -11,7 +11,7 @@ export const FLOWER_COLORS=Object.freeze([
 ].map(Object.freeze));
 export const PETAL_PROFILE=Object.freeze({coreRadius:.14,petalRadius:1.38});
 export const PHOTO_FLOWER_PROFILE=Object.freeze({...PETAL_PROFILE,coreRadius:.30});
-export const PETAL_GEOMETRIES=Object.freeze({3:Object.freeze({rays:24,strands:3,coreStars:36,trails:24}),5:Object.freeze({rays:32,strands:5,coreStars:72,trails:36})});
+export const PETAL_GEOMETRIES=Object.freeze({3:Object.freeze({rays:24,strands:3,coreStars:36,trails:96}),5:Object.freeze({rays:32,strands:5,coreStars:72,trails:96})});
 export const petalGeometry=size=>PETAL_GEOMETRIES[size===3?3:5];
 export const FLOWER_PATTERNS=[
  {id:'dandelion-scatter',label:'タンポポ · 自然にばらけた五輪'},
@@ -109,7 +109,7 @@ function gardenAllocation(shots,fans){
  const events=[];
  for(const s of shots){
   const radial=s.kind==='petalflower'||s.kind==='goldflower',g=petalGeometry(s.size);
-  const points=isCreativeShell(s.kind)?creativePoints(s.kind,s.size):radial?(g.rays*g.strands+g.coreStars)*g.trails:s.kind==='sunflower'?11736:2112;
+  const points=isCreativeShell(s.kind)?creativePoints(s.kind,s.size):radial?(g.rays*g.strands+g.coreStars)*g.trails:s.kind==='sunflower'?232*96:2112;
   const life=isCreativeShell(s.kind)?CREATIVE_PROFILES[s.kind].life:radial?PETAL_MOTION_PROFILE.life:s.kind==='sunflower'?4.3:3.2;
   events.push({at:s.at,upper:1,points},{at:s.opening+life+.1,upper:-1,points:-points});
  }

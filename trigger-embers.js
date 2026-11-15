@@ -1,3 +1,6 @@
+import {candyBigStarPointCount} from './candy-big-stars.js?v=1.3.1';
+import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';
+import {smoothTrailCount} from './smooth-shell-tail.js';
 import {NATURAL_TAIL_SAMPLES} from './natural-tails.js';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {isPatternShell,patternSizes,patternStarCount,PATTERN_PROFILE} from './pattern-shells.js?v=1.3.10';
@@ -8,7 +11,8 @@ import {longStarCounts,LONG_STAR_PROFILE} from './long-stars.js?v=1.3.1';
 import {isSenrin} from './fireworks.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
 
-export function manualPointCost(kind,size,sizes,types){
+export function manualPointCost(kind,size,sizes,types,palette=null){
+ if(kind==='candyburst')return [5,10].includes(size)?candyBigStarPointCount(size,palette):Infinity;
  if(isPatternShell(kind))return patternSizes(kind).includes(Number(size))?patternStarCount(kind)*PATTERN_PROFILE.trails:Infinity;
  if(isCreativeShell(kind))return creativeSizes(kind).includes(size)?creativePoints(kind,size):Infinity;
  if(kind==='petalflower'||kind==='goldflower'){if(![3,5,10].includes(size))return Infinity;const p=petalGeometry(size);return(p.rays*p.strands+p.coreStars)*p.trails;}
@@ -16,7 +20,7 @@ export function manualPointCost(kind,size,sizes,types){
  if(kind==='sparklelarge'){if(![5,10,20].includes(size))return Infinity;const c=sparkleCounts(size);return (c.large+c.companions+c.core)*SPARKLE_PROFILE.trails;}
  if(kind==='longstar'){if(size!==5&&size!==10)return Infinity;const c=longStarCounts(size);return (c.large+c.gold)*LONG_STAR_PROFILE.trails;}
  const stars=kind==='sunflower'?232:isSenrin(kind)?720:spec.radii.reduce((sum,_,i)=>sum+Math.round(scale.stars*(spec.layerWeights?.[i]??(i===0?1:i===1?.6:.35))),0);
- return stars*(['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:kind==='ear'?48:kind==='kiku'?16:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10);
+ return stars*(smoothTrailCount(kind)??(['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:kind==='ear'?EAR_PROFILE.trails:kind==='kiku'?96:kind==='botan'?16:kind==='candy'?96:isSenrin(kind)?4:kind==='sunflower'?36:kind==='silver'?12:10));
 }
 
 // A generous allocation bound, plus measured delivered XR callbacks. Neither

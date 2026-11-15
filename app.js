@@ -1,21 +1,25 @@
+import {mixPastelCandyPairs} from './pastel-candy-pairs.js';
+import {installRadialGpu,updateRadialGpu} from './radial-shell-gpu.js';
+import {layeredKiku,smoothTrailCount,layeredTailStep} from './smooth-shell-tail.js';
+import {mixParallelBotan,candyCoreSpec} from './botan-programme.js';
 import {mrEntryFeedback} from './mr-entry-feedback.js';
 import {MiddleTownGrip} from './middle-town-grip.js';
-import {GroundSoundGate} from './ground-sound-gate.js?v=1.3.33';
+import {GroundSoundGate} from './ground-sound-gate.js?v=1.3.34';
 import {updateLongShellPoints} from './long-shell-update.js';
 import {simpleGpuKind,installSimpleGpu,updateSimpleGpu} from './simple-shell-gpu.js';
 import {buildNaturalGpuData,installNaturalGpu,updateNaturalGpu} from './natural-gpu.js';
 import {updateKikuShellPoints} from './kiku-shell-update.js';
-import {createMoonSky} from './moon-sky.js?v=1.3.33';
-import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.33';
-import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.33';
+import {createMoonSky} from './moon-sky.js?v=1.3.34';
+import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.34';
+import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.34';
 prepareRecordedSend().catch(error=>console.warn('手元の発射音を準備できませんでした',error));
-import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.33';
-import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.33';
-import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.33';
-import {RoofProgramme} from './roof-programme.js?v=1.3.33';
+import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.34';
+import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.34';
+import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.34';
+import {RoofProgramme} from './roof-programme.js?v=1.3.34';
 import {NATURAL_TAIL_TIME_STRETCH,naturalTailStretch,naturalTailStretchFor,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
-import {trackUsage} from './analytics.js?v=1.3.33';
-import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.33';
+import {trackUsage} from './analytics.js?v=1.3.34';
+import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.34';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
@@ -27,7 +31,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.33';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.34';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -35,14 +39,14 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.33';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.34';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.33';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.34';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.33';
+import {organizePanel} from './panel-layout.js?v=1.3.34';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -55,27 +59,27 @@ import {LONG_STAR_PROFILE,longStarLife,createLongStars,longStarPoint,prepareLong
 import {viewBoatPose} from './boat-cruise.js?v=1.3.1';
 import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.17';
 import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
-import {createCandyBigStars,candyBigStarPoint} from './candy-big-stars.js?v=1.3.1';
+import {createCandyBigStars,candyBigStarPoint,CANDY_BIG_STAR_TRAILS,CANDY_SINGLE_STAR,isCandyPairPalette} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
-import {CometField,COMET_STYLES,SMALL_COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.33';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.33';
+import {CometField,COMET_STYLES,SMALL_COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.34';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.34';
 import {MusicTransport} from './music-transport.js';
 import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
 import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.10';
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.33';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.34';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.33';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.34';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.33';
-import {XRControls} from './xr-controls.js?v=1.3.33';
+import {WristMenu} from './wrist-menu.js?v=1.3.34';
+import {XRControls} from './xr-controls.js?v=1.3.34';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip,entryInputMode} from './entry-tip.js?v=1.3.33';
+import {EntryTip,entryInputMode} from './entry-tip.js?v=1.3.34';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -406,7 +410,7 @@ function clearMusicSequence({keepFavorite=false}={}){
 }
 function selectMusic(chosen,transport=new MusicTransport(chosen.src,{autoload:false})){
  criticalSilverStocks.clear();usedCriticalSilverStocks.clear();criticalPreparation=null;criticalPreparedPlan=null;
- music.stop();const plan=upgradeTigerProgramme(replaceRetiredPlan(chosen.plan),{trackId:chosen.id});selectedMusic=plan===chosen.plan?chosen:{...chosen,plan};MUSIC_PLAN=plan;music=transport;music.preRoll=Number(plan.audioLeadSeconds)||0;
+ music.stop();const plan=mixPastelCandyPairs(mixParallelBotan(upgradeTigerProgramme(replaceRetiredPlan(chosen.plan),{trackId:chosen.id}),[musicTrackIdentityTitle(chosen.id,chosen.title),chosen.title,chosen.plan?.title],chosen.id),chosen.id);selectedMusic=plan===chosen.plan?chosen:{...chosen,plan};MUSIC_PLAN=plan;music=transport;music.preRoll=Number(plan.audioLeadSeconds)||0;
  music.setVolume(Number($('musicVolume').value));music.clickEnabled=$('musicClick').checked;
  $('musicTrack').value=chosen.id;$('musicState').textContent=chosen.description;musicLastUI=-1;syncMusicScenes();
 }
@@ -475,7 +479,7 @@ function launch(kind='core',size=5,position=null){
  if(kind==='ear'){if(fireworks.filter(f=>f.kind==='ear').length>=(position?.earField?EAR_FIELD_LIMIT:showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?28:14))return false;}
  else if(!position?.manual&&(activeUpper>=(position?.naritaProgramme?72:position?.diesProgramme?14:position?.patternGroup?14:position?.flowerStudy?16:position?.flowerProgramme?14:showPlan?.music&&selectedMusic.autoGenerated?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='mou-ichido-dake'?MUSIC_PLAN.upperLimit:showPlan?.music&&selectedMusic.id==='pastel-parasite'?14:position?.wide||position?.musicNine?9:8)||(!position?.naritaProgramme&&!position?.patternGroup&&triggerEmbers.count&&activeUpper+triggerEmbers.count>=8)))return false;
  if(isPatternShell(kind)&&!patternSizes(kind).includes(size))return false;
- if(kind==='kiku'&&size!==3&&!(position?.naritaProgramme&&size===5))return false;if(['petalflower','goldflower'].includes(kind)&&![3,5,10].includes(size))return false;
+ if(['kiku','botan'].includes(kind)&&![3,5,10].includes(size))return false;if(['petalflower','goldflower'].includes(kind)&&![3,5,10].includes(size))return false;
  if((kind==='quad'||kind==='penta')&&size!==10&&size!==20)return false;
  if(kind==='double'&&size!==10)return false;if(isSenrin(kind)&&size!==10&&size!==20)return false;if(kind==='triple'&&size!==20)return false;if(size===20&&kind!=='sparklelarge'&&kind!=='triple'&&!isSenrin(kind)&&kind!=='quad'&&kind!=='penta'&&!['silver','willow'].includes(kind))return false;
  if(!position?.prepareSilverStock&&!position?.stockTail&&kind==='silver'&&[5,10,20].includes(size)&&criticalSilverStocks.has(position?.reviewSeed)){position={...position,stockTail:criticalSilverStocks.get(position.reviewSeed)};usedCriticalSilverStocks.add(position.reviewSeed);if(criticalPreparation)criticalPreparation.hits=(criticalPreparation.hits??0)+1;}
@@ -485,17 +489,18 @@ function launch(kind='core',size=5,position=null){
  const naturalFlight=(isFlowerShell(kind)||isCreativeShell(kind))?(position?.flowerFlight??flowerFlight(size,flowerSeed)):null;
  const unplannedFlight=naturalFlight&&position?.heightOffset===undefined;
  const flowerVariation=naturalFlight?flowerMotion(flowerSeed):null;
- let spec=TYPES[kind];const scale=isPatternShell(kind)?PATTERN_SIZES[size]:SIZES[size];if(!spec||!scale)return false;
+ let spec=candyCoreSpec(kind,TYPES[kind],position);const scale=isPatternShell(kind)?PATTERN_SIZES[size]:SIZES[size];if(!spec||!scale)return false;
+ if(layeredKiku(kind))spec={...spec,tail:layeredTailStep(size)};
  if(kind==='longstar'||kind==='sparklelarge'){const life=kind==='sparklelarge'?sparkleLife(size):longStarLife(size);spec={...spec,life,fadeStart:life};}
  const z=position?.z??(shellRandom()*1.6-.85),x=position?.x??(riverCenter(z)+(shellRandom()>.5?1:-1)*(.12+shellRandom()*.7));
- const y=scale.height+(position?.heightOffset??naturalFlight?.heightOffset??0),r=scale.radius*(position?.naritaProgramme?(position.radiusScale??1):1)*(naturalFlight?.radiusScale??1)*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:isPatternShell(kind)?PATTERN_PROFILE.trails:isCreativeShell(kind)?CREATIVE_PROFILES[kind].trails:kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?24:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?12:kind==='kiku'?16:isSenrin(kind)?4:(kind==='petalflower'||kind==='goldflower')?petalGeometry(size).trails:kind==='sunflower'?36:kind==='silver'?12:10,directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
+ const y=scale.height+(position?.heightOffset??naturalFlight?.heightOffset??0),r=scale.radius*(position?.naritaProgramme?(position.radiusScale??1):1)*(naturalFlight?.radiusScale??1)*((kind==='longstar'||kind==='sparklelarge')?1.30:kind==='candyburst'?1.22:1),trailCount=smoothTrailCount(kind)??(['silver','willow'].includes(kind)?NATURAL_TAIL_SAMPLES:isPatternShell(kind)?PATTERN_PROFILE.trails:isCreativeShell(kind)?CREATIVE_PROFILES[kind].trails:kind==='sparklelarge'?SPARKLE_PROFILE.trails:kind==='longstar'?LONG_STAR_PROFILE.trails:kind==='candyburst'?CANDY_BIG_STAR_TRAILS:kind==='ear'?EAR_PROFILE.trails:kind==='candy'?96:kind==='botan'?16:kind==='kiku'?96:isSenrin(kind)?4:(kind==='petalflower'||kind==='goldflower')?petalGeometry(size).trails:kind==='sunflower'?36:kind==='silver'?12:10),directions=[],shells=[],starColors=[],clusterCenters=[],clusterDelays=[],starLayers=[];
  const silverSeed=kind==='silver'?shellRandom()*1000:0;
  let flowerStars=null;
  const palette=shellPalette(kind,position?.palette),scheme=palette.colors.map(c=>new T.Color(c));
- const starDensity=size===3&&['kiku','silver','willow'].includes(kind)?Math.max(.5,Math.min(1,position?.starDensity??1)):1;
+ const starDensity=size===3&&['kiku','botan','silver','willow'].includes(kind)?Math.max(.5,Math.min(1,position?.starDensity??1)):1;
  for(let layer=0;layer<(isPatternShell(kind)?0:spec.radii.length);layer++){
  const count=Math.round(scale.stars*starDensity*(position?.wide?.72:1)*(spec.layerWeights?.[layer]??(layer===0?1:layer===1?.6:.35)));
- for(const xyz of sphere(count)){directions.push(new T.Vector3(...xyz));shells.push(spec.radii[layer]);starColors.push(scheme[layer]);starLayers.push(layer);}
+ for(const xyz of sphere(count)){directions.push(new T.Vector3(...xyz));shells.push(spec.radii[layer]);starColors.push(layer>0&&position?.candyCore?new T.Color(position.coreColor):scheme[layer]);starLayers.push(layer);}
  }
  if(kind==='silver'){
  // Sample once per shell; every frame and tail point keeps the same trajectory.
@@ -525,8 +530,8 @@ function launch(kind='core',size=5,position=null){
  for(const dir of childStars){directions.push(new T.Vector3(...dir));shells.push(1);starColors.push(kind==='candysenrin'?new T.Color(candyColor(cluster,position?.candySeed??0x191119,scheme.map(c=>c.getHex()))):scheme[cluster%scheme.length]);if(kind==='candysenrin')starLayers.push(0);}
  });
  }
- const bigStars=kind==='candyburst'?createCandyBigStars(size,position?.candySeed??(0x141716+Math.floor(time*1000))):null;
- if(bigStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of bigStars){directions.push(new T.Vector3(...star.direction));shells.push(star.radius);starLayers.push(star.layer);starColors.push(star.layer===0?scheme[0]:new T.Color(0xffdfa0));}}
+ const bigStars=kind==='candyburst'?createCandyBigStars(size,position?.candySeed??(0x141716+Math.floor(time*1000)),isCandyPairPalette(position?.palette)):null;
+ if(bigStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of bigStars){directions.push(new T.Vector3(...star.direction));shells.push(star.radius);starLayers.push(star.layer);starColors.push(star.layer===0?scheme[star.pair??0]:new T.Color(0xffdfa0));}}
  const longStars=kind==='longstar'?createLongStars(size,position?.longStarSeed??position?.reviewSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
  if(longStars){directions.length=0;shells.length=0;starColors.length=0;starLayers.length=0;for(const star of longStars){directions.push(new T.Vector3(...star.direction));shells.push(star.speed);starLayers.push(star.layer);starColors.push(star.layer===0?scheme[0]:scheme[1]);}}
  const sparkleStars=kind==='sparklelarge'?createSparkleStars(size,position?.sparkleSeed??crypto.getRandomValues(new Uint32Array(1))[0]):null;
@@ -548,7 +553,8 @@ function launch(kind='core',size=5,position=null){
  const shape=isPatternShell(kind)||isCreativeShell(kind)||kind==='ear'||kind==='candyburst'||kind==='longstar'||kind==='sparklelarge'?{level:0}:(naturalFlight?createShellShapeSampler(variationRandom(flowerSeed,0x391a61))(kind,size):position?.reviewSeed===undefined?sampleShellShape(kind,size):createShellShapeSampler(shellRandom)(kind,size));
  for(let i=0;i<directions.length;i++)(flowerStars?deformFlowerVector:deformShellVector)(directions[i],shape,isSenrin(kind)?.35:shells[i]<.75?.65:1);
  for(const center of clusterCenters)deformShellVector(center,shape);
- if(kind==='candy'){const seed=position?.candySeed??(0x141715+Math.floor(time*1000));for(let i=0;i<starColors.length;i++)starColors[i]=new T.Color(starLayers[i]===0?candyColor(i,seed,scheme.map(c=>c.getHex())):scheme.length===1?scheme[0].getHex():0xffeec7);}
+ if(kind==='candy'||kind==='botan'&&position?.palette?.startsWith('candy-')){const seed=position?.candySeed??(0x141715+Math.floor(time*1000));for(let i=0;i<starColors.length;i++)starColors[i]=new T.Color(starLayers[i]===0?candyColor(i,seed,scheme.map(c=>c.getHex())):position?.candyCore?position.coreColor:scheme.length===1?scheme[0].getHex():0xffeec7);}
+ if(flowerStars)for(const star of flowerStars)star.motion.legacyTrails=kind==='sunflower'?36:size===3?24:36;
  if(position?.prepareSilverStock)return {seed:position.reviewSeed,target:directions.length,count:trailCount,life:spec.life,random:shellRandom,tails:[],geometry:{n:directions.length,trailCount,kind,r,directions,shells,starColors,silverVariation:Float64Array.from({length:directions.length},(_,i)=>shape.level===0?1:.96+.07*(shape.level===1?.28:1)*Math.sin((i+silverSeed)*2.37))}};
  const n=directions.length,positions=new Float32Array(n*trailCount*3),colors=new Float32Array(n*trailCount*3);
  // These per-star values are constant for the entire shell. Keep double precision.
@@ -572,6 +578,9 @@ function launch(kind='core',size=5,position=null){
   m.customProgramCacheKey=()=> 'long-star-sizes-v1';
  }
  if(sparkleStars){const pointSizes=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)pointSizes[i*trailCount+j]=sparkleStars[i].layer<2?(j===0?2.1:1.12):.72;g.setAttribute('sparkleSize',new T.BufferAttribute(pointSizes,1));m.onBeforeCompile=shader=>{shader.vertexShader='attribute float sparkleSize;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * sparkleSize;');};m.customProgramCacheKey=()=> 'sparkle-large-sizes-v1';}
+ if(['kiku','botan','candy'].includes(kind)||layeredKiku(kind)){const sizes=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)sizes[i*trailCount+j]=j===0?1:kind==='botan'?Math.max(.22,.65-j*.025):Math.max(.18,(layeredKiku(kind)?.65:.48)-j*.003);g.setAttribute('botanSize',new T.BufferAttribute(sizes,1));m.onBeforeCompile=s=>{s.vertexShader='attribute float botanSize;\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * botanSize;');};m.customProgramCacheKey=()=> 'botan-short-tail-01';}
+ if(kind==='candyburst'&&true){const sizes=new Float32Array(n*trailCount).fill(1);g.setAttribute('candyEndingSize',new T.BufferAttribute(sizes,1));m.onBeforeCompile=s=>{s.vertexShader='attribute float candyEndingSize;\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * candyEndingSize;');};m.customProgramCacheKey=()=> 'candy-ending-08';}
+ if(kind==='ear'&&true){const sizes=new Float32Array(n*trailCount).fill(1);g.setAttribute('earSize',new T.BufferAttribute(sizes,1));m.onBeforeCompile=s=>{s.vertexShader='attribute float earSize;\n'+s.vertexShader;s.vertexShader=s.vertexShader.replace('gl_PointSize = size;','gl_PointSize = size * earSize;');};m.customProgramCacheKey=()=> 'ear-soft-embers-07';}
  if(naturalTails)attachNaturalTails(g,m,naturalTails,trailCount);
  const pendingChildAge=isSenrin(kind)?{value:-1}:null;
  if(pendingChildAge){const childAt=new Float32Array(n*trailCount);for(let i=0;i<n;i++)for(let j=0;j<trailCount;j++)childAt[i*trailCount+j]=clusterDelays[Math.floor(i/24)];g.setAttribute('hanabiChildAt',new T.BufferAttribute(childAt,1));}
@@ -591,6 +600,7 @@ function launch(kind='core',size=5,position=null){
  const reflectionRadiusScale=isSenrin(kind)?1:Math.sqrt(shells.reduce((sum,v)=>sum+v*v,0)/n);
  const f={x,z,y,r,color,n,kind,size,soundSize:isPatternShell(kind)&&size===2?3:size,spec,ascent,baseAscent,ignitionDelay,ascentOffset,launchX:position?.launchX??x,launchZ:position?.launchZ??z,trailCount,positions,colors,directions,shells,starColors,flowerVariation,flowerStars,clusterCenters,clusterDelays,starLayers,earStars,patternStars,patternSeed,patternPose,creativeStars,creativeColoredTail:creativeCandy,creativeTail:creativeStars?new T.Color(creativeTailColor(kind,position?.palette)):scheme[2],bigStars,longStars,sparkleStars,layerLight:spec.ignition?new Float64Array(spec.radii.length):null,silverSeed,silverVariation,silverLife,naturalTails,shape,g,m,p,pendingChildAge,refl,reflectionRadiusScale,reflectionCenter:new T.Vector3(x,y,z),reflectionRadius:0,start:position?.startAt??time,burst:false,soundStudy:!!position?.soundStudy,openingTail:position?.openingTail??null,hideAscent:!!position?.hideAscent};f.ascentSeed=position?.reviewSeed??crypto.getRandomValues(new Uint32Array(1))[0]; if(((!f.hideAscent&&isWhistleShell(f))||position?.whistle===true)&&$('audioMode').value==='recorded'){f.whistle=soundEngine?.chooseWhistle?.(size);if(f.whistle){f.whistleDue=time-f.start+WHISTLE_LAUNCH_DELAY;f.whistleVisualAt=f.whistleDue;}}if(size>=3&&!f.hideAscent)f.ascentStroke=new ShellAscent(town,f,bridgeView,sprite);
  if(f.naturalTails&&!new URLSearchParams(location.search).has('naturalCpu'))installNaturalGpu(f,position?.stockTail?.gpuData);
+ if(f.flowerStars&&!new URLSearchParams(location.search).has('simpleCpu'))installRadialGpu(f);
  if(simpleGpuKind(f.kind)&&!new URLSearchParams(location.search).has('simpleCpu'))installSimpleGpu(f);
  fireworks.push(f);if(!position?.silent&&!f.hideAscent)sound(false,f.launchX,f.launchZ,f.soundSize,undefined,0,null,null,null,{kind:f.kind,size:f.size});
  $('last').textContent=scale.label+' · '+spec.label+(palette.label?' · '+palette.label:'');
@@ -694,7 +704,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
   for(let j=0;j<f.trailCount;j++){const lag=j*f.spec.tail,at=Math.max(0,t-lag),k=j*4;f.candyTrailCache[k]=1-Math.exp(-1.9*at);f.candyTrailCache[k+1]=.085*at;f.candyTrailCache[k+2]=f.spec.gravity*at*at;f.candyTrailCache[k+3]=(t>=lag?1:0)*Math.pow(1-j/f.trailCount,1.7);}
  }
  f.pointSample??={};f.starFrame??={};
- if(f.kind==='longstar'&&t>=0&&!new URLSearchParams(location.search).has('longCpu')){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateLongShellPoints(f,t));}else if(f.gpuSimple&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateSimpleGpu(f,t));}else if(f.gpuNatural&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateNaturalGpu(f,t));}else if(f.naturalTails&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateNaturalShellPoints(f,t));}else if(f.kind==='kiku'&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateKikuShellPoints(f,t));}else{
+ if(f.kind==='longstar'&&t>=0&&!new URLSearchParams(location.search).has('longCpu')){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateLongShellPoints(f,t));}else if(f.gpuRadial&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateRadialGpu(f,t));}else if(f.gpuSimple&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateSimpleGpu(f,t));}else if(f.gpuNatural&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateNaturalGpu(f,t));}else if(f.naturalTails&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateNaturalShellPoints(f,t));}else if((['kiku','botan','candy'].includes(f.kind)||layeredKiku(f.kind))&&t>=0){({light,lightX,lightY,lightZ,lightR2,lightShellR2}=updateKikuShellPoints(f,t));}else{
  for(let i=0;i<f.n;i++){
  const prepared=t<0?null:f.naturalTails?prepareNaturalTail(f.naturalTails[i],t,f.starFrame):f.kind==='sparklelarge'?prepareSparklePoint(f.sparkleStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):f.kind==='longstar'?prepareLongStarPoint(f.longStars[i],f.r,t,f.trailCount,f.spec.life,f.starFrame):null;
  for(let j=0;j<f.trailCount;j++){
@@ -712,7 +722,7 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const v=longStarPoint(f.longStars[i],f.r,t,j,f.trailCount,f.spec.life,f.pointSample,prepared);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;longBlue=v.blue;
  }
  else if(f.kind==='candyburst'){
- const v=candyBigStarPoint(f.bigStars[i],f.r,t,j,f.trailCount);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
+ const v=candyBigStarPoint(f.bigStars[i],f.r,t,j,f.trailCount);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;if(f.g.attributes.candyEndingSize)f.g.attributes.candyEndingSize.array[i*f.trailCount+j]=v.size;
  }
  else if(f.kind==='candy'){
  const k=j*4,c=f.candyTrailCache,dir=f.directions[i],travel=f.r*f.shells[i]*c[k];
@@ -724,12 +734,12 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  const v=point(f.directions[i],f.r,f.shells[i],t,j,f.trailCount,f.spec.life,f.flowerStars?.[i]?.motion,f.flowerVariation);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
  if((f.kind==='petalflower'||f.kind==='goldflower')&&f.shells[i]<.75)brightness*=.28;
  }
- else if(f.kind==='kiku'){
+ else if(['kiku','botan'].includes(f.kind)){
  const k=j*4,c=f.kikuTrailCache,dir=f.directions[i],travel=f.r*f.shells[i]*c[k];
  x=f.x+dir.x*travel;y=f.y+dir.y*travel+c[k+1]-c[k+2];z=f.z+dir.z*travel;brightness=c[k+3];
  }
  else if(f.kind==='ear'){
- const v=earPoint(f.earStars[i],f.r,t,j,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;
+ const v=earPoint(f.earStars[i],f.r,t,j,f.pointSample);x=f.x+v.x;y=f.y+v.y;z=f.z+v.z;brightness=v.brightness;if(f.g.attributes.earSize)f.g.attributes.earSize.array[i*f.trailCount+j]=v.size;
  }
  else if(f.naturalTails){
  const star=f.naturalTails[i],v=naturalTailSample(star,prepared,j,f.pointSample),at=v.at,dir=f.directions[i],silver=f.kind==='silver';
@@ -779,20 +789,22 @@ function updateFireworks(){updateFireworkEvents();for(let k=fireworks.length-1;k
  // Fade tails along with their heads so the whole break has a clean ending.
  }
  // Brighten the living star cores; keep all cooling tail samples and fades intact.
- if(t>=0&&j===0&&f.size>=3)brightness*=1.25;
+ if(t>=0&&j===0&&f.size>=3&&!(f.kind==='candyburst'&&CANDY_SINGLE_STAR&&f.bigStars[i].layer===0&&f.bigStars[i].segment>0))brightness*=1.25;
  if(f.naturalTails)f.g.attributes.naturalSize.array[i*f.trailCount+j]=t<0?f.naturalTails[i].sizes[j]:naturalTailSize(f.naturalTails[i],j,f.pointSample.warm,f.pointSample.burn);
  if(f.kind==='ear'&&y<=.025)brightness=0;
  f.positions[index]=x;f.positions[index+1]=f.kind==='ear'?y:Math.max(.018,y);f.positions[index+2]=z;
  // Head samples already computed above: no second particle pass or temporary vectors.
- if(t>=0&&(j===0||f.kind==='ear')&&brightness>0&&(!isSenrin(f.kind)||t>=f.clusterDelays[Math.floor(i/24)])){
-  const py=f.positions[index+1];light+=brightness;lightX+=x*brightness;lightY+=py*brightness;lightZ+=z*brightness;lightR2+=(x*x+py*py+z*z)*brightness;
+ if(t>=0&&(j===0||f.kind==='ear')&&!(f.kind==='candyburst'&&CANDY_SINGLE_STAR&&f.bigStars[i].layer===0&&f.bigStars[i].segment>0)&&brightness>0&&(!isSenrin(f.kind)||t>=f.clusterDelays[Math.floor(i/24)])){
+  const py=f.positions[index+1],lightBrightness=brightness*(f.kind==='candyburst'&&CANDY_SINGLE_STAR&&f.bigStars[i].layer===0?3:1);light+=lightBrightness;lightX+=x*lightBrightness;lightY+=py*lightBrightness;lightZ+=z*lightBrightness;lightR2+=(x*x+py*py+z*z)*lightBrightness;
   if(f.layerLight){f.layerLight[f.starLayers[i]]+=brightness;lightShellR2+=f.shells[i]*f.shells[i]*brightness;}
  }
  const col=f.starColors[i];if(f.naturalTails&&t>=0){const warm=f.pointSample.warm;f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness*(1-.25*warm);f.colors[index+2]=col.b*brightness*(1-.38*warm);}else if(f.patternStars&&t>=0&&t<.065){const white=Math.pow(1-t/.065,2);f.colors[index]=(col.r+(1-col.r)*white)*brightness;f.colors[index+1]=(col.g+(1-col.g)*white)*brightness;f.colors[index+2]=(col.b+(1-col.b)*white)*brightness;}else if(f.creativeStars&&t>=0){const tail=f.creativeColoredTail?col:f.creativeTail;f.colors[index]=(tail.r+(col.r-tail.r)*creativeMix)*brightness;f.colors[index+1]=(tail.g+(col.g-tail.g)*creativeMix)*brightness;f.colors[index+2]=(tail.b+(col.b-tail.b)*creativeMix)*brightness;}else if((f.kind==='longstar'||f.kind==='sparklelarge')&&t>=0){const gold=f.starColors[f.n-1],blue=f.color;f.colors[index]=(gold.r+(blue.r-gold.r)*longBlue)*brightness;f.colors[index+1]=(gold.g+(blue.g-gold.g)*longBlue)*brightness;f.colors[index+2]=(gold.b+(blue.b-gold.b)*longBlue)*brightness;}else if(isSenrin(f.kind)&&t>=0&&t<.14){f.colors[index]=brightness;f.colors[index+1]=brightness*.84;f.colors[index+2]=brightness*.55;}else{f.colors[index]=col.r*brightness;f.colors[index+1]=col.g*brightness;f.colors[index+2]=col.b*brightness;}
  }
  }
  }
- if(!f.gpuNatural&&!f.gpuSimple){if(f.naturalTails)f.g.attributes.naturalSize.needsUpdate=true;f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;}f.m.opacity=fade;
+ if(f.g.attributes.candyEndingSize)f.g.attributes.candyEndingSize.needsUpdate=true;
+ if(f.g.attributes.earSize)f.g.attributes.earSize.needsUpdate=true;
+ if(!f.gpuNatural&&!f.gpuSimple&&!f.gpuRadial){if(f.naturalTails)f.g.attributes.naturalSize.needsUpdate=true;f.g.attributes.position.needsUpdate=true;f.g.attributes.color.needsUpdate=true;}f.m.opacity=fade;
  f.reflectionGain=0;f.reflectionRadius=0;
  if(light>0){
   const cx=lightX/light,cy=lightY/light,cz=lightZ/light;
@@ -1179,8 +1191,8 @@ window.addEventListener('blur',()=>{viewTouches.clear();pinchDistance=null;drag=
 canvas.onwheel=e=>{if(panelPreview&&favoritesPanel?.visible&&!favoritesPanel.menuId&&!mrNameEditor?.state){e.preventDefault();favoritesPanel.scrollList(e.deltaY);return;}if(panelPreview&&mrPanel.picker){mrPanel.scrollPicker(e.deltaY);return;}if(!renderer.xr.isPresenting&&!bridgeView.active)camera.position.z=Math.max(dioramaSaved?.4:1.6,Math.min(dioramaSaved?2:5,camera.position.z+e.deltaY*.002));};
 const xrControllers=[];for(let i=0;i<2;i++){const c=renderer.xr.getController(i);scene.add(c);xrControllers.push(c);}
 // Keep the next visit ready for viewing, without saving transient show state.
-function allowedSize(kind,value){if(['silver','willow'].includes(kind))return ['3','5','10','20'].includes(value);if(isPatternShell(kind))return patternSizes(kind).includes(Number(value));if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
-function syncSize(){const kind=$('type').value;if($('patternBatchControls'))$('patternBatchControls').hidden=!isPatternShell(kind);for(const o of $('size').options)if(o.value==='2')o.textContent=isPatternShell(kind)?'2号玉':'穂';for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isPatternShell(kind)){if(!patternSizes(kind).includes(Number($('size').value)))$('size').value='3';return;}else if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(kind==='kiku')$('size').value='3';else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['silver','willow'].includes(kind)){if(!['3','5','10','20'].includes($('size').value))$('size').value='5';}else if(['2','20'].includes($('size').value))$('size').value='5';}
+function allowedSize(kind,value){if(['kiku','botan'].includes(kind))return ['3','5','10'].includes(value);if(['silver','willow'].includes(kind))return ['3','5','10','20'].includes(value);if(isPatternShell(kind))return patternSizes(kind).includes(Number(value));if(isCreativeShell(kind))return creativeSizes(kind).includes(Number(value));if(kind==='candysenrin')return value==='10';if(kind==='sparklelarge')return ['5','10','20'].includes(value);if(kind==='petalflower'||kind==='goldflower')return ['3','5','10'].includes(value);if(kind==='candyburst'||kind==='longstar')return value==='5'||value==='10';if(kind==='candy')return ['3','5','10'].includes(value);if(kind==='ear')return value==='2';if(value==='2')return false;return !(kind==='kiku'?value!=='3':kind==='triple'?value!=='20':['senrin','quad','penta'].includes(kind)?!['10','20'].includes(value):kind==='double'?value!=='10':value==='20');}
+function syncSize(){const kind=$('type').value;if($('patternBatchControls'))$('patternBatchControls').hidden=!isPatternShell(kind);for(const o of $('size').options)if(o.value==='2')o.textContent=isPatternShell(kind)?'2号玉':'穂';for(const o of $('size').options)o.disabled=!allowedSize(kind,o.value);if(isPatternShell(kind)){if(!patternSizes(kind).includes(Number($('size').value)))$('size').value='3';return;}else if(isCreativeShell(kind)&&!creativeSizes(kind).includes(Number($('size').value)))$('size').value='5';else if(kind==='ear')$('size').value='2';else if(['kiku','botan'].includes(kind)){if(!['3','5','10'].includes($('size').value))$('size').value='3';}else if(kind==='candysenrin')$('size').value='10';else if(kind==='candy'&&!['3','5','10'].includes($('size').value))$('size').value='3';else if(['petalflower','goldflower'].includes(kind)&&!['3','5','10'].includes($('size').value))$('size').value='3';else if((kind==='candyburst'||kind==='longstar')&&!['5','10'].includes($('size').value))$('size').value='5';else if(kind==='sparklelarge'){if(!['5','10','20'].includes($('size').value))$('size').value='5';}else if(kind==='triple')$('size').value='20';else if(kind==='double')$('size').value='10';else if(['senrin','quad','penta'].includes(kind)){if(!['10','20'].includes($('size').value))$('size').value='10';}else if(['silver','willow'].includes(kind)){if(!['3','5','10','20'].includes($('size').value))$('size').value='5';}else if(['2','20'].includes($('size').value))$('size').value='5';}
 function syncPalette(){
  const kind=$('type').value,select=$('palette'),previous=select.value,options=paletteOptions(kind);
  select.replaceChildren(...(options.length?options:[{id:'original',label:'この花火の配色'}]).map(p=>{const option=document.createElement('option');option.value=p.id;option.textContent=p.label||'この花火の配色';return option;}));
@@ -1310,11 +1322,11 @@ function preparedShellName(shell){const label=shell&&paletteOptions(shell.kind).
 function loadShell(hand){loadedShells[hand]=chosenShell();$('loaded'+(hand==='left'?'Left':'Right')).textContent=preparedShellName(loadedShells[hand]);$('status').textContent=(hand==='left'?'左':'右')+'トリガーに '+shellName(loadedShells[hand])+' を仕込みました。';mrPanel.draw();}
 let preparation=null;
 const prepareFields=['kind','size','palette'];
-const preparedKinds=['patternheart','patternpeace','patterndoubleheart','willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin','longstar','sparklelarge','petalflower','goldflower'];
+const preparedKinds=['botan','kiku','patternheart','patternpeace','patterndoubleheart','willow','silver','core','double','triple','quad','penta','senrin','candy','candyburst','candysenrin','longstar','sparklelarge','petalflower','goldflower'];
 function prepareOptions(){
  const {draft,tab}=preparation;
  if(tab===0)return preparedKinds.map(value=>({value,label:TYPES[value].label.replace('（軽量テスト）',''),disabled:false}));
- if(tab===1)return (isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['10','20']).map(v=>({value:v,label:(isPatternShell(draft.kind)?PATTERN_SIZES[v]:SIZES[v]).label,disabled:!allowedSize(draft.kind,v)}));
+ if(tab===1)return (isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['kiku','botan'].includes(draft.kind)?['3','5','10']:['10','20']).map(v=>({value:v,label:(isPatternShell(draft.kind)?PATTERN_SIZES[v]:SIZES[v]).label,disabled:!allowedSize(draft.kind,v)}));
  const colors=paletteOptions(draft.kind);return colors.length?colors.map(o=>({value:o.id,label:o.label||'この花火の配色',disabled:false})):[{value:'original',label:'この花火の配色',disabled:false}];
 }
 function prepareSummary(){const d=preparation.draft,p=paletteOptions(d.kind).find(p=>p.id===d.palette);return shellName(d)+(p?' · '+p.label:'');}
@@ -1330,13 +1342,13 @@ function drawPreparation(){
  mrPanel.draw();
 }
 function openPreparation(hand){
- const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!allowedSize(draft.kind,String(draft.size))||!((isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['10','20']).includes(String(draft.size))))draft.size=Number((isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['10','20']).find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette=paletteOptions(draft.kind)[0]?.id??'original';
+ const draft={...(loadedShells[hand]??chosenShell())};if(!preparedKinds.includes(draft.kind))draft.kind='core';if(!allowedSize(draft.kind,String(draft.size))||!((isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['kiku','botan'].includes(draft.kind)?['3','5','10']:['10','20']).includes(String(draft.size))))draft.size=Number((isPatternShell(draft.kind)?patternSizes(draft.kind).map(String):['kiku','botan'].includes(draft.kind)?['3','5','10']:['10','20']).find(v=>allowedSize(draft.kind,v)));if(!paletteOptions(draft.kind).some(p=>p.id===draft.palette))draft.palette=paletteOptions(draft.kind)[0]?.id??'original';
  preparation={hand,tab:0,draft};drawPreparation();
 }
 function choosePreparation(value){
  if(!preparation||!prepareOptions().some(o=>o.value===value&&!o.disabled))return;
  const d=preparation.draft,field=prepareFields[preparation.tab];d[field]=field==='size'?Number(value):value;
- if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number((isPatternShell(d.kind)?patternSizes(d.kind).map(String):['10','20']).find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette=paletteOptions(d.kind)[0]?.id??'original';}
+ if(field==='kind'){if(!allowedSize(d.kind,String(d.size)))d.size=Number((isPatternShell(d.kind)?patternSizes(d.kind).map(String):['kiku','botan'].includes(d.kind)?['3','5','10']:['10','20']).find(v=>allowedSize(d.kind,v)));if(!paletteOptions(d.kind).some(p=>p.id===d.palette))d.palette=paletteOptions(d.kind)[0]?.id??'original';}
  drawPreparation();
 }
 function prepareTab(tab){if(preparation){preparation.tab=tab;drawPreparation();}}
@@ -1365,7 +1377,7 @@ function firePrepared(hand,origin,direction,input='trigger'){
  else if(!running&&!previewing){$('status').textContent='大会を開始・再開すると、仕込んだ一玉を追加できます。';return;}
  // A prepared hand always wins, including when the trial tab stays selected.
  ensureAudio();const shell=loadedShells[hand]??chosenShell();
- const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES);
+ const points=fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)+(comets.points??0)+triggerEmbers.pending.reduce((n,s)=>n+manualPointCost(s.shell.kind,s.shell.size,SIZES,TYPES,s.shell.palette),0)+manualPointCost(shell.kind,shell.size,SIZES,TYPES,shell.palette);
  const needsStock=shell.kind==='silver'&&shell.size===10;
  const tail=needsStock?silverStock[0]:null;
  if(needsStock&&!tail){$('status').textContent='次の尺の銀かむろを準備中です。';return false;}
@@ -2344,7 +2356,7 @@ window.__naritaParts={async draw(id,age){
  for(const s of part.shots)if(s.at<=target&&s.opening+helpers.shellTiming(s.kind,s.size).life+.1>target){if(!launch(s.kind,s.size,{...s.position,startAt:s.at}))throw Error('review launch rejected');}
  const cues=part.fans.filter(f=>f.at<=target&&f.at>=target-9);let qi=0;
  for(let t=Math.max(0,target-9);t<=target+.025;t+=.025){while(qi<cues.length&&cues[qi].at<=t){const f=cues[qi++];if(f.mode==='grand-roof')roofProgramme.launch(f.at);else comets.launch(f.mode,f.style,f.at,f.options);}comets.update(t);roofProgramme.update(t,camera);}
- camera.position.set(0,1.4,5.5);camera.lookAt(0,1.4,0);camera.updateProjectionMatrix();
+ camera.position.set(0,options.lookY??1.4,options.distance??5.5);camera.lookAt(0,options.lookY??1.4,0);camera.updateProjectionMatrix();
  updateFireworks();renderer.render(scene,camera);
  return {id,age,active:fireworks.length,lastOpening:part.lastOpening,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0)};
 }};
@@ -2377,7 +2389,7 @@ if(['localhost','127.0.0.1'].includes(location.hostname))window.__naturalGpuStud
 };
 if(window.__naturalGpuStudy)window.__naturalGpuStudy.measureFrame=async function(age=22,frames=20){await __naritaParts.draw('double-two-shaku',age);const gl=renderer.getContext();for(let i=0;i<3;i++){time+=.002;updateFireworks();renderer.render(scene,camera);gl.finish();}const start=performance.now();for(let i=0;i<frames;i++){time+=.002;updateFireworks();renderer.render(scene,camera);gl.finish();}return{updateMs:(performance.now()-start)/frames,includesRenderAndGpuWait:true,...this.state};};
 if(['localhost','127.0.0.1'].includes(location.hostname))window.__dies05Study={
- shot(kind,size,elapsed){if(renderer.xr.isPresenting)throw Error('MR active');music.stop();running=false;previewing=false;clearFireworks();comets.clear();roofProgramme.clear();time=0;launch(kind,size,{x:0,z:0,launchX:0,launchZ:0,reviewSeed:123456,longStarSeed:56789,naritaProgramme:true});time=fireworks[0].ascent+elapsed;updateFireworks();camera.position.set(0,1.4,5.5);camera.lookAt(0,1.4,0);camera.updateProjectionMatrix();renderer.render(scene,camera);return{active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),programs:renderer.info.programs.map(p=>({runnable:p.diagnostics?.runnable??true}))};},
+ shot(kind,size,elapsed,options={}){if(renderer.xr.isPresenting)throw Error('MR active');music.stop();running=false;previewing=false;clearFireworks();comets.clear();roofProgramme.clear();time=0;launch(kind,size,{x:0,z:0,launchX:0,launchZ:0,reviewSeed:123456,longStarSeed:56789,naritaProgramme:true,...options.position});time=fireworks[0].ascent+elapsed;updateFireworks();camera.position.set(0,options.lookY??1.4,options.distance??5.5);camera.lookAt(0,options.lookY??1.4,0);camera.updateProjectionMatrix();renderer.render(scene,camera);return{active:fireworks.length,points:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),programs:renderer.info.programs.map(p=>({runnable:p.diagnostics?.runnable??true}))};},
  async sample(at,frames=24){if(renderer.xr.isPresenting)throw Error('MR active');await seekBetaMusic(at,false);if(Math.abs(time-at)>.001)throw Error('Seek not ready '+time+' vs '+at);const gl=renderer.getContext();for(let i=0;i<3;i++){updateFireworks();renderer.render(scene,camera);}gl.finish();let update=0,render=0;for(let i=0;i<frames;i++){const a=performance.now();updateFireworks();comets.update(time);roofProgramme.update(time,camera);const b=performance.now();renderer.render(scene,camera);gl.finish();update+=b-a;render+=performance.now()-b;}return{at,frames,updateMs:update/frames,renderAndGpuWaitMs:render/frames,particles:fireworks.reduce((n,f)=>n+f.n*f.trailCount,0),calls:renderer.info.render.calls,programs:renderer.info.programs.map(p=>({runnable:p.diagnostics?.runnable??true}))};}
 };
 
@@ -2387,4 +2399,4 @@ if(['localhost','127.0.0.1'].includes(location.hostname))window.__criticalSilver
 // Update waiting time only while preparing.
 setInterval(()=>{if(showPreparation.phase==='preparing'){syncShowButtons();mrPanel.draw();}},500);
 // Local prototype inspection surface; the published build is unchanged.
-if(['localhost','127.0.0.1'].includes(location.hostname))window.__languageTrial={get handLaunchBlock(){return handLaunch.blocked;},version:'1.3.33',middleTownTarget,middleTownGrip,entryTip,mrPanel,wristMenu,readPanel,canLaunchBeforeShow,handLaunchEnabled,get preShowManual(){return preShowManual;}};
+if(['localhost','127.0.0.1'].includes(location.hostname))window.__languageTrial={get handLaunchBlock(){return handLaunch.blocked;},version:'1.3.34',middleTownTarget,middleTownGrip,entryTip,mrPanel,wristMenu,readPanel,canLaunchBeforeShow,handLaunchEnabled,get preShowManual(){return preShowManual;}};

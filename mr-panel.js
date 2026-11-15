@@ -1,9 +1,9 @@
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {panelNearAim} from './gesture-panel-pose.js';
 import {t,localizeCanvas,language,setLanguage,wrapText} from './i18n.js';
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.33';
-import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.33';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.33';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.34';
+import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.34';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.34';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -133,6 +133,8 @@ export class MRPanel{
   return {key:'help:'+this.read().helpTopic.value,x:28,y:390+HEADER_GROWTH,w:700,h:590,scroll:delta=>this.scrollHelp(delta)};
  }
  beginContentScroll(control,entry,hit,input='trigger'){
+  // Controller clicks commit on press. Grip remains the explicit list drag.
+  if(input==='trigger'&&entry?.source&&!entry.source.hand)return false;
   const area=this.contentScrollArea(),x=hit.uv.x*W,y=(1-hit.uv.y)*H;
   if(!entry?.source||control?.slider||!area||x<area.x||x>=area.x+area.w||y<area.y||y>=area.y+area.h)return false;
   if(this.picker)this.picker.dragOffset=this.picker.offset;

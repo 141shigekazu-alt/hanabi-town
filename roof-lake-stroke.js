@@ -1,4 +1,4 @@
-import {RisingStroke,positionAt,velocityAt} from './rising-stroke.js?v=1.3.33';
+import {RisingStroke,positionAt,velocityAt} from './rising-stroke.js?v=1.3.34';
 import * as T from './vendor/three.module.js';
 const CORNERS=[[-1,-1],[1,-1],[-1,1],[-1,1],[1,-1],[1,1]];
 const clamp=x=>Math.max(0,Math.min(1,x));

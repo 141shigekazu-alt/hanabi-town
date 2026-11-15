@@ -1,0 +1,16 @@
+import * as T from './vendor/three.module.js';
+import {sunflowerPoint,petalPoint,goldPetalPoint} from './sunflower-motion.js?v=1.1.16';
+export function installRadialGpu(f){
+ const count=f.trailCount,a=new Float32Array(f.n*count*4),b=new Float32Array(f.n*count*4),j=new Float32Array(f.n*count);
+ for(let i=0;i<f.n;i++)for(let k=0;k<count;k++){const n=i*count+k,d=f.directions[i],s=f.flowerStars[i].motion;a.set([d.x,d.y,d.z,f.r*f.shells[i]],n*4);b.set([s.delay,s.rate,s.fade,f.shells[i]],n*4);j[n]=k;f.colors.set(f.starColors[i].toArray(),n*3);}
+ f.g.setAttribute('rsDir',new T.BufferAttribute(a,4));f.g.setAttribute('rsStar',new T.BufferAttribute(b,4));f.g.setAttribute('rsJ',new T.BufferAttribute(j,1));f.g.attributes.color.needsUpdate=true;
+ const v=f.flowerVariation??{},sun=f.kind==='sunflower',u={rsTime:{value:-1},rsCenter:{value:new T.Vector3(f.x,f.y,f.z)},rsLife:{value:f.spec.life},rsRate:{value:(sun?1.25:1.8)*(v.rate??1)},rsFade:{value:v.fade??1},rsWind:{value:new T.Vector2(v.windX??0,v.windZ??0)},rsDrop:{value:f.flowerVariation?.004:0},rsHistory:{value:sun?1.1:.65},rsFadeAt:{value:sun?1.65:1.1},rsLegacy:{value:sun||f.size!==3?36:24},rsGold:{value:f.kind==='goldflower'?1:0}};
+ const before=f.m.onBeforeCompile,key=f.m.customProgramCacheKey();f.m.onBeforeCompile=function(s,r){before.call(this,s,r);Object.assign(s.uniforms,u);s.vertexShader=`attribute vec4 rsDir;attribute vec4 rsStar;attribute float rsJ;uniform float rsTime;uniform vec3 rsCenter;uniform float rsLife;uniform float rsRate;uniform float rsFade;uniform vec2 rsWind;uniform float rsDrop;uniform float rsHistory;uniform float rsFadeAt;uniform float rsLegacy;uniform float rsGold;\n`+s.vertexShader;
+ s.vertexShader=s.vertexShader.replace('#include <color_vertex>',`float elapsed=max(0.0,rsTime-rsStar.x);float history=min(elapsed,rsStar.w<.75?.20:rsHistory);float at=max(0.0,elapsed-history*rsJ/95.0);float travel=rsDir.w*(1.0-exp(-rsRate*rsStar.y*at));vec3 rp=rsCenter+rsDir.xyz*travel+vec3(rsWind.x*at*at,rsStar.w>.75?-rsDrop*at*at:0.0,rsWind.y*at*at);if(rsGold>.5&&rsStar.w>.75)rp.y+=.030*at-.025*at*at;rp.y=max(.018,rp.y);float starLife=rsLife*rsStar.z*rsFade;float fadeAt=min(rsFadeAt,starLife*.65);float fade=pow(max(0.0,1.0-max(0.0,rsTime-fadeAt)/(starLife-fadeAt)),1.65);float glow=(rsJ==0.0?2.5:.9*rsLegacy/96.0*min(1.0,at/.08))*pow(1.0-rsJ/96.0,1.5)*fade*min(1.0,elapsed/.025);if(rsTime<0.0)glow=0.0;\n#include <color_vertex>\nvColor*=glow;`);
+ s.vertexShader=s.vertexShader.replace('#include <begin_vertex>','vec3 transformed=rp;');};f.m.customProgramCacheKey=()=>key+'|radial-smooth-v1';f.m.needsUpdate=true;f.gpuRadial=u;
+}
+export function updateRadialGpu(f,t){
+ f.gpuRadial.rsTime.value=t;let light=0,lightX=0,lightY=0,lightZ=0,lightR2=0;const point=f.kind==='sunflower'?sunflowerPoint:f.kind==='goldflower'?goldPetalPoint:petalPoint;
+ for(let i=0;i<f.n;i++){const p=point(f.directions[i],f.r,f.shells[i],t,0,f.trailCount,f.spec.life,f.flowerStars[i].motion,f.flowerVariation),x=f.x+p.x,y=Math.fround(Math.max(.018,f.y+p.y)),z=f.z+p.z,b=p.brightness*1.25;light+=b;lightX+=x*b;lightY+=y*b;lightZ+=z*b;lightR2+=(x*x+y*y+z*z)*b;}
+ const out=f.radialLight??={};Object.assign(out,{light,lightX,lightY,lightZ,lightR2,lightShellR2:0});return out;
+}

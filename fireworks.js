@@ -3,7 +3,7 @@ import {CREATIVE_PROFILES,creativePalettes,isCreativeShell} from './creative-she
 import {FLOWER_COLORS,PETAL_PROFILE,PHOTO_FLOWER_PROFILE} from './flower-scenes.js';
 import {LONG_STAR_PROFILE,LONG_STAR_PALETTES} from './long-stars.js?v=1.3.1';
 import {SUNFLOWER_PROFILE,PETAL_MOTION_PROFILE} from './sunflower-motion.js?v=1.1.16';
-import {CANDY_PALETTES} from './candy-colors.js?v=1.1.16';
+import {CANDY_PALETTES,CANDY_BIG_PAIR_PALETTES} from './candy-colors.js?v=1.1.16';
 import {EAR_PROFILE} from './golden-ears.js?v=1.1.16';
 export {EAR_PROFILE,createEarStars,earPoint,createEarRow,createEarTiming} from './golden-ears.js?v=1.1.16';
 // Artistic miniature sizes, not full-scale measurements of real fireworks.
@@ -18,9 +18,10 @@ TYPES.candysenrin={...TYPES.senrin,label:'キャンディー千輪',colors:CANDY
 TYPES.sparklelarge={label:'キラキラ大玉',radii:[1,.65],colors:[LONG_STAR_PROFILE.headColor,LONG_STAR_PROFILE.goldColor],life:4.0,fadeStart:4.0,tail:.03,gravity:.01};
 TYPES.longstar={label:'大星とキラ',radii:[1,.72],colors:[LONG_STAR_PROFILE.headColor,LONG_STAR_PROFILE.goldColor],life:LONG_STAR_PROFILE.life,fadeStart:LONG_STAR_PROFILE.life,tail:.03,gravity:.01};
 TYPES.candyburst={label:'キャンディー大星',radii:[1,.24],colors:[0xff28cf],life:3.7,fadeStart:2.8,tail:.035,gravity:.050};
-TYPES.candy={label:'キャンディー玉',radii:[1,.28],layerWeights:[.72,.28],colors:[0xff28cf,0x22cfff,0xa33aff,0x68ff24,0xffe629],life:3.1,fadeStart:1.55,tail:.040,gravity:.042};
+TYPES.candy={label:'キャンディー玉',radii:[1,.28],layerWeights:[.72,.28],colors:[0xff28cf,0x22cfff,0xa33aff,0x68ff24,0xffe629],life:3.1,fadeStart:1.55,tail:.006,gravity:.042};
 // A single shell: all stars use one color and leave a longer chrysanthemum tail.
-TYPES.kiku={label:'単色の菊',radii:[1],colors:[0xffd18a],life:3.2,tail:.055,gravity:.032};
+TYPES.kiku={label:'菊',radii:[1],colors:[0xffd18a],life:3.2,tail:.006,gravity:.032};
+TYPES.botan={...TYPES.kiku,label:'牡丹',tail:.006};
 // Parent stars are not counted as a core: four/five cores have five/six layers.
 TYPES.quad={label:'四重芯',radii:[1,.76,.52,.31,.13],colors:[0x548bff,0xff393f,0x67f591,0xffcf70,0xb67bff],layerWeights:[1,.60,.47,.38,.30],ignition:[.110,.086,.062,.038,.014],life:6.2,fadeStart:3.8,tail:.028,gravity:.016};
 TYPES.penta={label:'五重芯',radii:[1,.81,.635,.465,.295,.135],colors:[0x548bff,0xff393f,0x67f591,0xffcf70,0xb67bff,0x66ddff],layerWeights:[1,.60,.47,.38,.30,.22],ignition:[.135,.111,.087,.063,.039,.015],life:6.2,fadeStart:3.8,tail:.022,gravity:.016};
@@ -56,7 +57,7 @@ export const KAMURO_PALETTES=Object.freeze([
  {id:'kamuro-gold',label:'金のかむろ',colors:[0xffbf65,0xffbf65]}
 ]);
 export const RAIN_EAR_PALETTES=Object.freeze([{id:'original',label:'金の穂',colors:[TYPES.ear.colors[0]]},{id:'ear-aqua',label:'水色の穂',colors:[LONG_STAR_PROFILE.headColor]},{id:'ear-blue',label:'青の穂',colors:[LONG_STAR_PALETTES.find(p=>p.id==='long-blue').colors[0]]},{id:'ear-red',label:'赤の穂',colors:[0xff393f]},{id:'ear-orange',label:'オレンジの穂',colors:[0xff8b32]},{id:'ear-purple',label:'紫の穂',colors:[0xb67bff]},{id:'ear-green',label:'緑の穂',colors:[0x67f591]}].map(p=>Object.freeze({...p,colors:Object.freeze(p.colors)})));
-export function paletteOptions(kind){return isPatternShell(kind)?patternPaletteOptions(kind):isCreativeShell(kind)?creativePalettes(kind):kind==='goldflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[0xffc56a,c.color]})):kind==='petalflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[c.color,c.core]})):kind==='silver'?KAMURO_PALETTES:kind==='ear'?RAIN_EAR_PALETTES:(kind==='longstar'||kind==='sparklelarge')?LONG_STAR_PALETTES:kind==='candyburst'?CANDY_PALETTES.filter(p=>p.colors.length===1):(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='kiku'?KIKU_PALETTES:[];}
+export function paletteOptions(kind){return isPatternShell(kind)?patternPaletteOptions(kind):isCreativeShell(kind)?creativePalettes(kind):kind==='goldflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[0xffc56a,c.color]})):kind==='petalflower'?FLOWER_COLORS.map(c=>({id:c.id,label:c.label,colors:[c.color,c.core]})):kind==='silver'?KAMURO_PALETTES:kind==='ear'?RAIN_EAR_PALETTES:(kind==='longstar'||kind==='sparklelarge')?LONG_STAR_PALETTES:kind==='candyburst'?[...CANDY_PALETTES.filter(p=>p.colors.length===1),...CANDY_BIG_PAIR_PALETTES]:(kind==='candy'||kind==='candysenrin')?CANDY_PALETTES:kind==='core'?CORE_PALETTES:kind==='botan'?[...KIKU_PALETTES,...CANDY_PALETTES]:kind==='kiku'?KIKU_PALETTES:[];}
 export function shellPalette(kind,id='original'){
  // A visible coloured outer bloom, with gold retained in the inner layer.
  const accents={'gold-accent-blue':0x548bff,'gold-accent-purple':0xb67bff,'gold-accent-pink':0xff73c8,'gold-accent-aqua':0x66ddff};
@@ -75,7 +76,7 @@ export function createShellShapeSampler(random=Math.random){
   const key=kind+':'+size;let deck=decks.get(key);
   if(!deck?.length){deck=[0,1,2];for(let i=2;i>0;i--){const j=Math.floor(random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}decks.set(key,deck);}
   const level=deck.pop(),profile=SHAPE_PROFILES[size]??SHAPE_PROFILES[10];
-  const restraint=kind==='sunflower'?.55:kind==='willow'?.8:kind==='kiku'&&size===3?1.35:1;
+  const restraint=kind==='sunflower'?.55:kind==='willow'?.8:['kiku','botan'].includes(kind)&&size===3?1.35:1;
   const amount=[0,.28,1][level]*restraint*(.85+random()*.30);
   return {level,ellipse:profile.ellipse*amount,bulge:profile.bulge*amount,star:profile.star*amount,axis:shapeAxis(random),lobe:shapeAxis(random),phase:random()*Math.PI*2};
  };
