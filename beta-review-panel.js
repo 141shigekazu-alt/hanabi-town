@@ -1,7 +1,7 @@
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {t,localizeCanvas} from './i18n.js';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.32';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.32';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.33';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.33';
 import * as T from './vendor/three.module.js';
 import {ShowInfoPanel} from './show-info.js?v=1.3.10';
 
@@ -65,11 +65,11 @@ export class BetaReviewPanel extends ShowInfoPanel{
    const x=next+(s.duration?c.measureText('/ '+s.duration).width:0)+22,max=670-x;
    c.font=panelFont(28);c.fillStyle=panelTheme().text;
    let line='',rows=[];
-   for(const char of s.title){if(c.measureText(line+char).width>max&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
+   for(const char of t(s.title)){if(c.measureText(line+char).width>max&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
    rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2){while(text&&c.measureText(text+'…').width>max)text=Array.from(text).slice(0,-1).join('');text+='…';}c.fillText(text,x,rows.length>1?32+i*32:48);});
   }
   c.font=panelFont(23);c.fillStyle=panelTheme().accent;let line='',rows=[];
-  for(const char of s.names??'次の一玉を待つ'){if(c.measureText(line+char).width>W-56&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
+  for(const char of t(s.names??'次の一玉を待つ')){if(c.measureText(line+char).width>W-56&&line){rows.push(line);line='';}line+=char;}if(line)rows.push(line);
   rows.slice(0,2).forEach((text,i)=>{if(i===1&&rows.length>2)text=text.slice(0,-1)+'…';c.fillText(text,28,98+i*29);});
   this.controls=[];
   const button=(id,label,x,y,w,h,disabled)=>{const b={id,x,y,w,h,disabled};c.fillStyle=disabled?panelTheme().disabled:panelTheme().surface;c.beginPath();c.roundRect(x,y,w,h,10);c.fill();c.textAlign='center';c.font=panelFont(28);c.fillStyle=disabled?panelTheme().disabledText:panelTheme().text;c.fillText(label,x+w/2,y+h/2);this.controls.push(b);};

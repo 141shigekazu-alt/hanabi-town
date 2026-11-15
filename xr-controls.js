@@ -1,7 +1,7 @@
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {gesturePanelPose} from './gesture-panel-pose.js';
 import {pulseLaunch} from './launch-haptics.js?v=1.3.17';
-import {panelBarColor} from './panel-theme.js?v=1.3.32';
+import {panelBarColor} from './panel-theme.js?v=1.3.33';
 import * as T from './vendor/three.module.js';
 
 export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(value)*(Math.abs(value)-.18)/.82;}
@@ -63,7 +63,7 @@ export class XRControls{
   if(hit&&hit.object===(panel.grabTarget??panel.bar)){
    this.grabPanel(e,hit,'grip');return;
   }
-  if(hit?.object===panel?.mesh&&panel.beginContentScroll?.(null,e,hit,'grip'))return;
+  if(hit&&hit.object===panel.mesh&&panel.beginContentScroll?.(null,e,hit,'grip'))return;
   if(hit||this.bridge.active||!this.town.visible||[...this.grabs.values()].some(g=>g.town))return;
   const townHit=this.townHit(e.controller);if(!townHit)return;
   const floor=this.town.position.y+this.groundBottomY*this.town.scale.y;

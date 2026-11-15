@@ -1,6 +1,6 @@
 import {EN} from './locale-en.js';
 import {AUDIT_EN} from './locale-audit-en.js';
-Object.assign(EN,AUDIT_EN);
+Object.assign(EN,AUDIT_EN,{'彩色千輪':'Multicolor Thousand Blooms'});
 const UI_PREFIXES={"音声を開始できませんでした：": "Could not start audio: ", "MRを終了できませんでした：": "Could not exit MR: ", "鑑賞を開始できませんでした：": "Could not start viewing: ", "曲を切り替えられませんでした：": "Could not switch tracks: ", "次の曲を始められませんでした：": "Could not start the next track: ", "名前の編集を開けませんでした：": "Could not open name editing: ", "削除できませんでした：": "Could not delete: ", "元に戻せませんでした：": "Could not restore: ", "曲名の編集を開けませんでした：": "Could not open track renaming: ", "お気に入りを読み込めませんでした：": "Could not load favorites: ", "削除の取り消しを準備できませんでした：": "Could not prepare undo: ", "保存曲を読み込めませんでした：": "Could not load saved tracks: ", "保存できませんでした：": "Could not save: ", "完了できませんでした：": "Could not complete: ", "曲調を保存できませんでした：": "Could not save the mood: ", "曲調で組み直せませんでした：": "Could not rebuild for this mood: ", "音源を読み込めませんでした（": "Could not load audio ("};
 const KEY='hanabi-town-language-v1';
 let stored;try{stored=localStorage.getItem(KEY);}catch{}
@@ -18,6 +18,9 @@ export function t(value){
  const decorated=text.match(/^([☑☐●✓\s\d０-９　›‹←→]+)(.+?)([\s›↗▾]+)?$/u);
  if(decorated&&EN[decorated[2]])return decorated[1]+EN[decorated[2]]+(decorated[3]??'');
  let m;
+ if((m=text.match(/^(.+?)　構成−(\d+)$/)))return `${t(m[1])} · Arrangement ${m[2]}`;
+ if(text.includes(' ／ '))return text.split(' ／ ').map(t).join(' / ');
+ if((m=text.match(/^(.+?) ×(\d+)$/)))return t(m[1])+' ×'+m[2];
  if((m=text.match(/^(.+)の保存が完了しました。$/)))return `Version ${m[1]} has been saved.`;
  if((m=text.match(/^最新版を保存済み · (.+)。Wi-Fiなしでも開けます。$/)))return `Latest version saved · ${m[1]}. Available without Wi-Fi.`;
  if((m=text.match(/^新しい版 (.+)があります。保存済み：(.+)。上のボタンで更新できます。$/)))return `Version ${m[1]} is available. Saved: ${m[2]}. Use the button above to update.`;

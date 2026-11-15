@@ -1,3 +1,4 @@
+import {t,localizeCanvas} from './i18n.js';
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import * as T from './vendor/three.module.js';
 import {shellDisplayName} from './fireworks.js?v=1.3.10';
@@ -10,16 +11,16 @@ export function showInfoText({time,running,previewing,fireworks}){
  const groups=new Map();
  for(const f of fireworks){
   if(f.m.opacity<=.04)continue;
-  const name=shellDisplayName(f.kind,f.size);
+  const name=t(shellDisplayName(f.kind,f.size));
   groups.set(name,(groups.get(name)??0)+1);
  }
- return {timer:phase+' '+clock,names:[...groups].map(([name,n])=>name+(n>1?' ×'+n:'')).join(' ／ ')||'次の一玉を待つ'};
+ return {timer:t(phase)+' '+clock,names:[...groups].map(([name,n])=>name+(n>1?' ×'+n:'')).join(' ／ ')||t('次の一玉を待つ')};
 }
 const W=768,WIDTH=.36;
 export class ShowInfoPanel{
  constructor({scene,timer,names,overlay,entries=[]}){
   Object.assign(this,{scene,timer,names,overlay,entries});this.enabled=false;this.anchored=false;this.key='';this.grab=null;this.pinch=new WeakMap();this.ray=new T.Raycaster();this.point=new T.Vector3();this.direction=new T.Vector3();
-  this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=192;this.ctx=this.surface.getContext('2d');
+  this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=192;this.ctx=this.surface.getContext('2d');localizeCanvas(this.ctx,()=>{this.key='';});
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
   this.mesh=new T.Mesh(new T.PlaneGeometry(WIDTH,WIDTH*192/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.FrontSide}));this.mesh.visible=false;this.mesh.renderOrder=1000;this.mesh.frustumCulled=false;scene.add(this.mesh);
   this.bar=new T.Mesh(new T.PlaneGeometry(.18,.012),new T.MeshBasicMaterial({color:0xd8edf7,transparent:true,opacity:.65,depthTest:false,depthWrite:false,side:T.DoubleSide}));this.bar.position.y=-WIDTH*192/W/2-.018;this.bar.renderOrder=1001;this.mesh.add(this.bar);

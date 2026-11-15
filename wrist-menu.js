@@ -2,8 +2,8 @@ import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {gesturePanelPose,panelNearAim} from './gesture-panel-pose.js';
 import {t,localizeCanvas} from './i18n.js';
 import {SoftHand} from './soft-hand.js?v=1.3.16';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.32';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.32';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.33';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.33';
 import * as T from './vendor/three.module.js';
 
 // A deliberate neutral -> palm-up motion; a held pose never repeats.
