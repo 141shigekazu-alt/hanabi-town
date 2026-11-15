@@ -1,5 +1,7 @@
-import {drawPanelSurface} from './panel-surface.js?v=1.3.31';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.31';
+import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
+import {t,localizeCanvas} from './i18n.js';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.32';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.32';
 import * as T from './vendor/three.module.js';
 import {ShowInfoPanel} from './show-info.js?v=1.3.10';
 
@@ -35,7 +37,7 @@ export class BetaReviewPanel extends ShowInfoPanel{
   super({scene,timer:{},names:{},overlay:{},entries:[]});this.click=click;this.set=set;
   this.surface.height=H;this.mesh.geometry.dispose();this.mesh.geometry=new T.PlaneGeometry(WIDTH,WIDTH*H/W);
   this.bar.position.y=-WIDTH*H/W/2-.018;this.grabTarget.position.copy(this.bar.position);
-  this.controls=[];this.touches=new WeakMap();this.state=null;this.sliderDrag=null;this.sliderPlane=new T.Plane();this.sliderPoint=new T.Vector3();this.sliderValue=0;
+  localizeCanvas(this.ctx,()=>this.drawReview());this.controls=[];this.touches=new WeakMap();this.state=null;this.sliderDrag=null;this.sliderPlane=new T.Plane();this.sliderPoint=new T.Vector3();this.sliderValue=0;
  }
  end(){super.end();this.touches=new WeakMap();}
  release(controller=null){
@@ -101,7 +103,7 @@ export class BetaReviewPanel extends ShowInfoPanel{
  }
  controllerRay(controller){
   controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);
-  this.point.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.point,this.direction);
+  this.point.setFromMatrixPosition(controller.matrixWorld);pointerAim(controller,this.direction);this.ray.set(this.point,this.direction);
  }
  drag(stamp,frame,referenceSpace){
   if(this.sliderDrag?.controller){

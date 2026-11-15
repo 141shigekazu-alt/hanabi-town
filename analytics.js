@@ -1,3 +1,4 @@
+import {language,onLanguageChange} from './i18n.js';
 // Counts only. No cookies, visitor IDs, fingerprints, location or referrer data.
 const ENDPOINT='https://hanabi-town-counts.141shigekazu.workers.dev/collect';
 const KEY='hanabi-counts-opt-out-v1';
@@ -16,6 +17,7 @@ export function trackUsage(event){if(['mr_enter','vr_enter','show_start','import
 function mount(){
  const box=document.createElement('section');box.id='usageDetails';box.hidden=true;box.setAttribute('aria-label','利用回数の集計について');
  box.innerHTML='<strong>利用回数の集計について</strong><p>花火街の改善のため、日付ごとのページ表示・MR入場・開演（うち持ち込み曲での開演）の回数を集計しています。Cookieや利用者IDは使わず、曲名・音源・音声入力は送りません。 <a href="privacy.html" target="_blank" rel="noopener">詳しく見る</a></p><p id="usageCountState"></p><button type="button" id="usageCountToggle"></button><button type="button" id="usageCountClose">閉じる</button>';
+ const syncPolicy=()=>{box.querySelector('a').href=language==='en'?'privacy-en.html':'privacy.html';};syncPolicy();onLanguageChange(syncPolicy);
  const link=document.createElement('button');link.type='button';link.id='usageSettings';link.textContent='利用回数の集計について';link.onclick=()=>{box.hidden=!box.hidden;};document.body.append(box);
  function placeSettings(){
   const help=document.getElementById('browserPage3');

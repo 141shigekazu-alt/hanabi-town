@@ -1,5 +1,7 @@
+import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
+import {gesturePanelPose} from './gesture-panel-pose.js';
 import {pulseLaunch} from './launch-haptics.js?v=1.3.17';
-import {panelBarColor} from './panel-theme.js?v=1.3.31';
+import {panelBarColor} from './panel-theme.js?v=1.3.32';
 import * as T from './vendor/three.module.js';
 
 export function stickValue(value){return Math.abs(value??0)<.18?0:Math.sign(value)*(Math.abs(value)-.18)/.82;}
@@ -14,22 +16,23 @@ export class XRControls{
    e.controller.addEventListener('selectstart',()=>this.select(e));
    e.controller.addEventListener('selectend',()=>this.endSelect(e,true));
    // A controller slot may be reused for hands without the old button ending.
-   e.controller.addEventListener('connected',()=>{this.endSelect(e);this.gripDown.delete(e.controller);});
+   e.controller.addEventListener('connected',event=>{e.controller.userData.hanabiHandAim=!!event.data?.hand;this.endSelect(e);this.gripDown.delete(e.controller);});
    e.controller.addEventListener('squeezestart',()=>{if(this.active&&e.source&&!e.source.hand)this.gripDown.add(e.controller);this.squeeze(e);});
-   e.controller.addEventListener('squeezeend',()=>{this.gripDown.delete(e.controller);this.release(e.controller,'grip');});
-   e.controller.addEventListener('disconnected',()=>{this.release(e.controller);this.triggerDown.delete(e.controller);this.gripDown.delete(e.controller);this.edges=new WeakMap();});
+   e.controller.addEventListener('squeezeend',()=>{this.gripDown.delete(e.controller);this.release(e.controller,'grip');for(const panel of this.panels)panel.finishContentScroll?.(e.controller,false,'grip');});
+   e.controller.addEventListener('disconnected',()=>{e.controller.userData.hanabiHandAim=false;this.release(e.controller);this.triggerDown.delete(e.controller);this.gripDown.delete(e.controller);this.edges=new WeakMap();});
   }
  }
- endSelect(e,commit=false){this.triggerDown.delete(e.controller);this.release(e.controller,'trigger');for(const panel of this.panels){if(commit)panel.finishContentScroll?.(e.controller,true);panel.release?.(e.controller);}}
+ endSelect(e,commit=false){this.triggerDown.delete(e.controller);this.release(e.controller,'trigger');for(const panel of this.panels){if(commit&&panel.sliderDrag?.content?.input==='grip')continue;if(commit)panel.finishContentScroll?.(e.controller,true);panel.release?.(e.controller);}}
  begin(viewer){this.end();this.active=true;this.viewer=viewer;}
  end(){this.release();this.active=false;this.viewer=null;this.edges=new WeakMap();this.tracked=new WeakSet();this.triggerDown.clear();this.gripDown.clear();for(const e of this.entries)e.beam.visible=false;}
- cast(controller){controller.updateWorldMatrix(true,false);this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.origin,this.direction);}
+ cast(controller){controller.updateWorldMatrix(true,false);this.origin.setFromMatrixPosition(controller.matrixWorld);pointerAim(controller,this.direction);this.ray.set(this.origin,this.direction);}
  panelHit(controller){
   this.cast(controller);const candidates=[],modal=this.panels.find(p=>p.childView);
   for(const panel of this.panels){if(!panel.mesh.visible)continue;panel.mesh.updateWorldMatrix(true,true);for(const hit of this.ray.intersectObjects([panel.mesh,panel.grabTarget??panel.bar,...(panel.parentSurface?.visible?[panel.parentSurface]:[])],false))candidates.push({...hit,panel,blocked:hit.object===panel.parentSurface||!!modal&&panel!==modal});}
   return candidates.sort((a,b)=>(modal?Number(a.blocked)-Number(b.blocked):0)||a.distance-b.distance)[0]??null;
  }
  select(e){
+  if(this.middleGripActive?.(e.source))return;
   if(!this.active||!e.source||(!e.source.hand&&!this.tracked.has(e.source))||this.triggerDown.has(e.controller))return;
   this.triggerDown.add(e.controller);
   if(this.grabs.size||this.sidebar.sliderDrag||this.panels.some(p=>p.grab||p.sliderDrag))return;
@@ -60,6 +63,7 @@ export class XRControls{
   if(hit&&hit.object===(panel.grabTarget??panel.bar)){
    this.grabPanel(e,hit,'grip');return;
   }
+  if(hit?.object===panel?.mesh&&panel.beginContentScroll?.(null,e,hit,'grip'))return;
   if(hit||this.bridge.active||!this.town.visible||[...this.grabs.values()].some(g=>g.town))return;
   const townHit=this.townHit(e.controller);if(!townHit)return;
   const floor=this.town.position.y+this.groundBottomY*this.town.scale.y;
@@ -94,15 +98,22 @@ export class XRControls{
       p.mesh.position.copy(this.target).sub(grab.anchor.clone().multiply(p.mesh.scale).applyQuaternion(p.mesh.quaternion));p.mesh.updateMatrixWorld(true);p.moved=true;
      }
     }
-    const hit=this.panelHit(e.controller);hoverHits.push(hit);e.beam.visible=!!hit||this.grabs.has(e.controller);e.beam.scale.z=hit?.distance??this.grabs.get(e.controller)?.distance??1.6;
+    const hit=this.panelHit(e.controller);hoverHits.push(hit);e.beam.visible=!!hit||this.grabs.has(e.controller)||!!this.middleGripActive?.(s);e.beam.scale.z=hit?.distance??this.grabs.get(e.controller)?.distance??1.6;
+    const feedback=this.middleGripFeedback?.(s);
+    e.beam.material.color.setHex(feedback&&(feedback.hit||feedback.active)?0xa8f0c8:0xddc695);
+    if(feedback){
+     e.beam.visible=true;e.beam.scale.z=feedback.distance;
+     if(feedback.direction){e.controller.getWorldQuaternion(this.rotation).invert();this.direction.copy(feedback.direction).applyQuaternion(this.rotation);e.beam.quaternion.setFromUnitVectors(this.target.set(0,0,-1),this.direction);}
+    }else alignPointerBeam(e.controller,e.beam);
     continue;
    }
+   e.beam.quaternion.identity();
    const tracked=!!frame.getPose(s.targetRaySpace,referenceSpace),gp=s.gamepad;
    if(!tracked){this.tracked.delete(s);this.release(e.controller);this.triggerDown.delete(e.controller);this.gripDown.delete(e.controller);this.edges.delete(s);e.beam.visible=false;continue;}
    this.tracked.add(s);
    if(gp?.mapping==='xr-standard'){
     const now=[!!gp.buttons[4]?.pressed,!!gp.buttons[5]?.pressed],before=this.edges.get(s);this.edges.set(s,now);
-    if(before){if(now[0]&&!before[0]){if(s.handedness==='left')this.wrist.toggle(viewer);else if(s.handedness==='right'){for(const [controller,grab] of this.grabs)if(grab.panel===this.sidebar)this.release(controller);this.sidebar.toggle();}}if(now[1]&&!before[1]&&s.handedness==='right')this.pause();}
+    if(before){if(now[0]&&!before[0]){const aimed=gesturePanelPose(viewer,frame.getPose(s.targetRaySpace,referenceSpace)?.transform,s.handedness);if(s.handedness==='left')this.wrist.toggleAtAim(aimed);else if(s.handedness==='right'){for(const [controller,grab] of this.grabs)if(grab.panel===this.sidebar)this.release(controller);this.wrist.toggleSidebar?.(aimed);}}if(now[1]&&!before[1]&&s.handedness==='right')this.pause();}
    }
    const g=this.grabs.get(e.controller);
    if(!g&&gp?.mapping==='xr-standard'&&!this.grabs.size&&!this.sidebar.sliderDrag&&!this.sidebar.picker&&!this.panels.some(p=>p.scrollSources?.has(s))&&!this.panels.some(p=>p.grab||p.sliderDrag)){

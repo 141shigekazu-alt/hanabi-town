@@ -1,8 +1,9 @@
+import {t,localizeCanvas} from './i18n.js';
 import {favoriteDisplay} from './favorite-programmes.js';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.31';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.31';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.32';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.32';
 import * as T from './vendor/three.module.js';
-import {MRPanel} from './mr-panel.js?v=1.3.31';
+import {MRPanel} from './mr-panel.js?v=1.3.32';
 const TOP=240,PITCH=132,ROWS=6,BOTTOM=TOP+ROWS*PITCH;
 export function favoriteDropIndex(y,offset,count){return Math.max(0,Math.min(count-1,offset+Math.floor((y-TOP)/PITCH)));}
 export function favoriteInsertionSlot(y,offset,count){return Math.max(offset,Math.min(count,offset+ROWS,offset+Math.floor((y-TOP+PITCH/2)/PITCH)));}
@@ -44,7 +45,7 @@ export class FavoritesPanel extends MRPanel{
   super.release(controller);
  }
  titleLines(label,x,y,width,size=25,lines=2){
-  const c=this.ctx;c.font=panelFont(size);const parts=[];let line='';
+  label=t(label);const c=this.ctx;c.font=panelFont(size);const parts=[];let line='';
   for(const char of label){if(c.measureText(line+char).width>width){parts.push(line);line=char;}else line+=char;}if(line)parts.push(line);
   for(let i=0;i<Math.min(lines,parts.length);i++){let t=parts[i];if(i===lines-1&&parts.length>lines){while(c.measureText(t+'…').width>width)t=t.slice(0,-1);t+='…';}this.text(t,x,y+i*28,size,panelTheme().text);}
  }
@@ -97,7 +98,7 @@ export class FavoritesPanel extends MRPanel{
   this.wrap(s.message||(sets?'名前で曲目・編集 · ▶で開演':s.festival||'▶ 再生・Ⅱ 停止 / ☑ 選曲'),350,207,422,1);
   this[scrollKey]=Math.max(0,Math.min(Math.max(0,(rows.length-ROWS)*PITCH),this[scrollKey]));this[key]=Math.floor(this[scrollKey]/PITCH);const remainder=this[scrollKey]%PITCH;
   const listControls=this.controls.length;c.save();c.beginPath();c.rect(18,TOP-4,758,BOTTOM-TOP+4);c.clip();
-  if(!rows.length)this.wrap(sets?'♥の曲を選んで並べ、「このセットリストを保存する」を押してください。':'気に入った構成で、サイドパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
+  if(!rows.length)this.wrap(sets?'♥の曲を選んで並べ、「このセットリストを保存する」を押してください。':'気に入った構成で、コントロールパネル右上の♡を押してください。音源と構成が丸ごと残ります。',32,340,736,4);
   rows.slice(this[key],this[key]+ROWS+(remainder>0?1:0)).forEach((row,i)=>{
    const index=this[key]+i,y=TOP+i*PITCH-remainder,active=!sets&&s.playback?.id===row.id,playing=active&&s.playback.running,paused=active&&s.playback.active&&!s.playback.completed&&!playing;
    c.fillStyle=this.dragRow?.id===row.id?panelTheme().hover:!sets&&row.checked?panelGradient(c,20,y,760,0,panelTheme().selectedCard):panelTheme().surface;c.beginPath();c.roundRect(20,y-4,760,122,16);c.fill();c.strokeStyle=!sets&&row.checked?panelTheme().selectedLine:panelTheme().line;if(playing||paused)c.strokeStyle=panelTheme().accent;c.lineWidth=playing||paused?3:1;c.stroke();

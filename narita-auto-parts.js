@@ -1,6 +1,6 @@
 import {naritaScore,NARITA_PARTS} from './narita-patterns.js';
 import {SIZES} from './fireworks.js?v=1.3.10';
-import {tigerReservations,tigerReservationPeaks} from './adopted-tiger-programmes.js?v=1.3.31';
+import {tigerReservations,tigerReservationPeaks} from './adopted-tiger-programmes.js?v=1.3.32';
 export {NARITA_PARTS};
 export const NARITA_REVISION='narita-parts02';
 const round=x=>+x.toFixed(6),overlap=(a,b)=>a.start<b.end&&b.start<a.end;
@@ -43,7 +43,7 @@ export function buildNaritaPart(id,origin,helpers,{seed=1,timeScale=1,shellFilte
  }
  for(const r of score.roof)fans.push({at:round(origin+r.at*timeScale),mode:'grand-roof',style:'gold',group,options:{}});
  fans.sort((a,b)=>a.at-b.at);
- const start=Math.min(...shots.map(s=>s.at),...fans.map(f=>f.at)),end=Math.max(...shots.map(s=>s.opening+helpers.shellTiming(s.kind,s.size).life+.1),...fans.map((f,i)=>f.mode==='grand-roof'?f.at+8.5:Math.max(f.at,...tigerReservations(f,i,'narita').map(r=>r.to))));
+ const start=Math.min(...shots.map(s=>s.at),...fans.map(f=>f.at)),end=Math.max(...shots.map(s=>s.opening+helpers.shellTiming(s.kind,s.size).life+.1),...fans.map((f,i)=>f.mode==='grand-roof'?f.at+9.3:Math.max(f.at,...tigerReservations(f,i,'narita').map(r=>r.to))));
  const budget=helpers.planBudget(shots),peaks=tigerReservationPeaks(fans.flatMap((f,i)=>tigerReservations(f,i,'narita')));
  if(budget.peakUpper>72||budget.peakPoints>600000||peaks.small>1536||peaks.large>96)throw Error('成田パーツの予約容量を超えています: '+id+' '+JSON.stringify({budget,peaks}));
  return {id,label:score.label,shots,fans,start,end,firstOpening:Math.min(...shots.map(s=>s.opening)),lastOpening:Math.max(...shots.map(s=>s.opening)),budget,groundPeaks:peaks,timeScale};

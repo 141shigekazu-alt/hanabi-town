@@ -20,9 +20,9 @@ function render(){
 toggle.addEventListener('click',()=>{open=!open;render();if(open)panel.focus({preventScroll:true});});
 panel.tabIndex=-1;
 const watch=document.getElementById('showWatch');
-let wasRunning=watch.textContent.includes('一時停止');
+let wasRunning=(watch.textContent.includes('一時停止')||watch.textContent.includes('Pause'));
 new MutationObserver(()=>{
- const running=watch.textContent.includes('一時停止');
+ const running=(watch.textContent.includes('一時停止')||watch.textContent.includes('Pause'));
  if(running&&!wasRunning&&open){open=false;render();toggle.focus({preventScroll:true});}
  wasRunning=running;
 }).observe(watch,{childList:true,subtree:true,characterData:true});

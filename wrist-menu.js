@@ -1,6 +1,9 @@
+import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
+import {gesturePanelPose,panelNearAim} from './gesture-panel-pose.js';
+import {t,localizeCanvas} from './i18n.js';
 import {SoftHand} from './soft-hand.js?v=1.3.16';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.31';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.31';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.32';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.32';
 import * as T from './vendor/three.module.js';
 
 // A deliberate neutral -> palm-up motion; a held pose never repeats.
@@ -39,7 +42,7 @@ export class WristMenu{
  constructor({scene,entries,read,choose,readTC=()=>false,readInfo=()=>false,readDiorama=()=>false,readBoat=()=>false,readRooftop=()=>false,readRooftopSeat=()=>'near',readCruiseStarted=()=>false,beforeOpen=()=>{}}){
   Object.assign(this,{scene,entries,read,choose,readTC,readInfo,readDiorama,readBoat,readRooftop,readRooftopSeat,readCruiseStarted,beforeOpen});this.gesture=new PalmUpGesture();this.touch=new FingerTouch();this.touchPoint=new T.Vector3();this.controls=[];this.ray=new T.Raycaster();this.origin=new T.Vector3();this.direction=new T.Vector3();this.handDisplays=[];this.hover='';this.ignoreController=null;this.ignoreUntil=0;
   for(const e of entries){e.touchTip=new T.Mesh(new T.SphereGeometry(.007,10,8),new T.MeshBasicMaterial({color:0xffdfa1,depthTest:false,depthWrite:false}));e.touchTip.position.z=-.05;e.touchTip.renderOrder=1006;e.touchTip.visible=false;e.controller.add(e.touchTip);}
-  this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
+  this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');localizeCanvas(this.ctx,()=>this.draw());
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
   this.mesh=new T.Mesh(new T.PlaneGeometry(.40,.40*H/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.FrontSide}));this.mesh.visible=false;this.mesh.renderOrder=1005;scene.add(this.mesh);
   this.bar=new T.Mesh(new T.PlaneGeometry(.20,.012),new T.MeshBasicMaterial({color:0xf2f5f8,depthTest:false,depthWrite:false,side:T.DoubleSide}));this.bar.position.y=-.40*H/W/2-.023;this.bar.renderOrder=1006;this.mesh.add(this.bar);
@@ -48,6 +51,14 @@ export class WristMenu{
  }
  get visible(){return this.mesh.visible;}
  toggle(transform){this.gesture.reset();if(this.visible)this.close();else if(transform)this.open(transform);}
+ toggleAtAim(transform){
+  this.gesture.reset();
+  if(this.visible&&panelNearAim(this.mesh.position,transform)){this.close();return;}
+  this.closeSidebar?.();this.beforeOpen();this.reanchor(transform);this.moved=false;
+  const p=transform.position,m=transform.matrix;
+  this.mesh.position.set(p.x-m[8]*.70,p.y-.20,p.z-m[10]*.70);this.mesh.lookAt(p.x,this.mesh.position.y,p.z);
+  this.yawOffset=0;this.mesh.visible=true;this.mesh.updateMatrixWorld(true);this.touch.reset();this.hover='';this.draw();
+ }
  attachHand(hand){this.handDisplays.push(new SoftHand(this.scene,hand));}
  drawHands(show){for(const display of this.handDisplays)display.update(show);}
  reanchor(transform){
@@ -59,7 +70,7 @@ export class WristMenu{
  }
  close(){this.gesture.reset();this.mesh.visible=false;this.cursor.visible=false;for(const e of this.entries){e.beam.visible=false;e.touchTip.visible=false;}}
  end(){this.front=null;this.moved=false;this.close();this.gesture.reset();this.touch.reset();this.ignoreController=null;this.ignoreUntil=0;for(const d of this.handDisplays)d.root.visible=false;}
- hit(controller){controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.origin,this.direction);return this.ray.intersectObject(this.mesh,false)[0]??null;}
+ hit(controller){controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);this.origin.setFromMatrixPosition(controller.matrixWorld);pointerAim(controller,this.direction);this.ray.set(this.origin,this.direction);return this.ray.intersectObject(this.mesh,false)[0]??null;}
  control(hit){if(!hit)return null;const x=hit.uv.x*W,y=(1-hit.uv.y)*H;return this.controls.find(c=>x>=c.x&&x<c.x+c.w&&y>=c.y&&y<c.y+c.h);}
  select(controller,stamp=performance.now()){
   if(controller===this.ignoreController&&stamp<this.ignoreUntil)return true;
@@ -71,18 +82,18 @@ export class WristMenu{
   this.drawHands(drawHands);if(!frame||!transform)return;
   if(busy)this.gesture.reset();
   for(const e of this.entries){
-   const s=e.source,rightHand=s?.handedness==='right'&&!!s.hand;if(s?.handedness!=='left'&&!rightHand)continue;
+   const s=e.source,rightHand=s?.handedness==='right';if(s?.handedness!=='left'&&!rightHand)continue;
    if(this.handLaunchSuppressed?.(s,stamp)){this.gesture.states.delete(s);continue;}
    const joint=s.hand?.get('wrist'),pose=joint?frame.getJointPose(joint,referenceSpace):s.gripSpace?frame.getPose(s.gripSpace,referenceSpace):null;
-   // W3C joint -Y points out of the palm. A left-hand grip's +X does so.
-   const m=pose?.transform.matrix,p=pose?.transform.position,v=transform.position,normalY=m?(joint?-m[5]:m[1]):null;
+   // Palm outward: joint -Y; controller grip +X on left, -X on right.
+   const m=pose?.transform.matrix,p=pose?.transform.position,v=transform.position,normalY=m?(joint?-m[5]:(rightHand?-m[1]:m[1])):null;
    const raised=!!p&&p.y>v.y-.5&&p.y<v.y+.25&&Math.hypot(p.x-v.x,p.y-v.y,p.z-v.z)<.9;
-   if(!busy&&!this.controllerGrabbed&&this.gesture.sample(s,stamp,normalY,raised)){if(rightHand)this.toggleSidebar?.(transform);else this.toggle(transform);}
+   if(!busy&&!this.controllerGrabbed&&this.gesture.sample(s,stamp,normalY,raised)){const rayPose=frame.getPose(s.targetRaySpace,referenceSpace);const aimed=gesturePanelPose(transform,rayPose?.transform,s.handedness);if(rightHand)this.toggleSidebar?.(aimed);else this.toggleAtAim(aimed);}
   }
-  if(!this.visible||this.controllerGrabbed)return;
+  if(!this.visible||this.controllerGrabbed||busy){this.touch.reset();return;}
   let touching=null;this.mesh.updateMatrixWorld(true);
   for(const e of this.entries){
-   const source=e.source;if(source?.handedness!=='right')continue;
+   const source=e.source;if(!source||!['left','right'].includes(source.handedness))continue;
    let local=null;
    if(source.hand){const joint=source.hand.get('index-finger-tip'),pose=joint?frame.getJointPose(joint,referenceSpace):null;if(pose){const p=pose.transform.position;local=this.mesh.worldToLocal(this.touchPoint.set(p.x,p.y,p.z));}}
    else if(source.gripSpace&&frame.getPose(source.targetRaySpace,referenceSpace)){e.touchTip.visible=true;e.touchTip.getWorldPosition(this.touchPoint);local=this.mesh.worldToLocal(this.touchPoint);}
@@ -98,12 +109,12 @@ export class WristMenu{
  }
  draw(){
   const c=this.ctx,active=this.read();this.controls=[];drawPanelSurface(c,W,H,{radius:26,border:'#ddc69585'});
-  c.textBaseline='middle';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText('クルッとパネル',24,38);
+  c.textBaseline='middle';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText('ビューパネル',24,38);
   const views=[{id:'miniature',label:'街を見下ろす'},{id:'bridge',label:'橋の上から見上げる'},{id:'boat',label:'屋形船から見上げる'},{id:'rooftop',label:'ビルの屋上から見る'}];
   if(this.readCruiseStarted())views.push({id:'boat-start',label:'出航位置に戻る'});
   views.push({id:'diorama',label:'ジオラマサイズで観る'},{id:'tc-panel',label:this.readTC()?'TC・玉名を隠す':'TC・玉名を表示'});
   const buttons=[{id:'close',label:'×',x:444,y:12,w:52,h:52},...views.flatMap((b,i)=>b.id==='rooftop'&&active&&this.readRooftop()?[{id:'roof-near',label:'近い席',x:20,y:85+i*86,w:228,h:72},{id:'roof-panorama',label:'全景の席',x:264,y:85+i*86,w:228,h:72}]:[{...b,x:20,y:85+i*86,w:472,h:72}])];
   for(const b of buttons){const selected=b.id.startsWith('roof-')?b.id==='roof-'+this.readRooftopSeat():b.id==='tc-panel'?this.readTC():b.id==='show-info'?this.readInfo():b.id===(active?(this.readRooftop()?'rooftop':this.readBoat()?'boat':'bridge'):this.readDiorama()?'diorama':'miniature');c.fillStyle=this.hover===b.id?panelTheme().hover:selected?panelTheme().selected:panelTheme().surface;c.beginPath();c.roundRect(b.x,b.y,b.w,b.h,10);c.fill();c.strokeStyle=selected?panelTheme().selectedLine:panelTheme().line;c.lineWidth=1;c.stroke();c.textAlign='center';c.font=panelFont(25);c.fillStyle=panelTheme().text;c.fillText((selected?'● ':'')+b.label,b.x+b.w/2,b.y+b.h/2);this.controls.push(b);}c.textAlign='left';
-  c.font=panelFont(17);c.fillStyle=panelTheme().muted;c.fillText('右の指 / コントローラー先端でタッチ',24,H-20);this.texture.needsUpdate=true;
+  c.font=panelFont(17);c.fillStyle=panelTheme().muted;c.fillText('左右どちらの指／コントローラー先端でもタッチ',24,H-20);this.texture.needsUpdate=true;
  }
 }

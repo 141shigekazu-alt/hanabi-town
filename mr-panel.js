@@ -1,6 +1,9 @@
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.31';
-import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.31';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.31';
+import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
+import {panelNearAim} from './gesture-panel-pose.js';
+import {t,localizeCanvas,language,setLanguage,wrapText} from './i18n.js';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.32';
+import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.32';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.32';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
@@ -23,7 +26,7 @@ export class MRPanel{
  constructor({scene,read,click,cycle,choose=()=>{},adjust,place,exit,set=()=>{},pageChanged=()=>{},prepareChoose=()=>{},prepareTab=()=>{},childChanged=()=>{}}){
   Object.assign(this,{scene,read,click,cycle,choose,adjust,place,exit,set,pageChanged,prepareChoose,prepareTab,childChanged});
   this.helpScroll=0;this.helpMaxScroll=0;this.scrollSources=new Set();this.helpScrollStamp=0;this.picker=null;this.pickerScrollAt=0;this.groundStudy=false;this.page=0;this.controls=[];this.controllers=[];this.edges=new WeakMap();this.hover='';this.lastDraw=0;this.active=false;
-  this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');
+  this.surface=document.createElement('canvas');this.surface.width=W;this.surface.height=H;this.ctx=this.surface.getContext('2d');localizeCanvas(this.ctx,()=>this.draw());
   this.texture=new T.CanvasTexture(this.surface);this.texture.colorSpace=T.SRGBColorSpace;this.texture.generateMipmaps=false;this.texture.minFilter=T.LinearFilter;
   this.mesh=new T.Mesh(new T.PlaneGeometry(.68,.68*H/W),new T.MeshBasicMaterial({map:this.texture,transparent:true,depthTest:false,depthWrite:false,side:T.DoubleSide,forceSinglePass:true}));
   this.mesh.renderOrder=1000;this.mesh.visible=false;scene.add(this.mesh);
@@ -62,9 +65,9 @@ export class MRPanel{
   const geometry=new T.BufferGeometry().setFromPoints([new T.Vector3(),new T.Vector3(0,0,-1)]);
   const beam=new T.Line(geometry,new T.LineBasicMaterial({color:0xddc695,transparent:true,opacity:.75,depthTest:false,depthWrite:false}));beam.renderOrder=1001;beam.visible=false;controller.add(beam);
   const entry={controller,beam,source:null};this.controllers.push(entry);
-  controller.addEventListener('connected',e=>{entry.source=e.data;});
-  controller.addEventListener('disconnected',()=>{this.release(controller);if(entry.source)this.edges.delete(entry.source);entry.source=null;beam.visible=false;});
-  controller.addEventListener('selectend',()=>{this.finishContentScroll(controller,true);this.release(controller);});
+  controller.addEventListener('connected',e=>{entry.source=e.data;controller.userData.hanabiHandAim=!!e.data?.hand;});
+  controller.addEventListener('disconnected',()=>{this.release(controller);if(entry.source)this.edges.delete(entry.source);entry.source=null;controller.userData.hanabiHandAim=false;beam.visible=false;});
+  controller.addEventListener('selectend',()=>{if(this.sliderDrag?.content?.input==='grip')return;this.finishContentScroll(controller,true);this.release(controller);});
 
  }
  openAt(transform,{side=1.28,distance=1.2,drop=.12}={}){
@@ -87,6 +90,10 @@ export class MRPanel{
   const forward=new T.Vector3(-m[8],-m[9],-m[10]);
   return normal.dot(toEye)/distance>.25&&forward.dot(toEye.negate())/distance>.25;
  }
+ toggleAtAim(transform){
+  if(this.visible&&panelNearAim(this.mesh.position,transform)&&this.isReadable(transform)){this.close();return;}
+  this.openAt(transform,{side:0,distance:1.45,drop:.12});
+ }
  toggle(){
   if(!this.isReadable()){this.openAt(this.lastTransform);return;}
   if(this.visible)this.close();else if(this.moved){this.mesh.visible=true;this.draw();}else this.openAt(this.lastTransform);
@@ -95,7 +102,7 @@ export class MRPanel{
  fire(control,source){if(!control)return;this.pulse(source);control.action();this.hover='';if(this.visible)this.draw();}
  hitController(controller){
   controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);
-  this.origin.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);
+  this.origin.setFromMatrixPosition(controller.matrixWorld);pointerAim(controller,this.direction);
   this.raycaster.set(this.origin,this.direction);return this.raycaster.intersectObjects([this.mesh,this.grabTarget],false)[0]??null;
  }
  beginGrab(hit,controller=null){
@@ -114,13 +121,22 @@ export class MRPanel{
  }
  // Content pinches wait for release; movement cancels the original button.
  contentScrollArea(){
+  if(this.picker){
+   const picker=this.picker,count=this.read()[picker.id]?.options?.length??0,max=count-8;
+   if(max<=0)return null;
+   return {key:'picker:'+picker.id,x:28,y:268,w:680,h:736,scroll:delta=>{
+    picker.dragOffset=Math.max(0,Math.min(max,(picker.dragOffset??picker.offset)+delta/92));
+    const offset=Math.round(picker.dragOffset);if(offset!==picker.offset){picker.offset=offset;this.draw();}
+   }};
+  }
   if(this.page!==3||this.picker||this.read().helpTopic.value==='contents'||!this.helpMaxScroll)return null;
   return {key:'help:'+this.read().helpTopic.value,x:28,y:390+HEADER_GROWTH,w:700,h:590,scroll:delta=>this.scrollHelp(delta)};
  }
- beginContentScroll(control,entry,hit){
+ beginContentScroll(control,entry,hit,input='trigger'){
   const area=this.contentScrollArea(),x=hit.uv.x*W,y=(1-hit.uv.y)*H;
-  if(!entry?.source?.hand||control?.slider||!area||x<area.x||x>=area.x+area.w||y<area.y||y>=area.y+area.h)return false;
-  this.sliderDrag={controller:entry.controller,control:{contentScroll:true},content:{key:area.key,source:entry.source,button:control,startX:x,startY:y,lastY:y,moved:false}};
+  if(!entry?.source||control?.slider||!area||x<area.x||x>=area.x+area.w||y<area.y||y>=area.y+area.h)return false;
+  if(this.picker)this.picker.dragOffset=this.picker.offset;
+  this.sliderDrag={controller:entry.controller,control:{contentScroll:true},content:{key:area.key,source:entry.source,input,button:input==='grip'?null:control,startX:x,startY:y,lastY:y,moved:false}};
   return true;
  }
  moveContentScroll(x,y){
@@ -130,8 +146,8 @@ export class MRPanel{
   if(!gesture.moved&&Math.hypot(x-gesture.startX,y-gesture.startY)>=14)gesture.moved=true;
   if(gesture.moved){area.scroll(gesture.lastY-y);gesture.lastY=y;}
  }
- finishContentScroll(controller,commit=false){
-  const drag=this.sliderDrag;if(!drag?.control.contentScroll||drag.controller!==controller)return;
+ finishContentScroll(controller,commit=false,input='trigger'){
+  const drag=this.sliderDrag;if(!drag?.control.contentScroll||drag.controller!==controller||drag.content.input!==input)return;
   const entry=this.controllers.find(e=>e.controller===controller),gesture=drag.content;
   // Closing, lost tracking, input replacement and modal changes cancel the tap.
   if(commit&&this.active&&this.visible&&controller.visible!==false&&entry?.source===gesture.source){
@@ -207,7 +223,7 @@ export class MRPanel{
   if(activate){if(this.grab||this.sliderDrag)return true;if(hit?.object===this.grabTarget)this.beginGrab(hit);else if(control?.slider)this.beginSlider(control,null,this.raycaster.ray);else this.fire(control);}return true;
  }
  text(label,x,y,size=25,color=panelTheme().text,maxWidth){
-  const c=this.ctx;c.font=panelFont(size);c.fillStyle=color;c.textBaseline='middle';
+  label=t(label);const c=this.ctx;c.font=panelFont(size);c.fillStyle=color;c.textBaseline='middle';
   if(maxWidth){while(c.measureText(label).width>maxWidth&&size>17){size--;c.font=panelFont(size);}}
   c.fillText(label,x,y);
  }
@@ -231,7 +247,8 @@ export class MRPanel{
 
  selector(id,label,y,state,{width=744,x=28}={}){
   this.text(label,x+4,y,23,panelTheme().muted);
-  this.button(id,state.selected+'  ▾',x,y+24,width,60,()=>{if(!state.disabled){this.picker={id,offset:Math.max(0,(state.options.findIndex(o=>o.value===state.value))-3)};this.draw();}});
+  const fixed=id==='palette'&&(state.disabled||state.options.filter(o=>!o.disabled).length<=1);
+  this.button(id,fixed?'この玉は配色固定':state.selected+'  ▾',x,y+24,width,60,()=>{if(!state.disabled&&!fixed){this.picker={id,offset:Math.max(0,(state.options.findIndex(o=>o.value===state.value))-3)};this.draw();}},{disabled:state.disabled||fixed});
  }
  scrollPicker(delta){
   if(!this.picker)return false;
@@ -283,7 +300,7 @@ export class MRPanel{
   if(max){
    c.fillStyle=panelTheme().track;c.fillRect(742,top,24,rows*pitch);c.fillStyle=panelTheme().accent;const thumb=rows*pitch*rows/count;c.fillRect(742,top+(rows*pitch-thumb)*picker.offset/max,24,thumb);
    this.controls.push({id:'pickerScroll',x:718,y:top,w:64,h:rows*pitch,slider:true,pickerScroll:true,trackY:top+thumb/2,trackH:rows*pitch-thumb});
-   this.text('ビームを一覧へ向け、スティック上下でスクロール',32,1060,23,panelTheme().muted,736);
+   this.text('一覧をつまんで上下に動かす · コントローラーはグリップ／スティックでも操作',32,1060,23,panelTheme().muted,736);
   }
   this.button('pickerCancel','戻る（変更しない）',28,1140,744,64,()=>{this.picker=null;});
  }
@@ -314,9 +331,8 @@ export class MRPanel{
  }
 
  wrap(text,x,y,maxWidth,lines=3,lineHeight=34,color=panelTheme().muted,size=23){
-  const c=this.ctx;c.font=panelFont(size);let line='',row=0;
-  for(const char of text){if(c.measureText(line+char).width>maxWidth){this.text(line,x,y+row*lineHeight,size,color);row++;line='';if(row>=lines)return;}line+=char;}
-  if(line)this.text(line,x,y+row*lineHeight,size,color);
+  const c=this.ctx;c.font=panelFont(size);const rows=wrapText(text,s=>c.measureText(s).width,maxWidth);
+  rows.slice(0,lines).forEach((line,i)=>this.text(line,x,y+i*lineHeight,size,color));
  }
  drawPreparation(s){
   const p=s.preparing,hand=p.hand==='left'?'左':'右',fields=['kind','size','palette'];
@@ -368,13 +384,13 @@ export class MRPanel{
 
  draw(){
   const s=this.read(),c=this.ctx;const child=!!s.preparing||this.page===1||this.page===4&&(this.adjusting||s.patternChoiceOpen);this.syncChildView(child);this.controls=[];drawPanelSurface(c,W,H);
-  this.text('花火街',36,49,43,panelTheme().text);this.text('ベータ版 '+PANEL_BUILD_VERSION,202,57,19,panelTheme().muted);
-  this.text('A LITTLE CITY, A PRIVATE NIGHT',36,92,15,panelTheme().accent);
+  this.text('花火街',36,49,36,panelTheme().text,400);this.text('ベータ版 '+PANEL_BUILD_VERSION,36,92,18,panelTheme().muted,550);
+  this.button('languageSwitch',language==='en'?'日本語':'English',464,18,132,60,()=>setLanguage(language==='en'?'ja':'en'));
   if(child){this.button('detailClose','×',696,18,76,60,()=>{if(s.patternChoiceOpen)this.click('patternChoiceClose');if(s.voice?.open)this.click('voiceClose');this.navigate(4);});this.text('花火大会から開いている設定です',36,132,21,panelTheme().muted);}
   else{
   this.button('favoriteToggle',s.favoriteSaved?'♥':'♡',696,18,76,60,()=>this.click('favoriteToggle'),{selected:!!s.favoriteSaved,disabled:!s.favoriteCanSave,heart:true});
   this.button('favoriteListOpen','一覧',608,18,76,60,()=>this.click('favoriteListOpen'));
-  this.text('右A：サイドパネル · 左X：クルッとパネル',36,132,21,panelTheme().muted);
+  this.text('右A：コントロールパネル · 左X：ビューパネル',36,132,21,panelTheme().muted);
   }
   c.save();c.translate(0,HEADER_GROWTH);
   if(child)this.button('showParent',this.page===1&&this.studyMode?'‹ 花火玉の仕込みへ戻る':'‹ 花火大会へ戻る',28,126,744,64,()=>{if(this.page===1&&this.studyMode){this.studyMode=false;this.groundStudy=false;this.flowerStudy=false;this.draw();}else{if(s.patternChoiceOpen)this.click('patternChoiceClose');if(s.voice?.open)this.click('voiceClose');this.navigate(4);}});
@@ -512,7 +528,7 @@ export class MRPanel{
     this.button('place','花火を今の前方へ',28,950,744,48,()=>this.place());
     this.button('townSceneryToggle','街を戻す',28,1104,744,48,()=>this.click('townSceneryToggle'),{quiet:true});
    }else{
-   if(s.bridge){this.text(s.rooftop?'屋上の花火席 · '+(s.rooftopSeat==='panorama'?'全景の席':'近い席'):s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.rooftop?'赤色灯の上に用意した、屋上の桟敷席。近い席は迫力、全景の席は花火の並びを楽しめます。':s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。サイドパネルを出したままでも移動できます。',32,350,736,3);}else{
+   if(s.bridge){this.text(s.rooftop?'屋上の花火席 · '+(s.rooftopSeat==='panorama'?'全景の席':'近い席'):s.boat?(s.boatWaiting?'屋形船 · 他の船の通過待ち':'屋形船のデッキで鑑賞中'):'手前の橋で鑑賞中',32,280,34,panelTheme().accent);this.wrap(s.rooftop?'赤色灯の上に用意した、屋上の桟敷席。近い席は迫力、全景の席は花火の並びを楽しめます。':s.boat?'自分の足／左スティックでデッキ内を歩けます。パネル表示中も移動できます。清澄橋をくぐって往復、花火の一時停止中は停船。':'左スティックで少し歩けます。コントロールパネルを出したままでも移動できます。',32,350,736,3);}else{
    this.range('scale','街の大きさ（倍率）',242,s.scale);
    this.range('distance','街までの距離',350,s.distance,' m');
    this.range('height','街の底面の高さ（床から）',458,s.height,' m');}
@@ -549,7 +565,7 @@ export class MRPanel{
    this.button('trackMenuClose','×',412,497,360,64,()=>this.click('trackMenuToggle'));
   }
   c.restore();
-  for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen','detailClose'].includes(control.id))control.y+=HEADER_GROWTH;
+  for(const control of this.controls)if(!['favoriteToggle','favoriteListOpen','detailClose','languageSwitch'].includes(control.id))control.y+=HEADER_GROWTH;
   if(this.picker)this.drawPicker(s);
   this.texture.needsUpdate=true;
  }

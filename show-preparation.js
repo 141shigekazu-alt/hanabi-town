@@ -1,3 +1,4 @@
+import {t} from './i18n.js';
 // A display revision is independent of the random arrangement/analysis seed.
 // Only an installed programme can become ready; entering MR is not a rebuild.
 export class ShowPreparation{
@@ -14,6 +15,6 @@ export class ShowPreparation{
   const elapsed=Math.max(0,Math.floor((performance.now()-this.startedAt)/1000));
   const stage=/仕込|花火の準備/.test(item?.setting??'')?'花火を仕込み中':/構成|設定/.test(item?.setting??'')?'構成を準備中':/解析/.test(item?.setting??'')?'曲を解析中':'曲を準備中';
   const heading=this.phase==='preparing'?(item?.heading??`${stage} · ${elapsed}秒経過`):this.phase==='error'?'準備できませんでした':this.phase==='idle'?'曲を選んでください':running?'開演中':paused?'一時停止中':`✓ この設定で準備完了 · 更新${this.revision}`;
-  return {phase:this.phase,revision:this.revision,heading,title:item?.title??'選んだ曲',setting:this.phase==='error'?this.error:(item?.setting??'音源と構成を準備しています')+(this.phase==='preparing'&&Number.isFinite(item?.progress)?` · ${Math.round(Math.max(0,Math.min(1,item.progress))*100)}％`:'')};
+  return {phase:this.phase,revision:this.revision,heading:t(heading),title:item?.title??'選んだ曲',setting:this.phase==='error'?this.error:(item?.setting??'音源と構成を準備しています')+(this.phase==='preparing'&&Number.isFinite(item?.progress)?` · ${Math.round(Math.max(0,Math.min(1,item.progress))*100)}％`:'')};
  }
 }

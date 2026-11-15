@@ -1,3 +1,4 @@
+import {t,wrapText} from './i18n.js';
 // The approved six-topic guide is shared by browser and MR.
 export const HELP_TOPICS=[
  {
@@ -31,24 +32,25 @@ export const HELP_TOPICS=[
   "lead": "",
   "format": "bullets",
   "steps": [
-   "左X：眺め方のパネル／右A：サイドパネル／右B：一時停止・再開。",
+   "左X：ビューパネル／右A：コントロールパネル／右B：一時停止・再開。コントローラーをクルッと返しても、左はビュー、右はコントロールを呼び出せます。",
    "パネルは白いバーをトリガーかグリップで掴んで移動。掴んだままスティック左右で角度、上下で遠さを調整します。",
-   "長い文章や曲一覧へビームを向け、スティック上下でスクロール。",
+   "長い文章や曲・花火玉の一覧は、ビームを向けてスティック上下、またはトリガーやグリップで掴んで上下に動かすとスクロールできます。",
    "橋・屋形船・屋上では、左スティックで移動、右スティック左右で向きを変えます。",
-   "「トリガーに花火玉を仕込む」で左右の玉を用意しておくと、大会中、街へ向けてトリガーを押すと一発追加できます。連発して描画が重くなると一時的に撃てなくなることがあるので、少し間を置いてもう一度トリガーを引いてください。"
+   "「トリガーに花火玉を仕込む」で左右の玉を用意すると、開演前や大会中にトリガーで一発追加できます。仕込みパネルを出したままでも、パネルの外へ向けて試せます。連発して撃てなくなったら、少し間を置いてください。"
   ]
  },
  {
   "id": "hands",
   "title": "手だけで遊ぶ",
-  "lead": "コントローラーを置いても遊べます。",
+  "lead": "コントローラーを置いても遊べます。左右の操作パネルの総称が「くるっとパネル」です。",
   "format": "bullets",
   "steps": [
-   "手のひらをクルッと上へ。左手で眺め方のパネル、右手でサイドパネルを出し入れできます。右手クルッは、見えない位置のサイドパネルも呼び戻せます。",
-   "ビームをボタンへ向け、親指と人差し指をつまんで選択（クリック）。",
+   "街は親指と中指を合わせて掴みます。片手で左右・前後へ移動。両手で掴み、間隔で大きさ、両手を結ぶ向きで回転。離すと確定します。",
+   "手のひらをクルッと上へ。左手でビューパネル、右手でコントロールパネルを出し入れできます。右手クルッは、見えない位置のコントロールパネルも呼び戻せます。",
+   "ビームをボタンへ向け、親指と人差し指をつまんで選択（クリック）。ビューパネルは左右どちらの人差し指でも直接タッチできます。",
    "パネルは下の白いバーをつまんで動かします。",
-   "長い文章や曲一覧は、つまんだまま上下へ動かしてスクロール。",
-   "ハンドジェスチャーでも、トリガーに仕込んだ花火を打ち上げられます。「トリガーに花火玉を仕込む」で左右の玉を用意してください。大会中、目の前でグー。火の玉が灯ったら、パッと開く「肉球パッ」で花火が手から飛び出します！"
+   "長い文章や曲・花火玉の一覧は、一覧をつまんだまま上下へ動かしてスクロール。動かさずにつまんで離すと項目を選べます。",
+   "手だけでも、左右に仕込んだ花火を打ち上げられます。開演前や大会中、パネルの外へ手を向けて目の前でグー。火の玉が灯ったら、パッと開いて発射！仕込みパネルを出したままでも試せます。"
   ]
  },
  {
@@ -77,9 +79,9 @@ export const HELP_CONTENTS=HELP_TOPICS;
 export function helpTopic(id){return HELP_TOPICS.find(t=>t.id===id)??HELP_TOPICS[0];}
 // Pagination keeps every character available in MR without shrinking the text.
 export function helpPages(topic,measure,maxWidth=724,maxRows=16){
- const paragraphs=[topic.lead,...topic.steps.map((s,i)=>topic.format==='paragraphs'?s:topic.format==='bullets'?'・ '+s:`${i+1}. ${s}`),topic.note];
+ const paragraphs=[topic.lead,...topic.steps.map((s,i)=>topic.format==='paragraphs'?s:topic.format==='bullets'?'• '+t(s):`${i+1}. ${s}`),topic.note];
  const rows=[];
- for(const paragraph of paragraphs){if(!paragraph)continue;let line='';for(const char of paragraph){if(line&&measure(line+char)>maxWidth){rows.push(line);line='';}line+=char;}if(line)rows.push(line);rows.push('');}
+ for(const paragraph of paragraphs){if(!paragraph)continue;rows.push(...wrapText(paragraph,measure,maxWidth),'');}
  if(rows.at(-1)==='')rows.pop();const pages=[];for(let i=0;i<rows.length;i+=maxRows)pages.push(rows.slice(i,i+maxRows));return pages;
 }
 export function mountHelp(root){

@@ -1,3 +1,4 @@
+import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import * as T from './vendor/three.module.js';
 import {shellDisplayName} from './fireworks.js?v=1.3.10';
 
@@ -35,7 +36,7 @@ export class ShowInfoPanel{
  }
  release(controller=null){if(!controller||this.grab?.controller===controller){this.grab=null;this.bar.material.opacity=.65;}}
  barHit(controller){
-  controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);this.point.setFromMatrixPosition(controller.matrixWorld);this.direction.set(0,0,-1).transformDirection(controller.matrixWorld);this.ray.set(this.point,this.direction);
+  controller.updateWorldMatrix(true,false);this.mesh.updateMatrixWorld(true);this.point.setFromMatrixPosition(controller.matrixWorld);pointerAim(controller,this.direction);this.ray.set(this.point,this.direction);
   return this.ray.intersectObject(this.bar,false)[0];
  }
  select(controller){return this.mesh.visible&&!!this.barHit(controller);}

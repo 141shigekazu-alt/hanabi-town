@@ -19,5 +19,5 @@ export function rareTigerFinaleProposal(plan,trackId=''){
   {at:end+.3,mode:'small-wide-fan',style:'grand-yellow',group,options:{ignition:'together'}}
  ]:[{at:start,mode:'grand-roof',style:'gold',group,options:{}}];
  const fans=[...plan.fans.filter(f=>f.at<start||f.at>=stop),...added].sort((a,b)=>a.at-b.at);
- return {fans,kind:sync?'grand-sync-finale':'grand-roof',seed,drawModulus:RARE_TIGER_DRAW_MODULUS,showDuration:Math.max(plan.showDuration??plan.duration,start+(sync?12:8.5)),added};
+ return {fans,kind:sync?'grand-sync-finale':'grand-roof',seed,drawModulus:RARE_TIGER_DRAW_MODULUS,showDuration:Math.max(plan.showDuration??plan.duration,start+(sync?12:9.3)),added};
 }

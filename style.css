@@ -232,3 +232,10 @@ body.browser-controls:not(.mobile-view) #mobileFullscreenToggle{left:auto;right:
 #panel #importAction[data-phase=complete]{border-color:#91c4a5;background:#203d36}
 #panel #importAction[data-phase=error]{border-color:#edb7ac;background:#37252b}
 #importAction:focus-visible{outline:3px solid #e0f1eb;outline-offset:3px}
+
+#languageControls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}#languageControls button{width:auto;min-width:76px;padding:9px 14px;margin:0}#languageControls button[aria-pressed=true]{outline:2px solid #e4c58a;background:#493d28}#languageControls small{opacity:.65}html[lang=en] header h1{font-size:clamp(30px,4vw,52px)}
+#languageControls{pointer-events:auto;position:relative;z-index:10}#languageControls button{pointer-events:auto}html[lang=en] header h1{letter-spacing:.08em;white-space:nowrap;font-size:40px}
+
+html[lang=en] #panel .panel-tabs button{white-space:normal;overflow-wrap:normal;line-height:1.25;min-width:0}
+
+.show-card #showRoom.show-launch.mr-entering:disabled{background:#315d68;color:#f3fffc;border-color:#a8f0c8;box-shadow:0 0 18px #a8f0c844;opacity:1;cursor:wait}#showRoom.mr-entering:before{content:"";display:inline-block;width:17px;height:17px;margin-right:10px;border:2px solid #ffffff45;border-top-color:#e2fff1;border-radius:50%;animation:mr-entry-spin .8s linear infinite}@keyframes mr-entry-spin{to{transform:rotate(360deg)}}#mrEntryStatus{font-size:13px;color:#bfead6;margin:4px 0 12px}

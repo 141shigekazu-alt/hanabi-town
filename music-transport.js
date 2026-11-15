@@ -2,7 +2,7 @@
 export class MusicTransport {
  constructor(url,{autoload=true}={}){
   this.url=url;this.buffer=null;this.source=null;this.context=null;this.gain=null;this.offset=0;this.started=0;this.clockRunning=false;
-  this.preRoll=0;this.volume=.35;this.clickEnabled=false;this.clicks=new Set();this.clickCursor=0;this.ready=null;
+  this.preRoll=0;this.volume=.8;this.clickEnabled=false;this.clicks=new Set();this.clickCursor=0;this.ready=null;
   if(autoload)this.load();
  }
  load(){

@@ -1,6 +1,6 @@
 import {FLOWER_PATTERNS,FLOWER_TIMINGS,FLOWER_SPACINGS,FLOWER_COLORS} from './flower-scenes.js';
-import {PANEL_THEMES} from './panel-theme.js?v=1.3.31';
-import {mountHelp} from './help-content.js?v=1.3.31';
+import {PANEL_THEMES} from './panel-theme.js?v=1.3.32';
+import {mountHelp} from './help-content.js?v=1.3.32';
 // Keep one set of controls: the browser and MR panel share their values.
 export function organizePanel(){
  const $=id=>document.getElementById(id),make=(tag,attrs={},text='')=>{const el=document.createElement(tag);Object.assign(el,attrs);el.textContent=text;return el;};
@@ -113,7 +113,7 @@ export function organizePanel(){
  for(const id of ['starmine','whistleSoundStudy'])move(testExtras,id);
  const themeField=make('label',{},'パネルの配色'),themeSelect=make('select',{id:'panelTheme'});for(const option of PANEL_THEMES)themeSelect.append(make('option',{value:option.value},option.label));themeField.append(themeSelect);$('browserPage2').prepend(themeField);
  const soundExtras=details($('browserPage2'),'音の比較（試作用）','showAudioExtras');field(soundExtras,'audioMode');
- const save=details($('panel'),'更新・オフライン保存について','showOffline');save.append(make('p',{},'最新版への更新・保存は、タイトル下のボタンから行えます。街・花火・標準４曲（約175MB）を保存すると、Wi-Fiなしでも開けます。取り込んだ曲・お気に入り・セットリストはこの端末に残ります。'),make('p',{id:'offlineDetails'},'保存した版を確認しています…'));
+ const save=details($('panel'),'更新・オフライン保存について','showOffline');save.append(make('p',{},'最新版への更新・保存は、タイトル下のボタンから行えます。街・花火・標準５曲（約230MB）を保存すると、Wi-Fiなしでも開けます。取り込んだ曲・お気に入り・セットリストはこの端末に残ります。'),make('p',{id:'offlineDetails'},'保存した版を確認しています…'));
  document.querySelector('.mr-entry').hidden=true;
  // Retained DOM nodes support older preview links, but no duplicate entry points.
  for(const id of ['autoMusicRoom','autoMusicWatch','autoMusicManual','autoMusicRebuild'])old.append($(id));

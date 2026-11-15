@@ -12,8 +12,8 @@ export function readLaunchHand(source,frame,referenceSpace){
  return {closed:curled===4,open:straight===4,palm:{x:(wrist.x+middle.x)*.5,y:(wrist.y+middle.y)*.5,z:(wrist.z+middle.z)*.5}};
 }
 // An open panel alone does not block aiming at empty sky.
-export function handLaunchBlocked({preparing=false,grabs=0,panels=[],hit=null,ignore=false}={}){
- return preparing||grabs>0||panels.some(p=>p?.childView||p?.grab||p?.sliderDrag)||!!hit||ignore;
+export function handLaunchBlocked({preparing=false,grabs=0,panels=[],hit=null,ignore=false,launchPanel=null}={}){
+ return preparing||grabs>0||panels.some(p=>p?.childView&&p!==launchPanel||p?.grab||p?.sliderDrag)||!!hit||ignore;
 }
 function glowTexture(){const size=64,data=new Uint8Array(size*size*4);for(let y=0;y<size;y++)for(let x=0;x<size;x++){
  const r=Math.hypot((x+.5-size/2)/(size/2),(y+.5-size/2)/(size/2)),i=(y*size+x)*4,core=Math.max(0,Math.min(1,(.22-r)/.045));
