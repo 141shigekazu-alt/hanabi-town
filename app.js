@@ -1,25 +1,26 @@
+import {autoImmersiveView} from './view-entry-policy.js';
 import {mixPastelCandyPairs} from './pastel-candy-pairs.js';
 import {installRadialGpu,updateRadialGpu} from './radial-shell-gpu.js';
 import {layeredKiku,smoothTrailCount,layeredTailStep} from './smooth-shell-tail.js';
 import {mixParallelBotan,candyCoreSpec} from './botan-programme.js';
 import {mrEntryFeedback} from './mr-entry-feedback.js';
 import {MiddleTownGrip} from './middle-town-grip.js';
-import {GroundSoundGate} from './ground-sound-gate.js?v=1.3.34';
+import {GroundSoundGate} from './ground-sound-gate.js?v=1.3.35';
 import {updateLongShellPoints} from './long-shell-update.js';
 import {simpleGpuKind,installSimpleGpu,updateSimpleGpu} from './simple-shell-gpu.js';
 import {buildNaturalGpuData,installNaturalGpu,updateNaturalGpu} from './natural-gpu.js';
 import {updateKikuShellPoints} from './kiku-shell-update.js';
-import {createMoonSky} from './moon-sky.js?v=1.3.34';
-import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.34';
-import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.34';
+import {createMoonSky} from './moon-sky.js?v=1.3.35';
+import {updateNaturalShellPoints} from './natural-shell-update.js?v=1.3.35';
+import {prepareRecordedSend} from './recorded-send-sound.js?v=1.3.35';
 prepareRecordedSend().catch(error=>console.warn('手元の発射音を準備できませんでした',error));
-import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.34';
-import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.34';
-import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.34';
-import {RoofProgramme} from './roof-programme.js?v=1.3.34';
+import {playPreparedSend} from './prepared-send-sounds.js?v=1.3.35';
+import {upgradeTigerProgramme} from './adopted-tiger-programmes.js?v=1.3.35';
+import {ShellAscent,ASCENT_PROFILE} from './shell-ascent.js?v=1.3.35';
+import {RoofProgramme} from './roof-programme.js?v=1.3.35';
 import {NATURAL_TAIL_TIME_STRETCH,naturalTailStretch,naturalTailStretchFor,NATURAL_TAIL_SAMPLES,naturalTailLifetime,naturalTailAge,createNaturalTails,prepareNaturalTail,naturalTailSample,naturalTailSize,attachNaturalTails} from './natural-tails.js';
-import {trackUsage} from './analytics.js?v=1.3.34';
-import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.34';
+import {trackUsage} from './analytics.js?v=1.3.35';
+import {HandLaunch,handLaunchBlocked} from './hand-launch.js?v=1.3.35';
 import {PLACEMENT_LIMITS,placementStep,placementFar,placementPointScale} from './placement-controls.js?v=1.3.15';
 import {omitUnlitFragments} from './unlit-points.js?v=1.3.13';
 import {PATTERN_MODES,patternPassage,patternCycle,patternChoiceRequest} from './pattern-programmes.js?v=1.3.13';
@@ -31,7 +32,7 @@ import {creativeSizes} from './creative-shells.js';
 import {repairLegacyVoicePlan} from './shell-flight.js';
 import {mountVoiceInput} from './voice-input.js?v=1.3.10';
 import {voiceProgrammeStyle} from './voice-request.js?v=1.3.10';
-import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.34';
+import {PANEL_BUILD_VERSION,panelThemeId,setPanelTheme,panelFontReady} from './panel-theme.js?v=1.3.35';
 import {styleKind,stylePalette} from './programme-style.js?v=1.3.10';
 import {isCreativeShell,CREATIVE_PROFILES,createCreativeStars,creativePoint,creativeHeadColor,creativeTailColor,creativePointScale} from './creative-shells.js';
 import {EAR_FIELD_LIMIT} from './ear-capacity.js';
@@ -39,14 +40,14 @@ import {earLandscape,seaSunsetPassage,paddySeasonPassage} from './ear-scenes.js?
 import {replaceRetiredShell,replaceRetiredPlan} from './retired-shells.js';
 import {variationRandom,flowerFlight,flowerMotion,isFlowerShell,deformFlowerVector} from './flower-variation.js';
 import {flowerScene,FLOWER_PATTERNS,flowerUsesColor,radialFlowerStars,flowerCarpetPassage,flowerGardenPassage,flowerUsesSize,petalGeometry} from './flower-scenes.js';
-import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.34';
+import {PanelSurfaceTrial} from './panel-surface.js?v=1.3.35';
 import {MRNameEditor} from './mr-name-editor.js';
 import {FavoriteRepository,FavoriteFestival,captureProgramme} from './favorite-programmes.js';
 import {mountFavorites} from './favorites-ui.js';
-import {FavoritesPanel} from './favorites-panel.js?v=1.3.34';
+import {FavoritesPanel} from './favorites-panel.js?v=1.3.35';
 import {ShowPreparation} from './show-preparation.js';
 import {readLocalTrack,readTrackFeeling,saveTrackFeeling,listDeletedTracks} from './quest-local-library.js';
-import {organizePanel} from './panel-layout.js?v=1.3.34';
+import {organizePanel} from './panel-layout.js?v=1.3.35';
 organizePanel();
 import {MUSIC_CATALOG,playableMusicChoices,setLocalMusicCatalog,musicTrackTitle,musicTrackIdentityTitle,musicProgrammeTitle} from './music-catalog.js?v=1.3.4';
 import {mountAutoMusic} from './auto-music-ui.js?v=1.3.13';
@@ -61,25 +62,25 @@ import {RiverNight,RooftopCranes} from './river-night.js?v=1.3.17';
 import {sunflowerPoint,goldPetalPoint,petalPoint} from './sunflower-motion.js?v=1.3.1';
 import {createCandyBigStars,candyBigStarPoint,CANDY_BIG_STAR_TRAILS,CANDY_SINGLE_STAR,isCandyPairPalette} from './candy-big-stars.js?v=1.3.1';
 import {CANDY_PALETTES,candyColor} from './candy-colors.js?v=1.3.1';
-import {CometField,COMET_STYLES,SMALL_COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.34';
-import {MUSIC_SHOWS} from './music-shows.js?v=1.3.34';
+import {CometField,COMET_STYLES,SMALL_COMET_STYLES,COMET_PATTERNS} from './comets.js?v=1.3.35';
+import {MUSIC_SHOWS} from './music-shows.js?v=1.3.35';
 import {MusicTransport} from './music-transport.js';
 import {createProgram,programCue,normalVoiceShell,PROGRAM_NAMES,randomStarmine,normalGroundCues,normalEarSequence} from './programs.js?v=1.3.10';
 import * as T from './vendor/three.module.js';
 import {isSenrin,EAR_PROFILE,createEarStars,earPoint,SIZES,TYPES,shellDisplayName,sphere,chapter,paletteOptions,shellPalette,createShellShapeSampler,deformShellVector,sampleIgnitionDelays,MAX_IGNITION_DELAY} from './fireworks.js?v=1.3.10';
 import {reflectionMaterial,reflectionAppearance} from './water.js?v=1.3.1';
-import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.34';
+import {FireworkAudio,CompletionChime} from './audio.js?v=1.3.35';
 import {placementFromPose,XRMetrics} from './mr-test.js?v=1.3.1';
-import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.34';
+import {MRPanel,nextEnabledOption,stepRange} from './mr-panel.js?v=1.3.35';
 import {MRDimming,clampBrightness} from './mr-dimming.js?v=1.3.1';
 import {TowerLighting} from './tower-lighting.js?v=1.3.1';
 import {createRooftopDeck,prepareRooftopBuilding} from './rooftop-deck.js?v=1.3.2';
 import {BridgeView,BRIDGE_SCALE} from './bridge-view.js?v=1.3.17';
 import {showInfoText,ShowInfoPanel} from './show-info.js?v=1.3.10';
-import {WristMenu} from './wrist-menu.js?v=1.3.34';
-import {XRControls} from './xr-controls.js?v=1.3.34';
+import {WristMenu} from './wrist-menu.js?v=1.3.35';
+import {XRControls} from './xr-controls.js?v=1.3.35';
 import {TriggerEmbers,ManualLaunchBudget,manualPointCost} from './trigger-embers.js?v=1.3.13';
-import {EntryTip,entryInputMode} from './entry-tip.js?v=1.3.34';
+import {EntryTip,entryInputMode} from './entry-tip.js?v=1.3.35';
 const BUILD_VERSION=PANEL_BUILD_VERSION;
 const mrReturnTrace=new MRReturnTrace({build:BUILD_VERSION});
 const questDiagnostics=new QuestDiagnostics({enabled:location.hostname==='localhost'&&new URLSearchParams(location.search).get('questLog')==='1'});
@@ -1588,7 +1589,7 @@ $('bridge').onclick=()=>{
  if(mrStarting)return;
  if(bridgeView.active){if(bridgeView.mode==='bridge'){leaveBridge();return;}}
  if(mrSession){pendingViewMode='bridge';return;}
- if((mrSupported||vrSupported)&&!panelPreview){startXR(mrSupported?'immersive-ar':'immersive-vr',true);return;}
+ if(autoImmersiveView({userAgent:navigator.userAgent,mobile:navigator.userAgentData?.mobile,platform:navigator.platform,maxTouchPoints:navigator.maxTouchPoints,ar:mrSupported,vr:vrSupported})&&!panelPreview){startXR(mrSupported?'immersive-ar':'immersive-vr',true);return;}
  // Desktop preview and browsers without immersive VR share the same bridge.
  ensureAudio();enterBridge();if(panelPreview)mrPanel.draw();
 };
@@ -1605,8 +1606,8 @@ $('boatStart').onclick=()=>{
  if(!bridgeView.active||bridgeView.mode!=='boat')$('boat').click();
  else{$('status').textContent='出航位置へ戻りました。永代橋を前に見ながら、もう一度出発します。';}
 };
-$('boat').onclick=()=>{if(mrStarting)return;if(bridgeView.active&&bridgeView.mode==='boat'){leaveBridge();return;}if(mrSession){pendingViewMode='boat';return;}if((mrSupported||vrSupported)&&!panelPreview){startXR(mrSupported?'immersive-ar':'immersive-vr','boat');return;}ensureAudio();enterBridge(null,'boat');};
-$('rooftop').onclick=()=>{if(mrStarting)return;if(bridgeView.active&&bridgeView.mode==='rooftop'){leaveBridge();return;}if(mrSession){pendingViewMode='rooftop';return;}if((mrSupported||vrSupported)&&!panelPreview){startXR(mrSupported?'immersive-ar':'immersive-vr','rooftop');return;}ensureAudio();enterBridge(null,'rooftop');};
+$('boat').onclick=()=>{if(mrStarting)return;if(bridgeView.active&&bridgeView.mode==='boat'){leaveBridge();return;}if(mrSession){pendingViewMode='boat';return;}if(autoImmersiveView({userAgent:navigator.userAgent,mobile:navigator.userAgentData?.mobile,platform:navigator.platform,maxTouchPoints:navigator.maxTouchPoints,ar:mrSupported,vr:vrSupported})&&!panelPreview){startXR(mrSupported?'immersive-ar':'immersive-vr','boat');return;}ensureAudio();enterBridge(null,'boat');};
+$('rooftop').onclick=()=>{if(mrStarting)return;if(bridgeView.active&&bridgeView.mode==='rooftop'){leaveBridge();return;}if(mrSession){pendingViewMode='rooftop';return;}if(autoImmersiveView({userAgent:navigator.userAgent,mobile:navigator.userAgentData?.mobile,platform:navigator.platform,maxTouchPoints:navigator.maxTouchPoints,ar:mrSupported,vr:vrSupported})&&!panelPreview){startXR(mrSupported?'immersive-ar':'immersive-vr','rooftop');return;}ensureAudio();enterBridge(null,'rooftop');};
 syncViewControls();checkMR();if(new URLSearchParams(location.search).has('boatView'))$('boat').click();if(new URLSearchParams(location.search).has('rooftopView'))$('rooftop').click();
 const walkKeys=new Set();addEventListener('keydown',e=>{if(!/INPUT|SELECT|TEXTAREA/.test(e.target?.tagName??''))walkKeys.add(e.code);});addEventListener('keyup',e=>walkKeys.delete(e.code));addEventListener('blur',()=>walkKeys.clear());
 let previous=0;renderer.setAnimationLoop((stamp,frame)=>{
@@ -2399,4 +2400,4 @@ if(['localhost','127.0.0.1'].includes(location.hostname))window.__criticalSilver
 // Update waiting time only while preparing.
 setInterval(()=>{if(showPreparation.phase==='preparing'){syncShowButtons();mrPanel.draw();}},500);
 // Local prototype inspection surface; the published build is unchanged.
-if(['localhost','127.0.0.1'].includes(location.hostname))window.__languageTrial={get handLaunchBlock(){return handLaunch.blocked;},version:'1.3.34',middleTownTarget,middleTownGrip,entryTip,mrPanel,wristMenu,readPanel,canLaunchBeforeShow,handLaunchEnabled,get preShowManual(){return preShowManual;}};
+if(['localhost','127.0.0.1'].includes(location.hostname))window.__languageTrial={get handLaunchBlock(){return handLaunch.blocked;},version:'1.3.35',middleTownTarget,middleTownGrip,entryTip,mrPanel,wristMenu,readPanel,canLaunchBeforeShow,handLaunchEnabled,get preShowManual(){return preShowManual;}};
