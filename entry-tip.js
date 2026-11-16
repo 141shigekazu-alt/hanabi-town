@@ -1,7 +1,7 @@
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {t,localizeCanvas} from './i18n.js';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.36';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.36';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.37';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.37';
 import * as T from './vendor/three.module.js';
 
 const W=1024,H=460,PREFERENCE='hanabi-town-entry-tip-hidden';

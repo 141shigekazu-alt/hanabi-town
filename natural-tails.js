@@ -2,12 +2,13 @@
 // 36 samples per star retain older embers without widening dots or adding draw calls.
 import * as T from './vendor/three.module.js';
 // Stretch the complete post-break animation, not the distance it travels.
-export const NATURAL_TAIL_TIME_STRETCH=1.20;
+export const NATURAL_FALL_FACTOR=1.5;
+export const NATURAL_TAIL_TIME_STRETCH=1.20*NATURAL_FALL_FACTOR;
 export const NATURAL_TAIL_SAMPLES=36;
 const EMBER_PERSISTENCE=1.50;
 // Conservative end bound for composing a new show before per-star seeds exist.
-export const naturalTailStretch=size=>size===10?1.32:NATURAL_TAIL_TIME_STRETCH;
-export const naturalTailStretchFor=(size,position)=>Number.isFinite(position?.naturalTailTimeStretch)?Math.max(.5,Math.min(2.5,position.naturalTailTimeStretch)):naturalTailStretch(size);
+export const naturalTailStretch=size=>size===10?1.32*NATURAL_FALL_FACTOR:NATURAL_TAIL_TIME_STRETCH;
+export const naturalTailStretchFor=(size,position)=>Number.isFinite(position?.naturalTailTimeStretch)?Math.max(.5,Math.min(2.5,position.naturalTailTimeStretch))*NATURAL_FALL_FACTOR:naturalTailStretch(size);
 export function naturalTailLifeBound(life,stretch=NATURAL_TAIL_TIME_STRETCH){
  const emberMax=1.08*1.40*EMBER_PERSISTENCE,remainingFactor=.95*EMBER_PERSISTENCE;
  const end=Math.max(life*.64,Math.min(life*.84,life-emberMax/remainingFactor));
