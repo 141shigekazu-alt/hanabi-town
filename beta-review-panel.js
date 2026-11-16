@@ -1,7 +1,7 @@
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {t,localizeCanvas} from './i18n.js';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.35';
-import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.35';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.36';
+import {panelTheme,panelThemeId,panelFont,panelGradient} from './panel-theme.js?v=1.3.36';
 import * as T from './vendor/three.module.js';
 import {ShowInfoPanel} from './show-info.js?v=1.3.10';
 
