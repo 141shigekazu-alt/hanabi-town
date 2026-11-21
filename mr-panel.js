@@ -1,9 +1,9 @@
 import {pointerAim,alignPointerBeam} from './hand-pointer-aim.js';
 import {panelNearAim} from './gesture-panel-pose.js';
 import {t,localizeCanvas,language,setLanguage,wrapText} from './i18n.js';
-import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.37';
-import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.37';
-import {drawPanelSurface} from './panel-surface.js?v=1.3.37';
+import {PANEL_BUILD_VERSION,panelTheme,panelThemeId,panelFont,panelGradient,panelPrimaryFill,panelBarColor} from './panel-theme.js?v=1.3.38';
+import {HELP_CONTENTS,helpTopic,helpPages} from './help-content.js?v=1.3.38';
+import {drawPanelSurface} from './panel-surface.js?v=1.3.38';
 import * as T from './vendor/three.module.js';
 
 const W=800,H=1340,HEADER_GROWTH=60;
